@@ -1,5 +1,13 @@
 [
   {
+    "sha": "393ac34bf0cf8a2f06a535e506a12813d00bfaf8",
+    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/393ac34bf0cf8a2f06a535e506a12813d00bfaf8",
+    "message": "[feature] allow chsnging top grey area to image or color",
+    "date": "2026-05-08T02:43:14Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "fc483ac8d91df043f1bf0e520ad4f30869c622c1",
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/fc483ac8d91df043f1bf0e520ad4f30869c622c1",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
