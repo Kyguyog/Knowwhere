@@ -252,6 +252,12 @@
     .popup-btn:hover { background: rgba(255,255,255,0.05); }
     .popup-btn.danger { color: var(--danger); }
     .popup-btn.danger:hover { background: var(--danger-dim); }
+    .role-pill{display:inline-flex;align-items:center;gap:0.3rem;padding:0.28rem 0.65rem;border-radius:20px;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;}
+    .role-pill.active{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.35);}
+    .role-pill.inactive{background:rgba(239,68,68,0.12);color:var(--danger);border:1px solid rgba(239,68,68,0.3);}
+    .role-pill.admin{background:rgba(168,85,247,0.15);color:var(--primary);border:1px solid rgba(168,85,247,0.35);}
+    .role-pill.editor{background:rgba(34,211,238,0.15);color:var(--secondary);border:1px solid rgba(34,211,238,0.35);}
+    .role-pill.orders{background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.3);}
     .popup-btn svg { flex-shrink: 0; opacity: 0.7; }
     .popup-inline-form { display: none; flex-direction: column; gap: 0.5rem; padding: 0.25rem 0.75rem 0.75rem; }
     .popup-inline-form.open { display: flex; }
@@ -1961,6 +1967,11 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 </div>
 </div>
 
+<div id="profile-roles-row" style="display:none;">
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.5rem;">Roles &amp; Status</label>
+<div id="profile-roles" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+</div>
+
 </div>
 
 <!-- Profile Edit Form (Edit Mode) -->
@@ -2980,6 +2991,24 @@ window.openProfile = async function(userEmail = null) {
     if (editBtn) {
       editBtn.style.display = (email === auth.currentUser?.email) ? 'block' : 'none';
     }
+
+    // Roles (pulled from Firestore users doc)
+    try {
+      const userSnap = await getDoc(doc(db, 'users', email));
+      const ud = userSnap.exists() ? userSnap.data() : {};
+      const isActive = ud.active !== false;
+      const isAdmin = ud.admin === true;
+      const isEditor = ud.editor === true;
+      const isOrders = ud.orders === true;
+      let pills = `<span class="role-pill ${isActive?'active':'inactive'}">${isActive?'✓ Enabled':'✗ Disabled'}</span>`;
+      if (isAdmin)  pills += `<span class="role-pill admin">⬡ Admin</span>`;
+      if (isEditor) pills += `<span class="role-pill editor">✎ Editor</span>`;
+      if (isOrders) pills += `<span class="role-pill orders">📦 Orders</span>`;
+      const rolesEl = document.getElementById('profile-roles');
+      const rolesRow = document.getElementById('profile-roles-row');
+      if (rolesEl) rolesEl.innerHTML = pills;
+      if (rolesRow) rolesRow.style.display = 'block';
+    } catch(e) { /* roles non-critical */ }
     
     // Reset edit mode
     document.getElementById('profile-view-mode').style.display = 'flex';
