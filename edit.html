@@ -708,7 +708,7 @@ window.adminAddShopItem = function() {
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, updatePassword, createUserWithEmailAndPassword }
     from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, arrayUnion, query, where } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, arrayUnion, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
   const FIREBASE_API_KEY = "AIzaSyAP-GnPXo490Frl1hGYWbje8QdhxtD19PQ";
 
@@ -943,6 +943,7 @@ window.adminAddShopItem = function() {
       'auth/weak-password': 'Password must be at least 6 characters.',
       'auth/too-many-requests': 'Too many attempts. Try again later.',
       'auth/invalid-credential': 'Email or password is incorrect.',
+      'auth/user-disabled': 'This account has been disabled.',
     };
     return map[code] || 'Something went wrong. Please try again.';
   }
@@ -1098,6 +1099,7 @@ window.adminAddShopItem = function() {
   
   
   
+  let accountStatusUnsubscribe = null;
   let _forcedSignout = false;
 
   onAuthStateChanged(auth, async (user) => {
@@ -1124,15 +1126,31 @@ window.adminAddShopItem = function() {
       
       try {
         const activeSnap = await getDoc(doc(db, 'users', user.email));
-        if (activeSnap.exists()) {
-          const d = activeSnap.data();
-          if (d.active === false && d.admin !== true) {
+        const activeSnapLower = !activeSnap.exists() && user.email && user.email.toLowerCase() !== user.email
+          ? await getDoc(doc(db, 'users', user.email.toLowerCase()))
+          : activeSnap;
+        if (activeSnapLower.exists()) {
+          const d = activeSnapLower.data();
+          if (d.active === false) {
             _forcedSignout = true;
             await signOut(auth);
             
             return;
           }
         }
+        if (accountStatusUnsubscribe) accountStatusUnsubscribe();
+        const accountDocId = activeSnap.exists() ? user.email : user.email.toLowerCase();
+        accountStatusUnsubscribe = onSnapshot(doc(db, 'users', accountDocId), async (snap) => {
+          const data = snap.exists() ? snap.data() : null;
+          if (data && data.active === false && auth.currentUser) {
+            _forcedSignout = true;
+            if (accountStatusUnsubscribe) {
+              accountStatusUnsubscribe();
+              accountStatusUnsubscribe = null;
+            }
+            await signOut(auth);
+          }
+        });
       } catch(e) {
         
         
@@ -1186,7 +1204,10 @@ window.adminAddShopItem = function() {
       
       try {
         const userSnap = await getDoc(doc(db, 'users', user.email));
-        const userData = userSnap.exists() ? userSnap.data() : {};
+        const userSnapLower = !userSnap.exists() && user.email && user.email.toLowerCase() !== user.email
+          ? await getDoc(doc(db, 'users', user.email.toLowerCase()))
+          : userSnap;
+        const userData = userSnapLower.exists() ? userSnapLower.data() : {};
         const isAdmin  = userData.admin  === true;
         const isEditor = userData.editor === true;
 
@@ -1212,6 +1233,10 @@ window.adminAddShopItem = function() {
       wall.classList.remove('hidden');
       main.classList.remove('visible');
       if (badge) badge.innerHTML = '';
+      if (accountStatusUnsubscribe) {
+        accountStatusUnsubscribe();
+        accountStatusUnsubscribe = null;
+      }
       
       document.getElementById('auth-email').value = '';
       document.getElementById('auth-password').value = '';
