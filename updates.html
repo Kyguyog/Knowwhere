@@ -108,45 +108,11 @@
   }
   .repo-bar-name span { color: var(--primary); }
 
-  /* TAG KEY */
-  .tag-key {
-    display: flex; align-items: flex-start; gap: 0.75rem;
-    padding: 0.85rem 1.1rem;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--border); border-radius: 8px;
-    margin-bottom: 1.5rem; flex-wrap: wrap;
-  }
-  .tag-key-label {
-    font-family: var(--font-display); font-size: 0.56rem; font-weight: 700;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
-    padding-top: 1px; flex-shrink: 0;
-  }
-  .tag-key-items { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-  .tag-key-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.76rem; color: rgba(226,232,240,0.55); }
-  .tag-key-item code {
-    font-family: var(--font-mono); font-size: 0.69rem;
-    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-    border-radius: 3px; padding: 0.1rem 0.35rem; color: var(--secondary);
-  }
-
-  /* FILTER BAR */
-  .filter-bar {
+  /* TOOLBAR */
+  .updates-toolbar {
     display: flex; align-items: center; justify-content: space-between;
     gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;
   }
-  .filter-bar-left { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
-  .filter-chip {
-    padding: 0.37rem 0.82rem;
-    background: transparent; border: 1px solid var(--border); border-radius: 999px;
-    color: var(--muted);
-    font-family: var(--font-display); font-size: 0.57rem; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    cursor: pointer; transition: all 0.2s;
-  }
-  .filter-chip:hover { border-color: var(--primary); color: var(--primary); }
-  .filter-chip.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
-  .filter-chip[data-filter="undefined"]:hover { border-color: var(--muted); color: var(--muted); }
-  .filter-chip[data-filter="undefined"].active { background: rgba(100,116,139,0.12); border-color: var(--muted); color: var(--muted); }
 
   .commit-count-badge { font-size: 0.75rem; color: var(--muted); }
 
@@ -359,21 +325,9 @@
     <span class="repo-bar-name">Kyguyog / <span>kyguyog.github.io</span></span>
   </div>
 
-  <!-- Tag key -->
-  <div class="tag-key">
-    <span class="tag-key-label">Tag key</span>
-    <div class="tag-key-items">
-      <span class="tag-key-item"><code>[fix]</code> Bug Fix</span>
-      <span class="tag-key-item"><code>[feat]</code> Feature</span>
-      <span class="tag-key-item"><code>[update]</code> Update</span>
-      <span class="tag-key-item"><code>[merge]</code> Merge</span>
-      <span class="tag-key-item" style="color:var(--muted);">No tag &rarr; <em>Undefined</em></span>
-    </div>
-  </div>
-
-  <!-- Filter + refresh -->
-  <div class="filter-bar">
-    <div class="filter-bar-left" id="filter-chips"></div>
+  <!-- Refresh -->
+  <div class="updates-toolbar">
+    <div></div>
     <div style="display:flex;align-items:center;gap:0.75rem;">
       <span class="commit-count-badge" id="commit-count"></span>
       <button id="refresh-btn" onclick="fetchCommits(true)">
@@ -406,7 +360,6 @@
   let currentBranch  = 'main';
   let allCommits     = [];
   let displayedCount = PER_PAGE;
-  let currentFilter  = 'all';
 
   // Parse one or more tags from the very start of the first line:
   // examples: [fix] title, [fix][ui] title, [other] title
@@ -534,43 +487,9 @@
       </a>`;
   }
 
-  function getFiltered() {
-    if (currentFilter === 'all') return allCommits;
-    return allCommits.filter(c => {
-      const firstLine = (c.message || '').split('\n')[0].trim();
-      const tags = parseTags(firstLine).map(normalizeTag);
-      if (!tags.length) return currentFilter === 'undefined';
-      return tags.includes(currentFilter);
-    });
-  }
-
-  function renderFilterChips() {
-    const wrap = document.getElementById('filter-chips');
-    const customTags = new Set();
-    allCommits.forEach(c => {
-      const tags = parseTags((c.message || '').split('\n')[0].trim()).map(normalizeTag);
-      tags.forEach(t => {
-        if (!TYPE_LABELS[t] && t !== 'undefined') customTags.add(t);
-      });
-    });
-    const customButtons = Array.from(customTags).sort().map(t =>
-      `<button class="filter-chip" data-filter="${escapeHtml(t)}" onclick="setFilter('${escapeHtml(t)}',this)">[${escapeHtml(t)}]</button>`
-    ).join('');
-    wrap.innerHTML = `
-      <button class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="setFilter('all',this)">All</button>
-      <button class="filter-chip ${currentFilter === 'fix' ? 'active' : ''}" data-filter="fix" onclick="setFilter('fix',this)">Bug Fixes</button>
-      <button class="filter-chip ${currentFilter === 'feat' ? 'active' : ''}" data-filter="feat" onclick="setFilter('feat',this)">Features</button>
-      <button class="filter-chip ${currentFilter === 'update' ? 'active' : ''}" data-filter="update" onclick="setFilter('update',this)">Updates</button>
-      <button class="filter-chip ${currentFilter === 'merge' ? 'active' : ''}" data-filter="merge" onclick="setFilter('merge',this)">Merges</button>
-      ${customButtons}
-      <button class="filter-chip ${currentFilter === 'undefined' ? 'active' : ''}" data-filter="undefined" onclick="setFilter('undefined',this)">Undefined</button>
-    `;
-  }
-
   function renderCommits(animated) {
     const list     = document.getElementById('commits-list');
-    const filtered = getFiltered();
-    const count    = filtered.length;
+    const count    = allCommits.length;
 
     document.getElementById('commit-count').textContent =
       count + ' commit' + (count !== 1 ? 's' : '');
@@ -578,13 +497,13 @@
     if (count === 0) {
       list.innerHTML = `<div class="state-box">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8M9 9h.01M15 9h.01"/></svg>
-        <p><strong>Nothing here</strong>No commits with tag &ldquo;${escapeHtml(currentFilter)}&rdquo; on <em>${escapeHtml(currentBranch)}</em>.</p>
+        <p><strong>Nothing here</strong>No commits found on <em>${escapeHtml(currentBranch)}</em>.</p>
       </div>`;
       document.getElementById('load-more-wrap').style.display = 'none';
       return;
     }
 
-    list.innerHTML = filtered
+    list.innerHTML = allCommits
       .slice(0, displayedCount)
       .map((c, i) => buildCard(c, animated ? Math.min(i * 32, 280) : 0))
       .join('');
@@ -597,14 +516,6 @@
     displayedCount += PER_PAGE;
     renderCommits(false);
   }
-
-  window.setFilter = function(filter, el) {
-    currentFilter = filter;
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    displayedCount = PER_PAGE;
-    renderCommits(true);
-  };
 
   function showLoading() {
     document.getElementById('commits-list').innerHTML = `
@@ -648,17 +559,13 @@
     // Reset state for new branch/refresh
     allCommits     = [];
     displayedCount = PER_PAGE;
-    currentFilter  = 'all';
-    renderFilterChips();
 
     try {
       allCommits = await fetchFeed();
-      renderFilterChips();
       renderCommits(true);
     } catch (e) {
       try {
         allCommits = await fetchLocalFallback();
-        renderFilterChips();
         renderCommits(true);
       } catch (fallbackErr) {
         showError(fallbackErr.message || e.message || 'Unknown error. Check your connection.');
