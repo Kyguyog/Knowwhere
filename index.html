@@ -1913,7 +1913,7 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:600px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.8);margin:auto;">
 
 <!-- Profile Header with Banner and Avatar -->
-<div style="position:relative;height:140px;background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(34,211,238,0.15));border-bottom:1px solid var(--border);">
+<div id="profile-banner" style="position:relative;height:140px;background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(34,211,238,0.15));border-bottom:1px solid var(--border);">
 <button onclick="closeProfile()" style="position:absolute;top:1rem;right:1rem;z-index:10;background:rgba(0,0,0,0.5);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;">✕</button>
 <div style="position:absolute;bottom:-30px;left:1.5rem;">
 <div id="profile-avatar-large" style="width:80px;height:80px;border-radius:999px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(168,85,247,0.15);border:3px solid var(--card);font-size:2rem;font-weight:700;color:var(--primary);">?</div>
@@ -1971,6 +1971,40 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 <div style="display:flex;gap:0.75rem;align-items:flex-end;">
 <input accept="image/*" id="profile-pfp-input" type="file" style="flex:1;padding:0.5rem;background:#0d0d14;border:1px dashed var(--border);border-radius:6px;color:var(--muted);font-size:0.85rem;"/>
 <button onclick="saveProfilePictureFromEdit()" style="padding:0.5rem 1rem;background:var(--secondary);color:#000;border:none;border-radius:6px;font-family:var(--font-display);font-size:0.6rem;font-weight:700;text-transform:uppercase;cursor:pointer;white-space:nowrap;">Upload</button>
+</div>
+</div>
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.5rem;">Banner</label>
+<!-- Tab switcher -->
+<div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:0.75rem;">
+  <button id="banner-tab-color" onclick="setBannerMode('color')" style="flex:1;padding:0.45rem;background:var(--primary-dim);color:var(--primary);border:none;font-family:var(--font-display);font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background 0.15s,color 0.15s;">Color</button>
+  <button id="banner-tab-image" onclick="setBannerMode('image')" style="flex:1;padding:0.45rem;background:transparent;color:var(--muted);border:none;font-family:var(--font-display);font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background 0.15s,color 0.15s;">Image</button>
+</div>
+<!-- Color panel -->
+<div id="banner-color-panel">
+  <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.6rem;">
+    <div onclick="selectBannerPreset('linear-gradient(135deg,rgba(168,85,247,0.15),rgba(34,211,238,0.15))')" title="Default" style="width:36px;height:22px;border-radius:4px;cursor:pointer;background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(34,211,238,0.15));border:2px solid var(--border);"></div>
+    <div onclick="selectBannerPreset('linear-gradient(135deg,#3b0764,#1e1b4b)')" title="Deep Purple" style="width:36px;height:22px;border-radius:4px;cursor:pointer;background:linear-gradient(135deg,#3b0764,#1e1b4b);border:2px solid var(--border);"></div>
+    <div onclick="selectBannerPreset('linear-gradient(135deg,#0f172a,#1e3a5f)')" title="Dark Blue" style="width:36px;height:22px;border-radius:4px;cursor:pointer;background:linear-gradient(135deg,#0f172a,#1e3a5f);border:2px solid var(--border);"></div>
+    <div onclick="selectBannerPreset('linear-gradient(135deg,#164e63,#0d9488)')" title="Teal" style="width:36px;height:22px;border-radius:4px;cursor:pointer;background:linear-gradient(135deg,#164e63,#0d9488);border:2px solid var(--border);"></div>
+    <div onclick="selectBannerPreset('linear-gradient(135deg,#7f1d1d,#c2410c)')" title="Fire" style="width:36px;height:22px;border-radius:4px;cursor:pointer;background:linear-gradient(135deg,#7f1d1d,#c2410c);border:2px solid var(--border);"></div>
+    <div onclick="selectBannerPreset('linear-gradient(135deg,#14532d,#15803d)')" title="Forest" style="width:36px;height:22px;border-radius:4px;cursor:pointer;background:linear-gradient(135deg,#14532d,#15803d);border:2px solid var(--border);"></div>
+    <div onclick="selectBannerPreset('linear-gradient(135deg,#1e1e2e,#2d2b55)')" title="Midnight" style="width:36px;height:22px;border-radius:4px;cursor:pointer;background:linear-gradient(135deg,#1e1e2e,#2d2b55);border:2px solid var(--border);"></div>
+    <div onclick="selectBannerPreset('linear-gradient(135deg,#4a044e,#831843)')" title="Magenta" style="width:36px;height:22px;border-radius:4px;cursor:pointer;background:linear-gradient(135deg,#4a044e,#831843);border:2px solid var(--border);"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:0.5rem;">
+    <input type="color" id="banner-color-picker" value="#1e1e2e" oninput="selectBannerPreset(this.value)" style="width:36px;height:28px;border:1px solid var(--border);border-radius:4px;background:#0d0d14;cursor:pointer;padding:2px;"/>
+    <span style="font-size:0.8rem;color:var(--muted);">Custom solid color</span>
+  </div>
+</div>
+<!-- Image panel -->
+<div id="banner-image-panel" style="display:none;">
+  <div style="display:flex;gap:0.75rem;align-items:flex-end;">
+    <input accept="image/*" id="banner-img-input" type="file" style="flex:1;padding:0.5rem;background:#0d0d14;border:1px dashed var(--border);border-radius:6px;color:var(--muted);font-size:0.85rem;"/>
+    <button onclick="saveBannerImage()" style="padding:0.5rem 1rem;background:var(--secondary);color:#000;border:none;border-radius:6px;font-family:var(--font-display);font-size:0.6rem;font-weight:700;text-transform:uppercase;cursor:pointer;white-space:nowrap;">Upload</button>
+  </div>
+  <button onclick="clearBannerImage()" style="margin-top:0.5rem;padding:0.35rem 0.75rem;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:6px;font-size:0.75rem;cursor:pointer;">Remove image → use color</button>
 </div>
 </div>
 
@@ -2920,6 +2954,27 @@ window.openProfile = async function(userEmail = null) {
       avatarEl.style.fontSize = '2rem';
     }
     
+    // Apply banner
+    const banner = document.getElementById('profile-banner');
+    if (banner) {
+      if (profileData.bannerImg) {
+        banner.style.background = '';
+        banner.style.backgroundImage = `url('${profileData.bannerImg}')`;
+        banner.style.backgroundSize = 'cover';
+        banner.style.backgroundPosition = 'center';
+      } else if (profileData.bannerColor) {
+        banner.style.backgroundImage = '';
+        banner.style.background = profileData.bannerColor;
+        banner.style.backgroundSize = '';
+        banner.style.backgroundPosition = '';
+      } else {
+        banner.style.backgroundImage = '';
+        banner.style.background = 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(34,211,238,0.15))';
+        banner.style.backgroundSize = '';
+        banner.style.backgroundPosition = '';
+      }
+    }
+
     // Show edit button only for own profile
     const editBtn = document.getElementById('profile-edit-btn');
     if (editBtn) {
@@ -2946,6 +3001,18 @@ window.enterProfileEditMode = async function() {
   document.getElementById('profile-edit-bio').value = profileData.bio || '';
   document.getElementById('profile-edit-lunch-a').value = profileData.lunchSchedule?.aDay || '';
   document.getElementById('profile-edit-lunch-b').value = profileData.lunchSchedule?.bDay || '';
+
+  // Banner state
+  window._pendingBannerColor = profileData.bannerColor || '';
+  if (profileData.bannerImg) {
+    setBannerMode('image');
+  } else {
+    setBannerMode('color');
+    if (profileData.bannerColor) {
+      const picker = document.getElementById('banner-color-picker');
+      if (picker && profileData.bannerColor.startsWith('#')) picker.value = profileData.bannerColor;
+    }
+  }
   
   document.getElementById('profile-view-mode').style.display = 'none';
   document.getElementById('profile-edit-mode').style.display = 'flex';
@@ -2976,10 +3043,8 @@ window.saveProfile = async function() {
       fullName,
       phone,
       bio,
-      lunchSchedule: {
-        aDay: lunchA,
-        bDay: lunchB
-      }
+      lunchSchedule: { aDay: lunchA, bDay: lunchB },
+      bannerColor: window._pendingBannerColor || ''
     }, {merge: true});
     
     msg.textContent = '✓ Profile updated!';
@@ -3035,6 +3100,85 @@ window.saveProfilePictureFromEdit = async function() {
     console.error('Error uploading profile picture:', err);
     alert('Failed to upload profile picture.');
   }
+};
+
+window.setBannerMode = function(mode) {
+  document.getElementById('banner-color-panel').style.display = mode === 'color' ? 'block' : 'none';
+  document.getElementById('banner-image-panel').style.display = mode === 'image' ? 'block' : 'none';
+  const cTab = document.getElementById('banner-tab-color');
+  const iTab = document.getElementById('banner-tab-image');
+  cTab.style.background = mode === 'color' ? 'var(--primary-dim)' : 'transparent';
+  cTab.style.color = mode === 'color' ? 'var(--primary)' : 'var(--muted)';
+  iTab.style.background = mode === 'image' ? 'var(--primary-dim)' : 'transparent';
+  iTab.style.color = mode === 'image' ? 'var(--primary)' : 'var(--muted)';
+};
+
+window.selectBannerPreset = function(value) {
+  window._pendingBannerColor = value;
+  const banner = document.getElementById('profile-banner');
+  if (banner) {
+    banner.style.backgroundImage = '';
+    banner.style.background = value;
+    banner.style.backgroundSize = '';
+    banner.style.backgroundPosition = '';
+  }
+};
+
+window.saveBannerImage = async function() {
+  const input = document.getElementById('banner-img-input');
+  if (!input || !input.files.length) { alert('Choose an image first.'); return; }
+  const email = auth.currentUser?.email;
+  if (!email) return;
+
+  try {
+    const compressed = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const W = 900, H = 200;
+          const scale = Math.max(W / img.width, H / img.height);
+          const canvas = document.createElement('canvas');
+          canvas.width = W; canvas.height = H;
+          const ctx = canvas.getContext('2d');
+          const sw = W / scale, sh = H / scale;
+          const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    });
+
+    await setDoc(doc(db, 'users', email), { bannerImg: compressed, bannerColor: '' }, { merge: true });
+    const banner = document.getElementById('profile-banner');
+    if (banner) {
+      banner.style.backgroundImage = `url('${compressed}')`;
+      banner.style.backgroundSize = 'cover';
+      banner.style.backgroundPosition = 'center';
+    }
+    input.value = '';
+  } catch (err) {
+    console.error('Banner upload failed:', err);
+    alert('Failed to upload banner image.');
+  }
+};
+
+window.clearBannerImage = async function() {
+  const email = auth.currentUser?.email;
+  if (!email) return;
+  await setDoc(doc(db, 'users', email), { bannerImg: '' }, { merge: true });
+  const banner = document.getElementById('profile-banner');
+  if (banner) {
+    banner.style.backgroundImage = '';
+    banner.style.background = window._pendingBannerColor || 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(34,211,238,0.15))';
+    banner.style.backgroundSize = '';
+    banner.style.backgroundPosition = '';
+  }
+  setBannerMode('color');
 };
 
 window.closeProfile = function() {
