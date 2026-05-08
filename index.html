@@ -1793,6 +1793,12 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
       Orders
     </button>
 </div>
+<div class="popup-section" id="profile-popup-section" style="display:block;">
+<button class="popup-btn" onclick="toggleUserPopup(); openProfile();" style="color:var(--secondary);">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+       My Profile
+     </button>
+</div>
 <div class="popup-section" id="game-request-popup-section" style="display:block;">
 <button class="popup-btn" onclick="togglePopupForm('game-request-form')" style="color:var(--secondary);">
 <svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
@@ -1900,6 +1906,125 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 </div>
 </div>
 </div>
+
+<!-- Profile Modal -->
+<!-- Profile Modal -->
+<div id="profile-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto;">
+<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:600px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.8);margin:auto;">
+
+<!-- Profile Header with Banner and Avatar -->
+<div style="position:relative;height:140px;background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(34,211,238,0.15));border-bottom:1px solid var(--border);">
+<button onclick="closeProfile()" style="position:absolute;top:1rem;right:1rem;z-index:10;background:rgba(0,0,0,0.5);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;">✕</button>
+<div style="position:absolute;bottom:-30px;left:1.5rem;">
+<div id="profile-avatar-large" style="width:80px;height:80px;border-radius:999px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(168,85,247,0.15);border:3px solid var(--card);font-size:2rem;font-weight:700;color:var(--primary);">?</div>
+</div>
+</div>
+
+<!-- Profile Content -->
+<div style="flex:1;overflow-y:auto;padding:3.5rem 1.5rem 1.5rem;scrollbar-width:thin;scrollbar-color:rgba(168,85,247,0.2) transparent;">
+
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;">
+<div>
+<h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--text);margin:0 0 0.25rem;">
+<span id="profile-username">Loading...</span>
+</h2>
+<p style="font-size:0.9rem;color:var(--muted);margin:0;">
+<span id="profile-fullname"></span>
+</p>
+</div>
+<button id="profile-edit-btn" onclick="enterProfileEditMode()" style="padding:0.5rem 1rem;background:var(--primary);color:#fff;border:none;border-radius:6px;font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:opacity 0.2s;">Edit Profile</button>
+</div>
+
+<!-- Profile Info Grid (View Mode) -->
+<div id="profile-view-mode" style="display:flex;flex-direction:column;gap:1.5rem;">
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.5rem;">Email</label>
+<p id="profile-email" style="font-size:0.95rem;color:var(--text);margin:0;word-break:break-all;"></p>
+</div>
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.5rem;">Phone</label>
+<p id="profile-phone" style="font-size:0.95rem;color:var(--text);margin:0;">Not set</p>
+</div>
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.5rem;">Bio</label>
+<p id="profile-bio" style="font-size:0.95rem;color:var(--text);margin:0;line-height:1.5;">No bio added yet</p>
+</div>
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.5rem;">Lunch Schedule</label>
+<div id="profile-lunch" style="display:flex;gap:1rem;font-size:0.95rem;color:var(--text);">
+<div><span style="color:var(--muted);">A Day:</span> <span id="profile-lunch-a">Not set</span></div>
+<div><span style="color:var(--muted);">B Day:</span> <span id="profile-lunch-b">Not set</span></div>
+</div>
+</div>
+
+</div>
+
+<!-- Profile Edit Form (Edit Mode) -->
+<div id="profile-edit-mode" style="display:none;flex-direction:column;gap:1.5rem;">
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.4rem;">Profile Picture</label>
+<div style="display:flex;gap:0.75rem;align-items:flex-end;">
+<input accept="image/*" id="profile-pfp-input" type="file" style="flex:1;padding:0.5rem;background:#0d0d14;border:1px dashed var(--border);border-radius:6px;color:var(--muted);font-size:0.85rem;"/>
+<button onclick="saveProfilePictureFromEdit()" style="padding:0.5rem 1rem;background:var(--secondary);color:#000;border:none;border-radius:6px;font-family:var(--font-display);font-size:0.6rem;font-weight:700;text-transform:uppercase;cursor:pointer;white-space:nowrap;">Upload</button>
+</div>
+</div>
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.4rem;">Full Name</label>
+<input id="profile-edit-fullname" placeholder="Your full name" type="text" style="width:100%;background:#0d0d14;border:1px solid var(--border);border-radius:6px;padding:0.75rem;color:var(--text);font-size:0.95rem;font-family:var(--font-body);outline:none;transition:border-color 0.2s;"/>
+</div>
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.4rem;">Phone Number</label>
+<input id="profile-edit-phone" placeholder="(123) 456-7890" type="tel" style="width:100%;background:#0d0d14;border:1px solid var(--border);border-radius:6px;padding:0.75rem;color:var(--text);font-size:0.95rem;font-family:var(--font-body);outline:none;transition:border-color 0.2s;"/>
+</div>
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.4rem;">Bio</label>
+<textarea id="profile-edit-bio" placeholder="Tell us about yourself..." style="width:100%;background:#0d0d14;border:1px solid var(--border);border-radius:6px;padding:0.75rem;color:var(--text);font-size:0.95rem;font-family:var(--font-body);outline:none;transition:border-color 0.2s;resize:vertical;min-height:80px;"></textarea>
+</div>
+
+<div>
+<label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.6rem;">Lunch Schedule</label>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+<div>
+<label style="font-size:0.75rem;color:var(--muted);margin-bottom:0.35rem;display:block;">A Day</label>
+<select id="profile-edit-lunch-a" style="width:100%;background:#0d0d14;border:1px solid var(--border);border-radius:6px;padding:0.6rem;color:var(--text);font-family:var(--font-body);outline:none;cursor:pointer;">
+<option value="">Not set</option>
+<option value="1st">1st Lunch</option>
+<option value="2nd">2nd Lunch</option>
+</select>
+</div>
+<div>
+<label style="font-size:0.75rem;color:var(--muted);margin-bottom:0.35rem;display:block;">B Day</label>
+<select id="profile-edit-lunch-b" style="width:100%;background:#0d0d14;border:1px solid var(--border);border-radius:6px;padding:0.6rem;color:var(--text);font-family:var(--font-body);outline:none;cursor:pointer;">
+<option value="">Not set</option>
+<option value="1st">1st Lunch</option>
+<option value="2nd">2nd Lunch</option>
+</select>
+</div>
+</div>
+</div>
+
+<div class="popup-msg" id="profile-edit-msg" style="font-size:0.75rem;padding:0.3rem 0.1rem;display:none;"></div>
+
+<div style="display:flex;gap:0.75rem;">
+<button onclick="saveProfile()" style="flex:1;padding:0.75rem;background:var(--primary);color:#fff;border:none;border-radius:6px;font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:opacity 0.2s;">Save Changes</button>
+<button onclick="cancelProfileEdit()" style="flex:1;padding:0.75rem;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:6px;font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:border-color 0.2s;">Cancel</button>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
 </div>
 <script type="module">import{initializeApp}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";import{getAnalytics}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,updateProfile,updatePassword}
 from"https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";import{getFirestore,doc,setDoc,getDoc,updateDoc,collection,getDocs}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";const FIREBASE_API_KEY="AIzaSyAP-GnPXo490Frl1hGYWbje8QdhxtD19PQ";const firebaseConfig={apiKey:FIREBASE_API_KEY,authDomain:"knowwhere1.firebaseapp.com",projectId:"knowwhere1",storageBucket:"knowwhere1.firebasestorage.app",messagingSenderId:"747448090609",appId:"1:747448090609:web:e3af5b2c8ffa8fb3a9ce50",measurementId:"G-DV44FGDQ2N"};const app=initializeApp(firebaseConfig);const analytics=getAnalytics(app);const auth=getAuth(app);const db=getFirestore(app);window._saveOrder=async function(orderData){const user=auth.currentUser;if(!user)throw new Error('Not logged in');const snap=await getDoc(doc(db,'users',user.email));const snapData=snap.exists()?snap.data():{};const username=snapData.username||user.email;const fullName=snapData.fullName||snapData.username||user.email;let orderNumber;const existingOrders=await getDocs(collection(db,'orders'));const usedNumbers=new Set(existingOrders.docs.map(d=>d.data().orderNumber).filter(Boolean));do{orderNumber=Math.floor(100000+Math.random()*900000);}while(usedNumbers.has(orderNumber));const orderDoc={email:user.email,username,fullName,items:orderData.items,total:orderData.total,orderNumber,placedAt:new Date().toISOString()};const orderId='order_'+Date.now();await setDoc(doc(db,'users',user.email,'orders',orderId),orderDoc);await setDoc(doc(db,'orders',orderId),orderDoc);return{orderNumber,fullName};};window._fetchAllOrders=async function(){const snap=await getDocs(collection(db,'orders'));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.placedAt.localeCompare(a.placedAt));};window._fetchMyOrders=async function(){const user=auth.currentUser;if(!user)return[];const snap=await getDocs(collection(db,'users',user.email,'orders'));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.placedAt.localeCompare(a.placedAt));};Object.defineProperty(window,'_currentUserEmail',{get:()=>auth.currentUser?auth.currentUser.email:null,configurable:true});window._markOrderCompleted=async function(orderId){const completedAt=new Date().toISOString();const patch={completed:true,completedAt};await updateDoc(doc(db,'orders',orderId),patch);try{const topSnap=await getDoc(doc(db,'orders',orderId));if(topSnap.exists()){const email=topSnap.data().email;if(email){await updateDoc(doc(db,'users',email,'orders',orderId),patch);}}}catch(e){console.warn('Could not sync completed status to user subcollection:',e);}};window._markOrderActive=async function(orderId){const patch={completed:false,completedAt:null};await updateDoc(doc(db,'orders',orderId),patch);try{const topSnap=await getDoc(doc(db,'orders',orderId));if(topSnap.exists()){const email=topSnap.data().email;if(email){await updateDoc(doc(db,'users',email,'orders',orderId),patch);}}}catch(e){console.warn('Could not sync active status to user subcollection:',e);}};window._saveGameRequest=async function(requestData){const user=auth.currentUser;if(!user)throw new Error('Not logged in');const id='game_req_'+Date.now();await setDoc(doc(db,'gameRequests',id),Object.assign({id,email:user.email,status:'pending',createdAt:new Date().toISOString()},requestData));};window._capturePublicIp=async function(){const user=auth.currentUser;if(!user)return;try{const res=await fetch('https://api.ipify.org?format=json',{cache:'no-store'});if(!res.ok)return;const data=await res.json();const ip=(data&&data.ip)||'';if(!ip)return;await setDoc(doc(db,'users',user.email),{email:user.email,publicIp:ip,lastIpAt:new Date().toISOString()},{merge:true});}catch(e){console.warn('Could not capture public IP:',e);}};window.switchTab=function(tab){document.getElementById('tab-login').classList.toggle('active',tab==='login');document.getElementById('tab-signup').classList.toggle('active',tab==='signup');document.getElementById('login-form-wrap').style.display=tab==='login'?'flex':'none';document.getElementById('signup-form-wrap').style.display=tab==='signup'?'flex':'none';document.getElementById('auth-error').classList.remove('show');if(window._retryCountdownInterval){clearInterval(window._retryCountdownInterval);window._retryCountdownInterval=null;}};function friendlyError(code){const map={'auth/invalid-email':'That email address doesn\'t look right.','auth/user.html-not-found':'No account found with that email.','auth/wrong-password':'Incorrect password. Try again.','auth/email-already-in-use':'An account with that email already exists.','auth/weak-password':'Password must be at least 6 characters.','auth/too-many-requests':'Too many attempts. Try again later.','auth/invalid-credential':'Email or password is incorrect.',};return map[code]||'Something went wrong. Please try again.';}
@@ -2743,6 +2868,166 @@ onAuthStateChanged(auth, async (user) => {
     }, 1200);
   } catch (_) {}
 });
+
+/* ── PROFILE FUNCTIONS ── */
+window.fetchUserProfile = async function(email) {
+  try {
+    const snap = await getDoc(doc(db, 'users', email));
+    if (snap.exists()) {
+      return snap.data();
+    }
+    return {email};
+  } catch (e) {
+    console.error('Error fetching profile:', e);
+    return {email};
+  }
+};
+
+window.openProfile = async function(userEmail = null) {
+  const modal = document.getElementById('profile-modal');
+  if (!modal) return;
+  
+  const email = userEmail || auth.currentUser?.email;
+  if (!email) return;
+  
+  modal.style.display = 'flex';
+
+  try {
+    const profileData = await fetchUserProfile(email);
+    
+    // Populate view mode
+    document.getElementById('profile-username').textContent = profileData.username || email;
+    document.getElementById('profile-fullname').textContent = profileData.fullName || 'No name set';
+    document.getElementById('profile-email').textContent = email;
+    document.getElementById('profile-phone').textContent = profileData.phone || 'Not set';
+    document.getElementById('profile-bio').textContent = profileData.bio || 'No bio added yet';
+    
+    const lunchA = profileData.lunchSchedule?.aDay || '';
+    const lunchB = profileData.lunchSchedule?.bDay || '';
+    document.getElementById('profile-lunch-a').textContent = lunchA ? (lunchA === '1st' ? '1st Lunch' : '2nd Lunch') : 'Not set';
+    document.getElementById('profile-lunch-b').textContent = lunchB ? (lunchB === '1st' ? '1st Lunch' : '2nd Lunch') : 'Not set';
+    
+    // Avatar
+    let pfpUrl = profileData.pfp || '';
+    if (!pfpUrl && profileData.pfpBucket && profileData.pfpRegion && profileData.pfpKey) {
+      pfpUrl = `https://${profileData.pfpBucket}.s3.${profileData.pfpRegion}.amazonaws.com/${String(profileData.pfpKey).split('/').map(encodeURIComponent).join('/')}`;
+    }
+    const avatarEl = document.getElementById('profile-avatar-large');
+    if (pfpUrl) {
+      avatarEl.innerHTML = `<img src="${pfpUrl}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+      avatarEl.textContent = (profileData.username || email)[0].toUpperCase();
+      avatarEl.style.fontSize = '2rem';
+    }
+    
+    // Show edit button only for own profile
+    const editBtn = document.getElementById('profile-edit-btn');
+    if (editBtn) {
+      editBtn.style.display = (email === auth.currentUser?.email) ? 'block' : 'none';
+    }
+    
+    // Reset edit mode
+    document.getElementById('profile-view-mode').style.display = 'flex';
+    document.getElementById('profile-edit-mode').style.display = 'none';
+  } catch (e) {
+    console.error('Error opening profile:', e);
+  }
+};
+
+window.enterProfileEditMode = async function() {
+  const email = auth.currentUser?.email;
+  if (!email) return;
+  
+  const profileData = await fetchUserProfile(email);
+  
+  // Populate edit form
+  document.getElementById('profile-edit-fullname').value = profileData.fullName || '';
+  document.getElementById('profile-edit-phone').value = profileData.phone || '';
+  document.getElementById('profile-edit-bio').value = profileData.bio || '';
+  document.getElementById('profile-edit-lunch-a').value = profileData.lunchSchedule?.aDay || '';
+  document.getElementById('profile-edit-lunch-b').value = profileData.lunchSchedule?.bDay || '';
+  
+  document.getElementById('profile-view-mode').style.display = 'none';
+  document.getElementById('profile-edit-mode').style.display = 'flex';
+};
+
+window.cancelProfileEdit = function() {
+  document.getElementById('profile-view-mode').style.display = 'flex';
+  document.getElementById('profile-edit-mode').style.display = 'none';
+  document.getElementById('profile-edit-msg').textContent = '';
+  document.getElementById('profile-edit-msg').style.display = 'none';
+};
+
+window.saveProfile = async function() {
+  const email = auth.currentUser?.email;
+  if (!email) return;
+  
+  const msg = document.getElementById('profile-edit-msg');
+  msg.className = 'popup-msg';
+  
+  const fullName = document.getElementById('profile-edit-fullname').value.trim();
+  const phone = document.getElementById('profile-edit-phone').value.trim();
+  const bio = document.getElementById('profile-edit-bio').value.trim();
+  const lunchA = document.getElementById('profile-edit-lunch-a').value;
+  const lunchB = document.getElementById('profile-edit-lunch-b').value;
+  
+  try {
+    await setDoc(doc(db, 'users', email), {
+      fullName,
+      phone,
+      bio,
+      lunchSchedule: {
+        aDay: lunchA,
+        bDay: lunchB
+      }
+    }, {merge: true});
+    
+    msg.textContent = '✓ Profile updated!';
+    msg.className = 'popup-msg ok';
+    
+    setTimeout(async () => {
+      await openProfile();
+    }, 800);
+  } catch (e) {
+    console.error('Error saving profile:', e);
+    msg.textContent = 'Failed to save profile.';
+    msg.className = 'popup-msg err';
+  }
+};
+
+window.saveProfilePictureFromEdit = async function() {
+  const fileInput = document.getElementById('profile-pfp-input');
+  if (!fileInput || !fileInput.files.length) {
+    alert('Please select an image first.');
+    return;
+  }
+  
+  const file = fileInput.files[0];
+  const email = auth.currentUser?.email;
+  if (!email) return;
+  
+  try {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64 = e.target.result;
+      await setDoc(doc(db, 'users', email), {
+        pfp: base64
+      }, {merge: true});
+      
+      fileInput.value = '';
+      await openProfile();
+    };
+    reader.readAsDataURL(file);
+  } catch (err) {
+    console.error('Error uploading profile picture:', err);
+    alert('Failed to upload profile picture.');
+  }
+};
+
+window.closeProfile = function() {
+  const modal = document.getElementById('profile-modal');
+  if (modal) modal.style.display = 'none';
+};
 
 /* ── DEFAULT TAB CONFIGURATION ── */
 window.TAB_CONFIG = {
