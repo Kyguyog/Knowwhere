@@ -2313,7 +2313,7 @@ window.adminSave = async function(section) {
         img:   card.querySelector('.shop-item-img').value.trim()
       })).filter(s => s.name);
       
-      renderShop(patch.shop);
+      renderShopEditor(patch.shop);
     } else if (section === 'banned') {
       patch.banned = [...document.querySelectorAll('#ae-banned-list .admin-row-item')]
         .map(row => row.querySelector('input').value.trim()).filter(Boolean);
