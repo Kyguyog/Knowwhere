@@ -2507,6 +2507,10 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
 </script>
 <script>
 (function () {
+  const GAME_POPUP_AD_CLIENT = 'ca-pub-1840429771129723';
+  const GAME_POPUP_AD_SLOT = '8848746354';
+  let gamePopupAdRequested = false;
+  let adsenseScriptPromise = null;
   function escAttr(s) {
     return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
@@ -2521,11 +2525,17 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     if (raw.includes('/')) return raw;
     return './Games/' + raw;
   }
+  function setGamePopupAdFullscreenState() {
+    const wrap = document.getElementById('game-popup-ad-wrap');
+    if (!wrap) return;
+    const inFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+    wrap.style.display = inFullscreen ? 'none' : '';
+  }
   function ensureGamePopup() {
     if (document.getElementById('game-popup-modal')) return;
     const style = document.createElement('style');
     style.textContent = `
-      #game-popup-modal{position:fixed;inset:0;z-index:10050;background:rgba(2,3,10,0.9);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:1rem;}
+      #game-popup-modal{position:fixed;inset:0;z-index:10050;background:rgba(2,3,10,0.9);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:1rem;flex-direction:column;gap:0.5rem;}
       #game-popup-modal.open{display:flex;}
       .game-popup-shell{width:min(1200px,100%);height:min(88vh,860px);background:#090b16;border:1px solid rgba(168,85,247,0.35);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 80px rgba(0,0,0,0.55);}
       .game-popup-head{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;background:rgba(168,85,247,0.08);border-bottom:1px solid rgba(168,85,247,0.2);}
@@ -2533,6 +2543,10 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       .game-popup-actions{display:flex;gap:0.4rem;}
       .game-popup-btn{appearance:none;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:var(--text);font-size:0.68rem;padding:0.35rem 0.55rem;border-radius:6px;cursor:pointer;}
       .game-popup-btn:hover{background:rgba(255,255,255,0.12);}
+      .game-popup-ad-wrap{width:min(1200px,100%);display:flex;justify-content:center;align-items:center;padding:0.25rem 0.5rem;background:#090b16;border:1px solid rgba(168,85,247,0.28);border-radius:8px;height:58px;overflow:hidden;}
+      .game-popup-ad-wrap.hidden{display:none;}
+      .game-popup-ad-note{font-size:0.62rem;color:var(--muted);letter-spacing:0.04em;}
+      #game-popup-ad{width:100%;max-width:468px;height:50px;}
       #game-popup-frame{flex:1;width:100%;border:0;background:#06070f;}
     `;
     document.head.appendChild(style);
@@ -2548,6 +2562,16 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
           </div>
         </div>
         <iframe id="game-popup-frame" allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write" allowfullscreen referrerpolicy="no-referrer"></iframe>
+      </div>
+      <div class="game-popup-ad-wrap hidden" id="game-popup-ad-wrap">
+        <ins class="adsbygoogle"
+             id="game-popup-ad"
+             style="display:block;width:100%;height:50px"
+             data-ad-client="${escAttr(GAME_POPUP_AD_CLIENT)}"
+             data-ad-slot="${escAttr(GAME_POPUP_AD_SLOT)}"
+             data-ad-format="horizontal"
+             data-full-width-responsive="false"></ins>
+        <div class="game-popup-ad-note" id="game-popup-ad-note">Ad space</div>
       </div>
     `;
     document.body.appendChild(wrap);
@@ -2568,9 +2592,58 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       } catch (_) {}
       setTimeout(focusGameFrame, 80);
     });
-    document.addEventListener('fullscreenchange', () => { setTimeout(focusGameFrame, 120); });
-    document.addEventListener('webkitfullscreenchange', () => { setTimeout(focusGameFrame, 120); });
-    document.addEventListener('msfullscreenchange', () => { setTimeout(focusGameFrame, 120); });
+    document.addEventListener('fullscreenchange', () => { setGamePopupAdFullscreenState(); setTimeout(focusGameFrame, 120); });
+    document.addEventListener('webkitfullscreenchange', () => { setGamePopupAdFullscreenState(); setTimeout(focusGameFrame, 120); });
+    document.addEventListener('msfullscreenchange', () => { setGamePopupAdFullscreenState(); setTimeout(focusGameFrame, 120); });
+  }
+  function loadAdSenseScript() {
+    if (window.adsbygoogle) return Promise.resolve();
+    if (adsenseScriptPromise) return adsenseScriptPromise;
+    adsenseScriptPromise = new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[data-game-popup-adsense="1"]');
+      if (existing) {
+        existing.addEventListener('load', () => resolve(), { once: true });
+        existing.addEventListener('error', () => reject(new Error('AdSense failed to load.')), { once: true });
+        return;
+      }
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(GAME_POPUP_AD_CLIENT);
+      s.crossOrigin = 'anonymous';
+      s.dataset.gamePopupAdsense = '1';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('AdSense failed to load.'));
+      document.head.appendChild(s);
+    });
+    return adsenseScriptPromise;
+  }
+  async function showGamePopupAd() {
+    const wrap = document.getElementById('game-popup-ad-wrap');
+    const note = document.getElementById('game-popup-ad-note');
+    const ins = document.getElementById('game-popup-ad');
+    if (!wrap || !ins) return;
+    const client = (GAME_POPUP_AD_CLIENT || '').trim();
+    const slot = (GAME_POPUP_AD_SLOT || '').trim();
+    if (!client || !slot || client.includes('XXXXXXXX')) {
+      wrap.classList.remove('hidden');
+      setGamePopupAdFullscreenState();
+      if (note) note.textContent = 'Set AdSense client/slot to enable ads.';
+      return;
+    }
+    wrap.classList.remove('hidden');
+    setGamePopupAdFullscreenState();
+    if (note) note.style.display = 'none';
+    if (gamePopupAdRequested) return;
+    try {
+      await loadAdSenseScript();
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      gamePopupAdRequested = true;
+    } catch (_) {
+      if (note) {
+        note.style.display = '';
+        note.textContent = 'Ad failed to load.';
+      }
+    }
   }
   function focusGameFrame() {
     const frame = document.getElementById('game-popup-frame');
@@ -2589,6 +2662,8 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     frame.onload = () => setTimeout(focusGameFrame, 80);
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
+    showGamePopupAd();
+    setGamePopupAdFullscreenState();
     setTimeout(focusGameFrame, 120);
   }
   function closeGamePopup() {
