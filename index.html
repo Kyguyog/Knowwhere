@@ -1841,7 +1841,6 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 <div style="display:flex;border-bottom:1px solid var(--border);padding:0.5rem;">
 <button class="settings-tab active" data-tab="tab-editor" onclick="switchSettingsTab('tab-editor')" style="flex:1;padding:0.75rem;background:transparent;border:none;color:var(--muted);font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:border-color 0.2s, color 0.2s;">Tab</button>
 <button class="settings-tab" data-tab="password" onclick="switchSettingsTab('password')" style="flex:1;padding:0.75rem;background:transparent;border:none;color:var(--muted);font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:border-color 0.2s, color 0.2s;">Password</button>
-<button class="settings-tab" data-tab="profile" onclick="switchSettingsTab('profile')" style="flex:1;padding:0.75rem;background:transparent;border:none;color:var(--muted);font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:border-color 0.2s, color 0.2s;">Profile</button>
 <button class="settings-tab" data-tab="actions" onclick="switchSettingsTab('actions')" style="flex:1;padding:0.75rem;background:transparent;border:none;color:var(--muted);font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:border-color 0.2s, color 0.2s;">Actions</button>
 </div>
 
@@ -1881,18 +1880,6 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 </div>
 <div class="popup-msg" id="password-msg" style="font-size:0.75rem;padding:0.3rem 0.1rem;"></div>
 <button onclick="savePassword()" style="width:100%;padding:0.75rem;background:var(--primary);color:#fff;border:none;border-radius:6px;font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:opacity 0.2s;">Update Password</button>
-</div>
-</div>
-
-<!-- Profile Picture Tab -->
-<div class="settings-tab-content" data-tab="profile" style="display:none;">
-<div style="display:flex;flex-direction:column;gap:1rem;">
-<div>
-<label style="font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.4rem;">Select Image</label>
-<input accept="image/*" id="pfp-upload-input" type="file" style="width:100%;padding:0.75rem;background:#0d0d14;border:1px dashed var(--border);border-radius:6px;color:var(--muted);font-size:0.9rem;cursor:pointer;"/>
-</div>
-<div class="popup-msg" id="pfp-msg" style="font-size:0.75rem;padding:0.3rem 0.1rem;"></div>
-<button onclick="saveProfilePicture()" style="width:100%;padding:0.75rem;background:var(--primary);color:#fff;border:none;border-radius:6px;font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:opacity 0.2s;">Upload Photo</button>
 </div>
 </div>
 
