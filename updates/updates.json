@@ -1,5 +1,13 @@
 [
   {
+    "sha": "fcaf75ce43a51ea4d8e99087ff3ee987cca7ec07",
+    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/fcaf75ce43a51ea4d8e99087ff3ee987cca7ec07",
+    "message": "[remove] Remove redundant profile pic editor",
+    "date": "2026-05-08T16:05:37Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "b6482b1cd8410b2a61f676134716c47641d04033",
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/b6482b1cd8410b2a61f676134716c47641d04033",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
