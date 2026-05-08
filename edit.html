@@ -298,8 +298,11 @@
     #admin-panel {
       display: none;
       position: fixed;
-      inset: 0;
-      z-index: 10000;
+      top: 56px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 90;
       background: #000;
       overflow-y: auto;
     }
@@ -310,7 +313,7 @@
       border-radius: 0;
       width: 100%;
       max-width: 100%;
-      min-height: 100vh;
+      min-height: calc(100vh - 56px);
       overflow: hidden;
       margin: 0;
     }
@@ -605,7 +608,7 @@
 
         
     nav {
-      position: sticky; top: 0; z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
       background: rgba(10,10,15,0.95);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
@@ -1888,6 +1891,13 @@ function renderTopTierEditor(items) {
       ${makeCardInput('tt-badge',"Badge (e.g. Editor's Choice)", item.badge||'')}
       ${makeCardInput('tt-url','Game URL', item.url||'')}
       ${makeCardInput('tt-bg','Background image URL', item.backgroundImage||'')}
+      <label class="toggle-wrap" style="margin-top:0.35rem;">
+        <span class="toggle-switch">
+          <input type="checkbox" class="tt-popup-input" ${item.openInPopup === true ? 'checked' : ''} />
+          <span class="toggle-track"></span>
+        </span>
+        <span class="toggle-label">Open in popup</span>
+      </label>
     </div>`).join('');
 }
 
@@ -1903,7 +1913,14 @@ window.adminAddTopTier = function() {
     <input class="tt-name admin-card-input" placeholder="Game name" />
     <input class="tt-badge admin-card-input" placeholder="Badge label" />
     <input class="tt-url admin-card-input" placeholder="Game URL" />
-    <input class="tt-bg admin-card-input" placeholder="Background image URL" />`;
+    <input class="tt-bg admin-card-input" placeholder="Background image URL" />
+    <label class="toggle-wrap" style="margin-top:0.35rem;">
+      <span class="toggle-switch">
+        <input type="checkbox" class="tt-popup-input" />
+        <span class="toggle-track"></span>
+      </span>
+      <span class="toggle-label">Open in popup</span>
+    </label>`;
   document.getElementById('ae-toptier-list').appendChild(div);
 };
 
@@ -2233,6 +2250,13 @@ function renderSitesEditor(items) {
     <div class="admin-row-item">
       <input class="admin-row-input" placeholder="Display name" value="${escAttr(s.name)}" style="flex:1;" />
       <input class="admin-row-input" placeholder="https://..." value="${escAttr(s.url)}" style="flex:2;" />
+      <label class="toggle-wrap" style="white-space:nowrap;">
+        <span class="toggle-switch">
+          <input type="checkbox" class="site-popup-input" ${s.openInPopup === true ? 'checked' : ''} />
+          <span class="toggle-track"></span>
+        </span>
+        <span class="toggle-label">Popup</span>
+      </label>
       <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>
     </div>`).join('');
 }
@@ -2243,6 +2267,13 @@ window.adminAddSite = function() {
   div.innerHTML = `
     <input class="admin-row-input" placeholder="Display name" style="flex:1;" />
     <input class="admin-row-input" placeholder="https://..." style="flex:2;" />
+    <label class="toggle-wrap" style="white-space:nowrap;">
+      <span class="toggle-switch">
+        <input type="checkbox" class="site-popup-input" />
+        <span class="toggle-track"></span>
+      </span>
+      <span class="toggle-label">Popup</span>
+    </label>
     <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>`;
   document.getElementById('ae-sites-list').appendChild(div);
 };
@@ -2310,7 +2341,8 @@ window.adminSave = async function(section) {
         name:            card.querySelector('.tt-name').value.trim(),
         badge:           card.querySelector('.tt-badge').value.trim(),
         url:             card.querySelector('.tt-url').value.trim(),
-        backgroundImage: card.querySelector('.tt-bg').value.trim()
+        backgroundImage: card.querySelector('.tt-bg').value.trim(),
+        openInPopup:     !!card.querySelector('.tt-popup-input')?.checked
       }));
     } else if (section === 'games') {
       const latestData = await window._firestoreGetSiteContent();
@@ -2327,7 +2359,7 @@ window.adminSave = async function(section) {
     } else if (section === 'sites') {
       patch.sites = [...document.querySelectorAll('#ae-sites-list .admin-row-item')].map(row => {
         const [n, u] = row.querySelectorAll('input');
-        return { name: n.value.trim(), url: u.value.trim() };
+        return { name: n.value.trim(), url: u.value.trim(), openInPopup: !!row.querySelector('.site-popup-input')?.checked };
       }).filter(s => s.name);
     } else if (section === 'shop') {
       patch.shop = [...document.querySelectorAll('#ae-shop-list .admin-card-item')].map(card => ({
