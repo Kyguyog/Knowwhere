@@ -3001,23 +3001,36 @@ window.saveProfilePictureFromEdit = async function() {
     alert('Please select an image first.');
     return;
   }
-  
+
   const file = fileInput.files[0];
   const email = auth.currentUser?.email;
   if (!email) return;
-  
+
   try {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64 = e.target.result;
-      await setDoc(doc(db, 'users', email), {
-        pfp: base64
-      }, {merge: true});
-      
-      fileInput.value = '';
-      await openProfile();
-    };
-    reader.readAsDataURL(file);
+    // Resize + compress image on canvas before storing in Firestore
+    const compressed = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const MAX = 256;
+          const scale = Math.min(MAX / img.width, MAX / img.height, 1);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    await setDoc(doc(db, 'users', email), { pfp: compressed }, { merge: true });
+    fileInput.value = '';
+    await openProfile();
   } catch (err) {
     console.error('Error uploading profile picture:', err);
     alert('Failed to upload profile picture.');
