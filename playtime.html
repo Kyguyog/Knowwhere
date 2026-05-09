@@ -52,10 +52,6 @@
     padding: 0.7rem 0.85rem; font: inherit; outline: none;
   }
   select:focus, input:focus { border-color: var(--primary); }
-  .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 1rem 0 1.25rem; }
-  .metric { border: 1px solid var(--border); background: rgba(255,255,255,0.03); border-radius: 8px; padding: 1rem; }
-  .metric-label { font-size: 0.65rem; color: var(--muted); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-  .metric-value { margin-top: 0.35rem; font-family: var(--font-display); font-size: 1.15rem; font-weight: 900; color: var(--text); }
   .board { border: 1px solid rgba(168,85,247,0.25); border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.03); }
   .row { display: grid; grid-template-columns: 54px 1.2fr 1fr 110px 88px; gap: 0.75rem; align-items: center; padding: 0.82rem 1rem; border-top: 1px solid rgba(255,255,255,0.06); }
   .row:first-child { border-top: 0; }
@@ -80,7 +76,6 @@
   @media (max-width: 760px) {
     nav { padding: 0 1rem; }
     .heading { display: block; }
-    .summary { grid-template-columns: 1fr; }
     .row { grid-template-columns: 42px 1fr 82px; }
     .row .game-col, .row .plays-col { display: none; }
   }
@@ -122,16 +117,6 @@
 
   <div class="toolbar" id="game-toolbar" style="display:none;">
     <select id="game-select" onchange="renderCurrentView()"></select>
-    <input id="search-input" type="search" placeholder="Search player or game" oninput="renderCurrentView()">
-  </div>
-  <div class="toolbar" id="total-toolbar">
-    <input id="total-search-input" type="search" placeholder="Search player or game" oninput="renderCurrentView()">
-  </div>
-
-  <div class="summary">
-    <div class="metric"><div class="metric-label">Tracked Players</div><div class="metric-value" id="metric-players">0</div></div>
-    <div class="metric"><div class="metric-label">Tracked Games</div><div class="metric-value" id="metric-games">0</div></div>
-    <div class="metric"><div class="metric-label">Total Time</div><div class="metric-value" id="metric-time">0s</div></div>
   </div>
 
   <div class="board" id="leaderboard">
@@ -211,28 +196,15 @@ function renderRows(rows, mode) {
     </div>`).join("");
   board.innerHTML = header + body;
 }
-function updateMetrics(rows) {
-  const players = new Set(playtimeRows.map(row => (row.email || playerName(row)).toLowerCase()));
-  const games = new Set(playtimeRows.map(row => row.gameName).filter(Boolean));
-  const total = playtimeRows.reduce((sum, row) => sum + (Number(row.totalSeconds) || 0), 0);
-  document.getElementById("metric-players").textContent = players.size;
-  document.getElementById("metric-games").textContent = games.size;
-  document.getElementById("metric-time").textContent = formatTime(total);
-}
 window.renderCurrentView = function () {
   const gameSelect = document.getElementById("game-select");
-  const query = (currentView === "game" ? document.getElementById("search-input").value : document.getElementById("total-search-input").value).trim().toLowerCase();
   let rows = currentView === "total" ? aggregateTotal(playtimeRows) : aggregateGame(playtimeRows, gameSelect.value);
-  if (query) {
-    rows = rows.filter(row => [playerName(row), row.email, row.gameName].some(value => String(value || "").toLowerCase().includes(query)));
-  }
   renderRows(rows, currentView);
 };
 window.setView = function (view) {
   currentView = view;
   document.getElementById("tab-total").classList.toggle("active", view === "total");
   document.getElementById("tab-game").classList.toggle("active", view === "game");
-  document.getElementById("total-toolbar").style.display = view === "total" ? "flex" : "none";
   document.getElementById("game-toolbar").style.display = view === "game" ? "flex" : "none";
   renderCurrentView();
 };
@@ -242,7 +214,6 @@ async function loadPlaytime() {
   const games = [...new Set(playtimeRows.map(row => row.gameName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const select = document.getElementById("game-select");
   select.innerHTML = games.map(game => `<option value="${escHtml(game)}">${escHtml(game)}</option>`).join("");
-  updateMetrics(playtimeRows);
   renderCurrentView();
 }
 window.handleAuth = async function () {
