@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KnowWhere Playtime</title>
+<link rel="icon" href="favicon.png" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0f;
+    --card: #111118;
+    --border: #222230;
+    --primary: #a855f7;
+    --primary-dim: rgba(168,85,247,0.15);
+    --secondary: #22d3ee;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --font-display: 'Orbitron', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+  body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-body); }
+  nav {
+    position: sticky; top: 0; z-index: 10; height: 56px; padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(10,10,15,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text); }
+  .nav-logo img { width: 28px; height: 28px; object-fit: contain; }
+  .logo-text { font-family: var(--font-display); font-weight: 900; letter-spacing: 0.05em; }
+  .logo-text span { color: var(--primary); }
+  .nav-link { color: var(--muted); text-decoration: none; font-family: var(--font-display); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  .nav-link:hover { color: var(--text); }
+  .wrap { width: min(1080px, calc(100% - 2rem)); margin: 0 auto; padding: 3rem 0 4rem; }
+  .heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+  h1 { font-family: var(--font-display); font-size: clamp(1.5rem, 4vw, 2.6rem); line-height: 1.05; letter-spacing: 0.03em; }
+  h1 span { color: var(--primary); }
+  .sub { color: var(--muted); margin-top: 0.65rem; line-height: 1.6; max-width: 640px; }
+  .tabs { display: flex; gap: 0.5rem; margin: 1.4rem 0 1rem; border-bottom: 1px solid var(--border); }
+  .tab {
+    appearance: none; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted);
+    padding: 0.85rem 1rem; cursor: pointer; font-family: var(--font-display); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .toolbar { display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0; flex-wrap: wrap; }
+  select, input {
+    background: #0d0d14; border: 1px solid var(--border); border-radius: 6px; color: var(--text);
+    padding: 0.7rem 0.85rem; font: inherit; outline: none;
+  }
+  select:focus, input:focus { border-color: var(--primary); }
+  .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 1rem 0 1.25rem; }
+  .metric { border: 1px solid var(--border); background: rgba(255,255,255,0.03); border-radius: 8px; padding: 1rem; }
+  .metric-label { font-size: 0.65rem; color: var(--muted); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .metric-value { margin-top: 0.35rem; font-family: var(--font-display); font-size: 1.15rem; font-weight: 900; color: var(--text); }
+  .board { border: 1px solid rgba(168,85,247,0.25); border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.03); }
+  .row { display: grid; grid-template-columns: 54px 1.2fr 1fr 110px 88px; gap: 0.75rem; align-items: center; padding: 0.82rem 1rem; border-top: 1px solid rgba(255,255,255,0.06); }
+  .row:first-child { border-top: 0; }
+  .head { color: var(--muted); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(0,0,0,0.18); }
+  .rank { font-family: var(--font-display); color: var(--primary); font-size: 0.72rem; font-weight: 900; }
+  .name { font-weight: 800; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .muted { color: var(--muted); font-size: 0.78rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .time { font-family: var(--font-display); font-size: 0.78rem; color: var(--secondary); font-weight: 700; text-align: right; }
+  .empty { padding: 2rem 1rem; color: var(--muted); text-align: center; }
+  #auth-wall {
+    position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); padding: 1rem;
+  }
+  #auth-wall.hidden { display: none; }
+  .auth-box { width: 100%; max-width: 420px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); padding: 2rem; }
+  .auth-title { font-family: var(--font-display); font-weight: 900; letter-spacing: 0.05em; text-align: center; margin-bottom: 1rem; }
+  .auth-title span { color: var(--primary); }
+  .auth-form { display: flex; flex-direction: column; gap: 0.85rem; }
+  .auth-submit { border: 0; border-radius: 6px; padding: 0.8rem 1rem; background: var(--primary); color: #fff; font-family: var(--font-display); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+  .auth-error { display: none; color: var(--danger); font-size: 0.8rem; }
+  .auth-error.show { display: block; }
+  @media (max-width: 760px) {
+    nav { padding: 0 1rem; }
+    .heading { display: block; }
+    .summary { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 42px 1fr 82px; }
+    .row .game-col, .row .plays-col { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="auth-wall">
+  <div class="auth-box">
+    <div class="auth-title">KNOW<span>WHERE</span></div>
+    <form class="auth-form" onsubmit="handleAuth();return false;">
+      <input type="email" id="auth-email" autocomplete="email" placeholder="Email">
+      <input type="password" id="auth-password" autocomplete="current-password" placeholder="Password">
+      <div class="auth-error" id="auth-error"></div>
+      <button class="auth-submit" id="auth-submit" type="submit">Login</button>
+    </form>
+  </div>
+</div>
+
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="KnowWhere-Logo-Trans.png" alt="">
+    <span class="logo-text">KNOW<span>WHERE</span></span>
+  </a>
+  <a class="nav-link" href="index.html">Back Home</a>
+</nav>
+
+<main class="wrap">
+  <div class="heading">
+    <div>
+      <h1>Playtime <span>Leaderboard</span></h1>
+      <p class="sub">Popup-mode game sessions are counted here. The total view combines all tracked games, and the game view breaks down playtime for one game at a time.</p>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-total" onclick="setView('total')">Total</button>
+    <button class="tab" id="tab-game" onclick="setView('game')">By Game</button>
+  </div>
+
+  <div class="toolbar" id="game-toolbar" style="display:none;">
+    <select id="game-select" onchange="renderCurrentView()"></select>
+    <input id="search-input" type="search" placeholder="Search player or game" oninput="renderCurrentView()">
+  </div>
+  <div class="toolbar" id="total-toolbar">
+    <input id="total-search-input" type="search" placeholder="Search player or game" oninput="renderCurrentView()">
+  </div>
+
+  <div class="summary">
+    <div class="metric"><div class="metric-label">Tracked Players</div><div class="metric-value" id="metric-players">0</div></div>
+    <div class="metric"><div class="metric-label">Tracked Games</div><div class="metric-value" id="metric-games">0</div></div>
+    <div class="metric"><div class="metric-label">Total Time</div><div class="metric-value" id="metric-time">0s</div></div>
+  </div>
+
+  <div class="board" id="leaderboard">
+    <div class="empty">Loading leaderboard...</div>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAP-GnPXo490Frl1hGYWbje8QdhxtD19PQ",
+  authDomain: "knowwhere1.firebaseapp.com",
+  projectId: "knowwhere1",
+  storageBucket: "knowwhere1.firebasestorage.app",
+  messagingSenderId: "747448090609",
+  appId: "1:747448090609:web:e3af5b2c8ffa8fb3a9ce50",
+  measurementId: "G-DV44FGDQ2N"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+let playtimeRows = [];
+let currentView = "total";
+
+function escHtml(value) {
+  return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function formatTime(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h) return `${h}h ${m}m`;
+  if (m) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+function playerName(row) {
+  return row.username || row.email || "Player";
+}
+function aggregateTotal(rows) {
+  const byPlayer = new Map();
+  rows.forEach(row => {
+    const key = (row.email || playerName(row)).toLowerCase();
+    const existing = byPlayer.get(key) || { username: playerName(row), email: row.email || "", totalSeconds: 0, plays: 0, games: new Set() };
+    existing.username = row.username || existing.username;
+    existing.totalSeconds += Number(row.totalSeconds) || 0;
+    existing.plays += Number(row.plays) || 0;
+    if (row.gameName) existing.games.add(row.gameName);
+    byPlayer.set(key, existing);
+  });
+  return [...byPlayer.values()].map(row => ({ ...row, gameCount: row.games.size, gameName: `${row.games.size} games` })).sort((a, b) => b.totalSeconds - a.totalSeconds);
+}
+function aggregateGame(rows, gameName) {
+  return rows.filter(row => row.gameName === gameName).sort((a, b) => (Number(b.totalSeconds) || 0) - (Number(a.totalSeconds) || 0));
+}
+function renderRows(rows, mode) {
+  const board = document.getElementById("leaderboard");
+  if (!rows.length) {
+    board.innerHTML = '<div class="empty">No playtime found.</div>';
+    return;
+  }
+  const header = '<div class="row head"><div>Rank</div><div>Player</div><div class="game-col">Game</div><div class="time">Time</div><div class="plays-col">Plays</div></div>';
+  const body = rows.map((row, index) => `
+    <div class="row">
+      <div class="rank">#${index + 1}</div>
+      <div>
+        <div class="name">${escHtml(playerName(row))}</div>
+        <div class="muted">${escHtml(row.email || "")}</div>
+      </div>
+      <div class="muted game-col">${escHtml(mode === "total" ? row.gameName : row.gameName || "")}</div>
+      <div class="time">${formatTime(row.totalSeconds)}</div>
+      <div class="muted plays-col">${Number(row.plays) || 0}</div>
+    </div>`).join("");
+  board.innerHTML = header + body;
+}
+function updateMetrics(rows) {
+  const players = new Set(playtimeRows.map(row => (row.email || playerName(row)).toLowerCase()));
+  const games = new Set(playtimeRows.map(row => row.gameName).filter(Boolean));
+  const total = playtimeRows.reduce((sum, row) => sum + (Number(row.totalSeconds) || 0), 0);
+  document.getElementById("metric-players").textContent = players.size;
+  document.getElementById("metric-games").textContent = games.size;
+  document.getElementById("metric-time").textContent = formatTime(total);
+}
+window.renderCurrentView = function () {
+  const gameSelect = document.getElementById("game-select");
+  const query = (currentView === "game" ? document.getElementById("search-input").value : document.getElementById("total-search-input").value).trim().toLowerCase();
+  let rows = currentView === "total" ? aggregateTotal(playtimeRows) : aggregateGame(playtimeRows, gameSelect.value);
+  if (query) {
+    rows = rows.filter(row => [playerName(row), row.email, row.gameName].some(value => String(value || "").toLowerCase().includes(query)));
+  }
+  renderRows(rows, currentView);
+};
+window.setView = function (view) {
+  currentView = view;
+  document.getElementById("tab-total").classList.toggle("active", view === "total");
+  document.getElementById("tab-game").classList.toggle("active", view === "game");
+  document.getElementById("total-toolbar").style.display = view === "total" ? "flex" : "none";
+  document.getElementById("game-toolbar").style.display = view === "game" ? "flex" : "none";
+  renderCurrentView();
+};
+async function loadPlaytime() {
+  const snap = await getDocs(collection(db, "playtime"));
+  playtimeRows = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const games = [...new Set(playtimeRows.map(row => row.gameName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const select = document.getElementById("game-select");
+  select.innerHTML = games.map(game => `<option value="${escHtml(game)}">${escHtml(game)}</option>`).join("");
+  updateMetrics(playtimeRows);
+  renderCurrentView();
+}
+window.handleAuth = async function () {
+  const email = document.getElementById("auth-email").value.trim();
+  const password = document.getElementById("auth-password").value;
+  const err = document.getElementById("auth-error");
+  const btn = document.getElementById("auth-submit");
+  err.classList.remove("show");
+  if (!email || !password) {
+    err.textContent = "Please fill in all fields.";
+    err.classList.add("show");
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = "Logging in...";
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    err.textContent = "Login failed.";
+    err.classList.add("show");
+    btn.disabled = false;
+    btn.textContent = "Login";
+  }
+};
+onAuthStateChanged(auth, async user => {
+  if (!user) return;
+  document.getElementById("auth-wall").classList.add("hidden");
+  try {
+    await loadPlaytime();
+  } catch (e) {
+    document.getElementById("leaderboard").innerHTML = `<div class="empty">Failed to load leaderboard: ${escHtml(e.message || "Unknown error")}</div>`;
+  }
+});
+</script>
+</body>
+</html>

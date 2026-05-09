@@ -1596,6 +1596,7 @@
 <a href="#sites">Sites</a>
 <a href="#shop">Shop</a>
 <a href="#stats">Stats</a>
+<a href="playtime.html">Playtime</a>
 <a href="#staff">Outcasts</a>
 <a href="updates.html">Updates</a>
 </div>
@@ -1612,6 +1613,7 @@
 <a href="#sites" onclick="closeMobileNav()">Sites</a>
 <a href="#shop" onclick="closeMobileNav()">Shop</a>
 <a href="#stats" onclick="closeMobileNav()">Stats</a>
+<a href="playtime.html" onclick="closeMobileNav()">Playtime</a>
 <a href="#staff" onclick="closeMobileNav()">Outcasts</a>
 <a href="updates.html" onclick="closeMobileNav()">Updates</a>
 </div>
@@ -1734,13 +1736,6 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 <section id="stats">
 <div class="container">
 <div class="stats-grid reveal" id="stats-grid"></div>
-<div class="section-heading center" style="margin-top:3rem;margin-bottom:1rem;">
-<h2>Playtime <span style="color:var(--primary)">Leaderboard</span></h2>
-<p>Tracked when games are opened in popup mode.</p>
-</div>
-<div class="playtime-board" id="playtime-board">
-<div class="playtime-row"><div class="playtime-meta" style="grid-column:1/-1;text-align:center;">Loading leaderboard...</div></div>
-</div>
 </div>
 </section>
 
@@ -2603,12 +2598,6 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       .game-popup-btn{appearance:none;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:var(--text);font-size:0.68rem;padding:0.35rem 0.55rem;border-radius:6px;cursor:pointer;}
       .game-popup-btn:hover{background:rgba(255,255,255,0.12);}
       #game-popup-frame{flex:1;width:100%;border:0;background:#06070f;}
-      .playtime-board{margin:2rem auto 0;max-width:760px;border:1px solid rgba(168,85,247,0.25);border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.03);}
-      .playtime-row{display:grid;grid-template-columns:42px 1fr auto;gap:0.75rem;align-items:center;padding:0.75rem 1rem;border-top:1px solid rgba(255,255,255,0.06);font-size:0.82rem;}
-      .playtime-row:first-child{border-top:0;}
-      .playtime-rank{font-family:var(--font-display);color:var(--primary);font-size:0.7rem;}
-      .playtime-name{font-weight:700;color:var(--text);}
-      .playtime-meta{font-size:0.72rem;color:var(--muted);}
     `;
     document.head.appendChild(style);
     const wrap = document.createElement('div');
@@ -2648,14 +2637,6 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.addEventListener('msfullscreenchange', () => { setTimeout(focusGameFrame, 120); });
   }
   let activePopupPlay = null;
-  function formatPlaytime(seconds) {
-    const total = Math.max(0, Math.floor(seconds || 0));
-    const h = Math.floor(total / 3600);
-    const m = Math.floor((total % 3600) / 60);
-    if (h) return h + 'h ' + m + 'm';
-    if (m) return m + 'm';
-    return total + 's';
-  }
   async function flushPopupPlaytime() {
     if (!activePopupPlay) return;
     const play = activePopupPlay;
@@ -2663,17 +2644,6 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const seconds = Math.floor((Date.now() - play.startedAt) / 1000);
     if (seconds >= 5 && window._recordPlaytime) {
       try { await window._recordPlaytime(play.title, seconds); } catch (e) { console.warn('Could not save playtime:', e); }
-      refreshPlaytimeLeaderboard();
-    }
-  }
-  async function refreshPlaytimeLeaderboard() {
-    const board = document.getElementById('playtime-board');
-    if (!board || !window._fetchPlaytimeLeaderboard) return;
-    try {
-      const rows = (await window._fetchPlaytimeLeaderboard()).slice(0, 10);
-      board.innerHTML = rows.length ? rows.map((r, i) => `<div class="playtime-row"><div class="playtime-rank">#${i+1}</div><div><div class="playtime-name">${escHtml(r.gameName || 'Game')}</div><div class="playtime-meta">${escHtml(r.username || r.email || 'Player')}</div></div><div class="playtime-meta">${formatPlaytime(r.totalSeconds)}</div></div>`).join('') : '<div class="playtime-row"><div class="playtime-meta" style="grid-column:1/-1;text-align:center;">No popup playtime yet.</div></div>';
-    } catch (e) {
-      board.innerHTML = '<div class="playtime-row"><div class="playtime-meta" style="grid-column:1/-1;text-align:center;">Leaderboard unavailable.</div></div>';
     }
   }
   function focusGameFrame() {
@@ -2784,7 +2754,6 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
 
   const searchInputEl = document.getElementById('search-input');
   buildArchive(searchInputEl ? searchInputEl.value : '');
-  setTimeout(refreshPlaytimeLeaderboard, 800);
 })();
 </script>
 <script>document.addEventListener("touchmove",function(e){if(e.touches.length>1){e.preventDefault();}},{passive:false});var lastTouch=0;document.addEventListener("touchend",function(e){var now=Date.now();if(now-lastTouch<300){e.preventDefault();}
