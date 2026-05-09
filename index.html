@@ -2598,6 +2598,8 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       .game-popup-btn{appearance:none;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:var(--text);font-size:0.68rem;padding:0.35rem 0.55rem;border-radius:6px;cursor:pointer;}
       .game-popup-btn:hover{background:rgba(255,255,255,0.12);}
       #game-popup-frame{flex:1;width:100%;border:0;background:#06070f;}
+      #game-popup-ruffle{display:none;flex:1;width:100%;background:#06070f;overflow:hidden;}
+      #game-popup-ruffle ruffle-player{width:100%;height:100%;border:0;display:block;}
     `;
     document.head.appendChild(style);
     const wrap = document.createElement('div');
@@ -2612,6 +2614,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
           </div>
         </div>
         <iframe id="game-popup-frame" allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write" allowfullscreen referrerpolicy="no-referrer"></iframe>
+        <div id="game-popup-ruffle"></div>
       </div>
     `;
     document.body.appendChild(wrap);
@@ -2619,15 +2622,17 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.getElementById('game-popup-close').addEventListener('click', closeGamePopup);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeGamePopup(); });
     document.getElementById('game-popup-fullscreen').addEventListener('click', async () => {
+      const ruffleContainer = document.getElementById('game-popup-ruffle');
       const frame = document.getElementById('game-popup-frame');
-      if (!frame) return;
+      const el = (ruffleContainer && ruffleContainer.style.display !== 'none') ? ruffleContainer : frame;
+      if (!el) return;
       try {
-        if (frame.requestFullscreen) {
-          await frame.requestFullscreen();
-        } else if (frame.webkitRequestFullscreen) {
-          frame.webkitRequestFullscreen();
-        } else if (frame.msRequestFullscreen) {
-          frame.msRequestFullscreen();
+        if (el.requestFullscreen) {
+          await el.requestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        } else if (el.msRequestFullscreen) {
+          el.msRequestFullscreen();
         }
       } catch (_) {}
       setTimeout(focusGameFrame, 80);
@@ -2637,6 +2642,39 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.addEventListener('msfullscreenchange', () => { setTimeout(focusGameFrame, 120); });
   }
   let activePopupPlay = null;
+  let activeRufflePlayer = null;
+  function isSwfUrl(url) { return /\.swf($|\?)/i.test(url); }
+  function destroyRufflePlayer() {
+    if (activeRufflePlayer) { try { activeRufflePlayer.remove(); } catch (_) {} activeRufflePlayer = null; }
+    const c = document.getElementById('game-popup-ruffle');
+    if (c) { c.innerHTML = ''; c.style.display = 'none'; }
+  }
+  function loadRufflePlayer(src) {
+    const container = document.getElementById('game-popup-ruffle');
+    if (!container) return;
+    if (window.RufflePlayer && window.RufflePlayer.newest) {
+      const player = window.RufflePlayer.newest().createPlayer();
+      player.style.width = '100%'; player.style.height = '100%';
+      container.appendChild(player);
+      player.load(src);
+      activeRufflePlayer = player;
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/@ruffle-rs/ruffle';
+    script.onload = function() {
+      if (!window.RufflePlayer || !window.RufflePlayer.newest) return;
+      var player = window.RufflePlayer.newest().createPlayer();
+      player.style.width = '100%'; player.style.height = '100%';
+      container.appendChild(player);
+      player.load(src);
+      activeRufflePlayer = player;
+    };
+    script.onerror = function() {
+      container.innerHTML = '<p style="color:#ef4444;padding:1.5rem;text-align:center;width:100%;">Failed to load Flash player.</p>';
+    };
+    document.head.appendChild(script);
+  }
   async function flushPopupPlaytime() {
     if (!activePopupPlay) return;
     const play = activePopupPlay;
@@ -2657,12 +2695,23 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const modal = document.getElementById('game-popup-modal');
     const frame = document.getElementById('game-popup-frame');
     const titleEl = document.getElementById('game-popup-title');
+    const ruffleContainer = document.getElementById('game-popup-ruffle');
     titleEl.textContent = title || 'Game';
     flushPopupPlaytime();
     activePopupPlay = trackPlaytime ? { title: title || 'Game', src, startedAt: Date.now() } : null;
-    frame.setAttribute('tabindex', '-1');
-    frame.setAttribute('src', src);
-    frame.onload = () => setTimeout(focusGameFrame, 80);
+    destroyRufflePlayer();
+    if (isSwfUrl(src)) {
+      frame.style.display = 'none';
+      frame.setAttribute('src', 'about:blank');
+      ruffleContainer.style.display = 'flex';
+      loadRufflePlayer(src);
+    } else {
+      ruffleContainer.style.display = 'none';
+      frame.style.display = '';
+      frame.setAttribute('tabindex', '-1');
+      frame.setAttribute('src', src);
+      frame.onload = () => setTimeout(focusGameFrame, 80);
+    }
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
     setTimeout(focusGameFrame, 120);
@@ -2674,6 +2723,8 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     flushPopupPlaytime();
     modal.classList.remove('open');
     frame.setAttribute('src', 'about:blank');
+    frame.style.display = '';
+    destroyRufflePlayer();
     document.body.style.overflow = '';
   }
   window.closeGamePopup = closeGamePopup;

@@ -543,6 +543,9 @@
     .toggle-switch.editor-toggle input:checked + .toggle-track::after { background: var(--secondary); }
     .toggle-switch.orders-toggle input:checked + .toggle-track { background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.5); }
     .toggle-switch.orders-toggle input:checked + .toggle-track::after { background: #22c55e; }
+    .toggle-switch input:disabled + .toggle-track { cursor: not-allowed; }
+    .toggle-switch input:disabled:checked + .toggle-track { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); }
+    .toggle-switch input:disabled:checked + .toggle-track::after { background: #22c55e; opacity: 0.6; }
     .toggle-label {
       font-size: 0.78rem;
       font-weight: 600;
@@ -1287,7 +1290,7 @@ window.injectAdminPanels = function() {
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('toptier')">Save Top Tier</button><span class="admin-status" id="status-toptier"></span></div>
       </div>
       <div class="admin-section" id="admin-games">
-        <p class="admin-hint" style="margin-bottom:0.75rem;">Add, edit, or remove games. Each entry needs a name and URL. Screenshot previews only appear when you add a screenshot URL here. You can also upload an image or paste one directly into the screenshot field to send it to S3 automatically.</p>
+        <p class="admin-hint" style="margin-bottom:0.75rem;">Add, edit, or remove games. Each entry needs a name and URL. Screenshot previews only appear when you add a screenshot URL here. You can also upload an image or paste one directly into the screenshot field to send it to S3 automatically. URLs ending in <code>.swf</code> are forced into popup mode and played via Ruffle (Flash emulator).</p>
         <div id="ae-games-list" class="admin-row-list"></div>
         <button class="admin-add-btn" onclick="adminAddGame()">+ Add Game</button>
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('games')">Save Games</button><span class="admin-status" id="status-games"></span></div>
@@ -1881,7 +1884,14 @@ function makeCardInput(cls, placeholder, val) {
 }
 
 function renderTopTierEditor(items) {
-  document.getElementById('ae-toptier-list').innerHTML = items.map((item, i) => `
+  document.getElementById('ae-toptier-list').innerHTML = items.map((item, i) => {
+    const url = item.url || '';
+    const isSwf = /\.swf($|\?)/i.test(url);
+    const popupChecked = isSwf || item.openInPopup === true;
+    const popupDisabled = isSwf ? 'disabled' : '';
+    const toggleDim = isSwf ? 'opacity:0.5;' : '';
+    const labelText = isSwf ? 'Open in popup (Flash)' : 'Open in popup';
+    return `
     <div class="admin-card-item">
       <div class="admin-card-header">
         <span class="admin-card-label">Card ${i+1}</span>
@@ -1889,16 +1899,17 @@ function renderTopTierEditor(items) {
       </div>
       ${makeCardInput('tt-name','Game name', item.name)}
       ${makeCardInput('tt-badge',"Badge (e.g. Editor's Choice)", item.badge||'')}
-      ${makeCardInput('tt-url','Game URL', item.url||'')}
+      <input class="tt-url admin-card-input" placeholder="Game URL" value="${escAttr(url)}" oninput="adminHandleGameUrlInput(this)" />
       ${makeCardInput('tt-bg','Background image URL', item.backgroundImage||'')}
-      <label class="toggle-wrap" style="margin-top:0.35rem;">
+      <label class="toggle-wrap" style="margin-top:0.35rem;${toggleDim}">
         <span class="toggle-switch">
-          <input type="checkbox" class="tt-popup-input" ${item.openInPopup === true ? 'checked' : ''} />
+          <input type="checkbox" class="tt-popup-input" ${popupChecked ? 'checked' : ''} ${popupDisabled} />
           <span class="toggle-track"></span>
         </span>
-        <span class="toggle-label">Open in popup</span>
+        <span class="toggle-label">${labelText}</span>
       </label>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 window.adminAddTopTier = function() {
@@ -1912,7 +1923,7 @@ window.adminAddTopTier = function() {
     </div>
     <input class="tt-name admin-card-input" placeholder="Game name" />
     <input class="tt-badge admin-card-input" placeholder="Badge label" />
-    <input class="tt-url admin-card-input" placeholder="Game URL" />
+    <input class="tt-url admin-card-input" placeholder="Game URL" oninput="adminHandleGameUrlInput(this)" />
     <input class="tt-bg admin-card-input" placeholder="Background image URL" />
     <label class="toggle-wrap" style="margin-top:0.35rem;">
       <span class="toggle-switch">
@@ -1928,18 +1939,22 @@ window.adminAddTopTier = function() {
 function renderGameRow(g = {}) {
   const openInPopup = g.openInPopup === true;
   const gameUrl = g.url || '';
+  const isSwf = /\.swf($|\?)/i.test(gameUrl);
+  const popupChecked = isSwf || openInPopup;
+  const popupDisabled = isSwf ? 'disabled' : '';
+  const toggleDim = isSwf ? 'opacity:0.5;' : '';
   return `
     <div class="admin-row-item" data-original-name="${escAttr(g.name || '')}">
       <input class="admin-row-input game-name-input" placeholder="Game name" value="${escAttr(g.name || '')}" style="flex:1.2;" />
       <input class="admin-row-input game-alias-input" placeholder="Search alias (optional)" value="${escAttr(g.alias || '')}" style="flex:1;" />
-      <input class="admin-row-input game-url-input" placeholder="Game URL" value="${escAttr(gameUrl)}" style="flex:1.8;" />
+      <input class="admin-row-input game-url-input" placeholder="Game URL" value="${escAttr(gameUrl)}" style="flex:1.8;" oninput="adminHandleGameUrlInput(this)" />
       <div style="flex:3.3;display:flex;align-items:center;gap:0.45rem;min-width:0;">
-        <label class="toggle-wrap" style="white-space:nowrap;">
+        <label class="toggle-wrap" style="white-space:nowrap;${toggleDim}">
           <span class="toggle-switch">
-            <input type="checkbox" class="game-popup-input" ${openInPopup ? 'checked' : ''} />
+            <input type="checkbox" class="game-popup-input" ${popupChecked ? 'checked' : ''} ${popupDisabled} />
             <span class="toggle-track"></span>
           </span>
-          <span class="toggle-label">Popup</span>
+          <span class="toggle-label">${isSwf ? 'Popup (Flash)' : 'Popup'}</span>
         </label>
         <input class="admin-row-input game-screenshot-input" placeholder="Screenshot URL (optional)" value="${escAttr(g.screenshot||'')}" style="flex:1;min-width:0;" onpaste="adminHandleGameScreenshotPaste(event, this)" onchange="adminHandleGameScreenshotUrlChange(this)" />
         <input type="file" class="game-screenshot-file-input" accept="image/*" style="display:none;" onchange="adminHandleGameScreenshotFiles(this)" />
@@ -1948,6 +1963,24 @@ function renderGameRow(g = {}) {
       <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>
     </div>`;
 }
+
+window.adminHandleGameUrlInput = function(input) {
+  const container = input.closest('.admin-row-item, .admin-card-item');
+  if (!container) return;
+  const isSwf = /\.swf($|\?)/i.test(input.value.trim());
+  const popupInput = container.querySelector('.game-popup-input, .tt-popup-input, .site-popup-input');
+  const toggleLabel = container.querySelector('.toggle-label');
+  const toggleWrap = container.querySelector('.toggle-wrap');
+  if (isSwf) {
+    if (popupInput) { popupInput.checked = true; popupInput.disabled = true; }
+    if (toggleLabel && !toggleLabel.textContent.includes('(Flash)')) toggleLabel.textContent = toggleLabel.textContent.trim() + ' (Flash)';
+    if (toggleWrap) toggleWrap.style.opacity = '0.5';
+  } else {
+    if (popupInput) popupInput.disabled = false;
+    if (toggleLabel) toggleLabel.textContent = toggleLabel.textContent.replace(/\s*\(Flash\)$/, '');
+    if (toggleWrap) toggleWrap.style.opacity = '';
+  }
+};
 
 function renderGamesEditor(gamesObj) {
   const flat = [];
@@ -2243,22 +2276,30 @@ document.addEventListener('change', function(e) {
   }
   if (e.target.classList.contains('game-url-input')) {
     syncPopupTogglesByDomain(e.target.closest('.admin-row-item'), false);
+    window.adminHandleGameUrlInput(e.target);
   }
 });
 function renderSitesEditor(items) {
-  document.getElementById('ae-sites-list').innerHTML = items.map(s => `
+  document.getElementById('ae-sites-list').innerHTML = items.map(s => {
+    const url = s.url || '';
+    const isSwf = /\.swf($|\?)/i.test(url);
+    const popupChecked = isSwf || s.openInPopup === true;
+    const popupDisabled = isSwf ? 'disabled' : '';
+    const toggleDim = isSwf ? 'opacity:0.5;' : '';
+    return `
     <div class="admin-row-item">
       <input class="admin-row-input" placeholder="Display name" value="${escAttr(s.name)}" style="flex:1;" />
-      <input class="admin-row-input" placeholder="https://..." value="${escAttr(s.url)}" style="flex:2;" />
-      <label class="toggle-wrap" style="white-space:nowrap;">
+      <input class="admin-row-input" placeholder="https://..." value="${escAttr(url)}" style="flex:2;" oninput="adminHandleGameUrlInput(this)" />
+      <label class="toggle-wrap" style="white-space:nowrap;${toggleDim}">
         <span class="toggle-switch">
-          <input type="checkbox" class="site-popup-input" ${s.openInPopup === true ? 'checked' : ''} />
+          <input type="checkbox" class="site-popup-input" ${popupChecked ? 'checked' : ''} ${popupDisabled} />
           <span class="toggle-track"></span>
         </span>
-        <span class="toggle-label">Popup</span>
+        <span class="toggle-label">${isSwf ? 'Popup (Flash)' : 'Popup'}</span>
       </label>
       <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 window.adminAddSite = function() {
@@ -2266,7 +2307,7 @@ window.adminAddSite = function() {
   div.className = 'admin-row-item';
   div.innerHTML = `
     <input class="admin-row-input" placeholder="Display name" style="flex:1;" />
-    <input class="admin-row-input" placeholder="https://..." style="flex:2;" />
+    <input class="admin-row-input" placeholder="https://..." style="flex:2;" oninput="adminHandleGameUrlInput(this)" />
     <label class="toggle-wrap" style="white-space:nowrap;">
       <span class="toggle-switch">
         <input type="checkbox" class="site-popup-input" />
