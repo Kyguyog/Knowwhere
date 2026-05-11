@@ -2,23 +2,25 @@
 <html lang="en">
 
 <head>
-    <base href="https://cdn.jsdelivr.net/gh/genizy/soundboard/">
+    <!-- We add 'master' or a version number to stabilize the path -->
+    <!-- If your default branch is actually 'main', use @latest to bypass the loop -->
+    <base href="https://cdn.jsdelivr.net/gh/genizy/soundboard@latest/">
+    
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5521219086088837" crossorigin="anonymous"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-WX5VS54ZDW"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-
-        function gtag() {
-            dataLayer.push(arguments);
-        }
+        function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-WX5VS54ZDW');
     </script>
     <meta charset="UTF-8">
     <title>Soundboard</title>
-    <script src="sounds.js" type="module"></script>
-    <script src="main.js" type="module"></script>
-    <link href="style.css" rel="stylesheet">
+    
+    <!-- Using ./ ensures the browser respects the <base> tag strictly -->
+    <script src="./sounds.js" type="module"></script>
+    <script src="./main.js" type="module"></script>
+    <link href="./style.css" rel="stylesheet">
 </head>
 
 <body>
