@@ -52,6 +52,17 @@
     padding: 0.7rem 0.85rem; font: inherit; outline: none;
   }
   select:focus, input:focus { border-color: var(--primary); }
+  #game-search {
+    min-width: 260px;
+    width: min(460px, 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid rgba(168,85,247,0.35);
+    box-shadow: 0 0 0 1px rgba(168,85,247,0.08) inset;
+  }
+  #game-search:focus {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(34,211,238,0.18);
+  }
   .board { border: 1px solid rgba(168,85,247,0.25); border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.03); }
   .row { display: grid; grid-template-columns: 54px 1.2fr 1fr 110px 88px; gap: 0.75rem; align-items: center; padding: 0.82rem 1rem; border-top: 1px solid rgba(255,255,255,0.06); }
   .row:first-child { border-top: 0; }
@@ -116,7 +127,8 @@
   </div>
 
   <div class="toolbar" id="game-toolbar" style="display:none;">
-    <select id="game-select" onchange="renderCurrentView()"></select>
+    <input id="game-search" type="text" placeholder="Search or pick a game..." list="game-options" oninput="filterGameOptions(this.value)" onchange="renderCurrentView()">
+    <datalist id="game-options"></datalist>
   </div>
 
   <div class="board" id="leaderboard">
@@ -144,6 +156,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 let playtimeRows = [];
 let currentView = "total";
+let allGameNames = [];
+let selectedGameName = "";
 
 function escHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -197,9 +211,27 @@ function renderRows(rows, mode) {
   board.innerHTML = header + body;
 }
 window.renderCurrentView = function () {
-  const gameSelect = document.getElementById("game-select");
-  let rows = currentView === "total" ? aggregateTotal(playtimeRows) : aggregateGame(playtimeRows, gameSelect.value);
+  const currentInput = (document.getElementById("game-search")?.value || "").trim().toLowerCase();
+  const exact = allGameNames.find(game => game.toLowerCase() === currentInput);
+  if (exact) selectedGameName = exact;
+  if (!currentInput) selectedGameName = "";
+  let rows = currentView === "total" ? aggregateTotal(playtimeRows) : aggregateGame(playtimeRows, selectedGameName || "");
   renderRows(rows, currentView);
+};
+window.filterGameOptions = function(query) {
+  const input = document.getElementById("game-search");
+  const list = document.getElementById("game-options");
+  const q = String(query || "").trim().toLowerCase();
+  const filteredGames = q ? allGameNames.filter(game => game.toLowerCase().includes(q)) : allGameNames.slice();
+  list.innerHTML = filteredGames.map(game => `<option value="${escHtml(game)}"></option>`).join("");
+
+  const exactMatch = allGameNames.find(game => game.toLowerCase() === q);
+  if (exactMatch) {
+    selectedGameName = exactMatch;
+  } else if (!q) {
+    selectedGameName = "";
+  }
+  if (currentView === "game") renderCurrentView();
 };
 window.setView = function (view) {
   currentView = view;
@@ -211,9 +243,11 @@ window.setView = function (view) {
 async function loadPlaytime() {
   const snap = await getDocs(collection(db, "playtime"));
   playtimeRows = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  const games = [...new Set(playtimeRows.map(row => row.gameName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  const select = document.getElementById("game-select");
-  select.innerHTML = games.map(game => `<option value="${escHtml(game)}">${escHtml(game)}</option>`).join("");
+  allGameNames = [...new Set(playtimeRows.map(row => row.gameName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const input = document.getElementById("game-search");
+  selectedGameName = "";
+  input.value = "";
+  filterGameOptions("");
   renderCurrentView();
 }
 window.handleAuth = async function () {

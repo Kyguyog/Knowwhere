@@ -258,6 +258,7 @@
     .role-pill.admin{background:rgba(168,85,247,0.15);color:var(--primary);border:1px solid rgba(168,85,247,0.35);}
     .role-pill.editor{background:rgba(34,211,238,0.15);color:var(--secondary);border:1px solid rgba(34,211,238,0.35);}
     .role-pill.orders{background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.3);}
+    .role-pill.job{background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);}
     .popup-btn svg { flex-shrink: 0; opacity: 0.7; }
     .theme-file-input {
       width: 100%;
@@ -2127,7 +2128,7 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 
 </div>
 <script type="module">import{initializeApp}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";import{getAnalytics}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,updateProfile,updatePassword}
-from"https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";import{getFirestore,doc,setDoc,getDoc,updateDoc,collection,getDocs,onSnapshot}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";const FIREBASE_API_KEY="AIzaSyAP-GnPXo490Frl1hGYWbje8QdhxtD19PQ";const firebaseConfig={apiKey:FIREBASE_API_KEY,authDomain:"knowwhere1.firebaseapp.com",projectId:"knowwhere1",storageBucket:"knowwhere1.firebasestorage.app",messagingSenderId:"747448090609",appId:"1:747448090609:web:e3af5b2c8ffa8fb3a9ce50",measurementId:"G-DV44FGDQ2N"};const app=initializeApp(firebaseConfig);const analytics=getAnalytics(app);const auth=getAuth(app);const db=getFirestore(app);window._saveOrder=async function(orderData){const user=auth.currentUser;if(!user)throw new Error('Not logged in');const snap=await getDoc(doc(db,'users',user.email));const snapData=snap.exists()?snap.data():{};const username=snapData.username||user.email;const fullName=snapData.fullName||snapData.username||user.email;let orderNumber;const existingOrders=await getDocs(collection(db,'orders'));const usedNumbers=new Set(existingOrders.docs.map(d=>d.data().orderNumber).filter(Boolean));do{orderNumber=Math.floor(100000+Math.random()*900000);}while(usedNumbers.has(orderNumber));const orderDoc={email:user.email,username,fullName,items:orderData.items,total:orderData.total,orderNumber,placedAt:new Date().toISOString()};const orderId='order_'+Date.now();await setDoc(doc(db,'users',user.email,'orders',orderId),orderDoc);await setDoc(doc(db,'orders',orderId),orderDoc);return{orderNumber,fullName};};window._fetchAllOrders=async function(){const snap=await getDocs(collection(db,'orders'));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.placedAt.localeCompare(a.placedAt));};window._fetchMyOrders=async function(){const user=auth.currentUser;if(!user)return[];const snap=await getDocs(collection(db,'users',user.email,'orders'));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.placedAt.localeCompare(a.placedAt));};Object.defineProperty(window,'_currentUserEmail',{get:()=>auth.currentUser?auth.currentUser.email:null,configurable:true});window._markOrderCompleted=async function(orderId){const completedAt=new Date().toISOString();const patch={completed:true,completedAt};await updateDoc(doc(db,'orders',orderId),patch);try{const topSnap=await getDoc(doc(db,'orders',orderId));if(topSnap.exists()){const email=topSnap.data().email;if(email){await updateDoc(doc(db,'users',email,'orders',orderId),patch);}}}catch(e){console.warn('Could not sync completed status to user subcollection:',e);}};window._markOrderActive=async function(orderId){const patch={completed:false,completedAt:null};await updateDoc(doc(db,'orders',orderId),patch);try{const topSnap=await getDoc(doc(db,'orders',orderId));if(topSnap.exists()){const email=topSnap.data().email;if(email){await updateDoc(doc(db,'users',email,'orders',orderId),patch);}}}catch(e){console.warn('Could not sync active status to user subcollection:',e);}};window._saveGameRequest=async function(requestData){const user=auth.currentUser;if(!user)throw new Error('Not logged in');const id='game_req_'+Date.now();await setDoc(doc(db,'gameRequests',id),Object.assign({id,email:user.email,status:'pending',createdAt:new Date().toISOString()},requestData));};window._capturePublicIp=async function(){const user=auth.currentUser;if(!user)return;try{const res=await fetch('https://api.ipify.org?format=json',{cache:'no-store'});if(!res.ok)return;const data=await res.json();const ip=(data&&data.ip)||'';if(!ip)return;await setDoc(doc(db,'users',user.email),{email:user.email,publicIp:ip,lastIpAt:new Date().toISOString()},{merge:true});}catch(e){console.warn('Could not capture public IP:',e);}};function playtimeId(email,name){return(email+'_'+name).toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,180);}window._recordPlaytime=async function(gameName,seconds){const user=auth.currentUser;if(!user||!gameName||seconds<5)return;const ref=doc(db,'playtime',playtimeId(user.email,gameName));const snap=await getDoc(ref);const old=snap.exists()?snap.data():{};await setDoc(ref,{email:user.email,username:user.displayName||user.email,gameName,totalSeconds:(Number(old.totalSeconds)||0)+Math.floor(seconds),plays:(Number(old.plays)||0)+1,lastPlayedAt:new Date().toISOString()},{merge:true});};window._fetchPlaytimeLeaderboard=async function(){const snap=await getDocs(collection(db,'playtime'));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(Number(b.totalSeconds)||0)-(Number(a.totalSeconds)||0));};window.switchTab=function(tab){document.getElementById('tab-login').classList.toggle('active',tab==='login');document.getElementById('tab-signup').classList.toggle('active',tab==='signup');document.getElementById('login-form-wrap').style.display=tab==='login'?'flex':'none';document.getElementById('signup-form-wrap').style.display=tab==='signup'?'flex':'none';document.getElementById('auth-error').classList.remove('show');if(window._retryCountdownInterval){clearInterval(window._retryCountdownInterval);window._retryCountdownInterval=null;}};function friendlyError(code){const map={'auth/invalid-email':'That email address doesn\'t look right.','auth/user.html-not-found':'No account found with that email.','auth/wrong-password':'Incorrect password. Try again.','auth/email-already-in-use':'An account with that email already exists.','auth/weak-password':'Password must be at least 6 characters.','auth/too-many-requests':'Too many attempts. Try again later.','auth/invalid-credential':'Email or password is incorrect.','auth/user-disabled':'This account has been disabled.',};return map[code]||'Something went wrong. Please try again.';}
+from"https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";import{getFirestore,doc,setDoc,getDoc,updateDoc,collection,getDocs,onSnapshot}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";const FIREBASE_API_KEY="AIzaSyAP-GnPXo490Frl1hGYWbje8QdhxtD19PQ";const firebaseConfig={apiKey:FIREBASE_API_KEY,authDomain:"knowwhere1.firebaseapp.com",projectId:"knowwhere1",storageBucket:"knowwhere1.firebasestorage.app",messagingSenderId:"747448090609",appId:"1:747448090609:web:e3af5b2c8ffa8fb3a9ce50",measurementId:"G-DV44FGDQ2N"};const app=initializeApp(firebaseConfig);const analytics=getAnalytics(app);const auth=getAuth(app);const db=getFirestore(app);window._saveOrder=async function(orderData){const user=auth.currentUser;if(!user)throw new Error('Not logged in');const snap=await getDoc(doc(db,'users',user.email));const snapData=snap.exists()?snap.data():{};const username=snapData.username||user.email;const fullName=snapData.fullName||snapData.username||user.email;let orderNumber;const existingOrders=await getDocs(collection(db,'orders'));const usedNumbers=new Set(existingOrders.docs.map(d=>d.data().orderNumber).filter(Boolean));do{orderNumber=Math.floor(100000+Math.random()*900000);}while(usedNumbers.has(orderNumber));const orderDoc={email:user.email,username,fullName,items:orderData.items,total:orderData.total,orderNumber,placedAt:new Date().toISOString()};const orderId='order_'+Date.now();await setDoc(doc(db,'users',user.email,'orders',orderId),orderDoc);await setDoc(doc(db,'orders',orderId),orderDoc);return{orderNumber,fullName};};window._fetchAllOrders=async function(){const snap=await getDocs(collection(db,'orders'));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.placedAt.localeCompare(a.placedAt));};window._fetchMyOrders=async function(){const user=auth.currentUser;if(!user)return[];const snap=await getDocs(collection(db,'users',user.email,'orders'));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.placedAt.localeCompare(a.placedAt));};Object.defineProperty(window,'_currentUserEmail',{get:()=>auth.currentUser?auth.currentUser.email:null,configurable:true});window._markOrderCompleted=async function(orderId){const completedAt=new Date().toISOString();const patch={completed:true,completedAt};await updateDoc(doc(db,'orders',orderId),patch);try{const topSnap=await getDoc(doc(db,'orders',orderId));if(topSnap.exists()){const email=topSnap.data().email;if(email){await updateDoc(doc(db,'users',email,'orders',orderId),patch);}}}catch(e){console.warn('Could not sync completed status to user subcollection:',e);}};window._markOrderActive=async function(orderId){const patch={completed:false,completedAt:null};await updateDoc(doc(db,'orders',orderId),patch);try{const topSnap=await getDoc(doc(db,'orders',orderId));if(topSnap.exists()){const email=topSnap.data().email;if(email){await updateDoc(doc(db,'users',email,'orders',orderId),patch);}}}catch(e){console.warn('Could not sync active status to user subcollection:',e);}};window._saveGameRequest=async function(requestData){const user=auth.currentUser;if(!user)throw new Error('Not logged in');const id='game_req_'+Date.now();await setDoc(doc(db,'gameRequests',id),Object.assign({id,email:user.email,status:'pending',createdAt:new Date().toISOString()},requestData));};window._capturePublicIp=async function(){const user=auth.currentUser;if(!user)return;try{const res=await fetch('https://api.ipify.org?format=json',{cache:'no-store'});if(!res.ok)return;const data=await res.json();const ip=(data&&data.ip)||'';if(!ip)return;await setDoc(doc(db,'users',user.email),{email:user.email,publicIp:ip,lastIpAt:new Date().toISOString()},{merge:true});}catch(e){console.warn('Could not capture public IP:',e);}};function playtimeId(email,name){return(email+'_'+name).toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,180);}window._recordPlaytime=async function(gameName,seconds,countPlay=true){const user=auth.currentUser;if(!user||!gameName||(seconds<1&&!countPlay))return;const ref=doc(db,'playtime',playtimeId(user.email,gameName));const snap=await getDoc(ref);const old=snap.exists()?snap.data():{};await setDoc(ref,{email:user.email,username:user.displayName||user.email,gameName,totalSeconds:(Number(old.totalSeconds)||0)+Math.floor(seconds),plays:(Number(old.plays)||0)+(countPlay?1:0),lastPlayedAt:new Date().toISOString()},{merge:true});};window._fetchPlaytimeLeaderboard=async function(){const snap=await getDocs(collection(db,'playtime'));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(Number(b.totalSeconds)||0)-(Number(a.totalSeconds)||0));};window.switchTab=function(tab){document.getElementById('tab-login').classList.toggle('active',tab==='login');document.getElementById('tab-signup').classList.toggle('active',tab==='signup');document.getElementById('login-form-wrap').style.display=tab==='login'?'flex':'none';document.getElementById('signup-form-wrap').style.display=tab==='signup'?'flex':'none';document.getElementById('auth-error').classList.remove('show');if(window._retryCountdownInterval){clearInterval(window._retryCountdownInterval);window._retryCountdownInterval=null;}};function friendlyError(code){const map={'auth/invalid-email':'That email address doesn\'t look right.','auth/user.html-not-found':'No account found with that email.','auth/wrong-password':'Incorrect password. Try again.','auth/email-already-in-use':'An account with that email already exists.','auth/weak-password':'Password must be at least 6 characters.','auth/too-many-requests':'Too many attempts. Try again later.','auth/invalid-credential':'Email or password is incorrect.','auth/user-disabled':'This account has been disabled.',};return map[code]||'Something went wrong. Please try again.';}
 window.handleAuth=async function(){const input=document.getElementById('auth-email').value.trim();const password=document.getElementById('auth-password').value;const errEl=document.getElementById('auth-error');const btn=document.getElementById('auth-submit');errEl.classList.remove('show');if(!input||!password){errEl.textContent='Please fill in all fields.';errEl.classList.add('show');return;}
 btn.disabled=true;btn.textContent='Logging in...';let loginEmail=input;const isEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);if(!isEmail){try{const usersSnap=await getDocs(collection(db,'users'));const usernameLower=input.toLowerCase();let found=false;for(const d of usersSnap.docs){const uData=d.data();if(uData.username&&uData.username.toLowerCase()===usernameLower){loginEmail=d.id;found=true;break;}}if(!found){errEl.textContent='No account found with that username.';errEl.classList.add('show');btn.disabled=false;btn.textContent='Login';return;}}catch(e){errEl.textContent='Error looking up username. Try using your email instead.';errEl.classList.add('show');btn.disabled=false;btn.textContent='Login';return;}}try{await signInWithEmailAndPassword(auth,loginEmail,password);}catch(err){errEl.textContent=friendlyError(err.code);errEl.classList.add('show');btn.disabled=false;btn.textContent='Login';}};window.handleSignupRequest=async function(){const fullName=document.getElementById('signup-fullname').value.trim();const username=document.getElementById('signup-username').value.trim();const email=document.getElementById('signup-email').value.trim();const password=document.getElementById('signup-password').value;const confirm=document.getElementById('signup-confirm').value;const errEl=document.getElementById('signup-error');const successEl=document.getElementById('signup-success');const btn=document.getElementById('signup-submit');errEl.classList.remove('show');successEl.style.display='none';if(!fullName||!email||!password||!confirm){errEl.textContent='Please fill in all fields.';errEl.classList.add('show');return;}
 const nameParts=fullName.split(/\s+/).filter(Boolean);if(nameParts.length<2){errEl.textContent='Please enter your full name (first and last).';errEl.classList.add('show');return;}
@@ -2708,6 +2709,9 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.addEventListener('msfullscreenchange', () => { setTimeout(focusGameFrame, 120); });
   }
   let activePopupPlay = null;
+  let popupPlayAutosaveTimer = null;
+  const POPUP_PLAY_AUTOSAVE_MS = 5000;
+  const POPUP_PLAY_INACTIVE_MS = 5 * 60 * 1000;
   let activeRufflePlayer = null;
   function isSwfUrl(url) { return /\.swf($|\?)/i.test(url); }
   function destroyRufflePlayer() {
@@ -2741,14 +2745,51 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     };
     document.head.appendChild(script);
   }
-  async function flushPopupPlaytime() {
+  function addActiveDelta(play, now) {
+    const from = play.lastTickAt || now;
+    const to = now;
+    if (to <= from) {
+      play.lastTickAt = to;
+      return;
+    }
+    const activeUntil = (play.lastInputAt || from) + POPUP_PLAY_INACTIVE_MS;
+    if (from >= activeUntil) {
+      play.lastTickAt = to;
+      return;
+    }
+    const activeEnd = Math.min(to, activeUntil);
+    play.pendingActiveMs = (play.pendingActiveMs || 0) + Math.max(0, activeEnd - from);
+    play.lastTickAt = to;
+  }
+  async function flushPopupPlaytime(countPlay = true) {
     if (!activePopupPlay) return;
     const play = activePopupPlay;
-    activePopupPlay = null;
-    const seconds = Math.floor((Date.now() - play.startedAt) / 1000);
-    if (seconds >= 5 && window._recordPlaytime) {
-      try { await window._recordPlaytime(play.title, seconds); } catch (e) { console.warn('Could not save playtime:', e); }
+    if (countPlay) activePopupPlay = null;
+    addActiveDelta(play, Date.now());
+    const pendingMs = play.pendingActiveMs || 0;
+    const seconds = Math.floor(pendingMs / 1000);
+    if (seconds >= 1 && window._recordPlaytime) {
+      try {
+        await window._recordPlaytime(play.title, seconds, !!countPlay);
+        play.pendingActiveMs = pendingMs - (seconds * 1000);
+      } catch (e) {
+        console.warn('Could not save playtime:', e);
+      }
     }
+  }
+  function stopPopupPlayAutosave() {
+    if (popupPlayAutosaveTimer) {
+      clearInterval(popupPlayAutosaveTimer);
+      popupPlayAutosaveTimer = null;
+    }
+  }
+  function startPopupPlayAutosave() {
+    stopPopupPlayAutosave();
+    popupPlayAutosaveTimer = setInterval(() => { flushPopupPlaytime(false); }, POPUP_PLAY_AUTOSAVE_MS);
+  }
+  function markPopupPlayActivity() {
+    if (!activePopupPlay) return;
+    activePopupPlay.lastInputAt = Date.now();
   }
   function focusGameFrame() {
     const frame = document.getElementById('game-popup-frame');
@@ -2782,8 +2823,22 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const titleEl = document.getElementById('game-popup-title');
     const ruffleContainer = document.getElementById('game-popup-ruffle');
     titleEl.textContent = title || 'Game';
-    flushPopupPlaytime();
-    activePopupPlay = trackPlaytime ? { title: title || 'Game', src, startedAt: Date.now() } : null;
+    flushPopupPlaytime(true);
+    if (trackPlaytime) {
+      const now = Date.now();
+      activePopupPlay = {
+        title: title || 'Game',
+        src,
+        startedAt: now,
+        lastTickAt: now,
+        lastInputAt: now,
+        pendingActiveMs: 0
+      };
+      startPopupPlayAutosave();
+    } else {
+      activePopupPlay = null;
+      stopPopupPlayAutosave();
+    }
     destroyRufflePlayer();
     if (isSwfUrl(src)) {
       frame.style.display = 'none';
@@ -2805,7 +2860,8 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const modal = document.getElementById('game-popup-modal');
     if (!modal) return;
     const frame = document.getElementById('game-popup-frame');
-    flushPopupPlaytime();
+    stopPopupPlayAutosave();
+    flushPopupPlaytime(true);
     modal.classList.remove('open');
     frame.setAttribute('src', 'about:blank');
     frame.style.display = '';
@@ -2813,7 +2869,13 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.body.style.overflow = '';
   }
   window.closeGamePopup = closeGamePopup;
-  window.addEventListener('beforeunload', () => { flushPopupPlaytime(); });
+  ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach((evt) => {
+    document.addEventListener(evt, markPopupPlayActivity, { passive: true });
+  });
+  window.addEventListener('beforeunload', () => {
+    stopPopupPlayAutosave();
+    flushPopupPlaytime(true);
+  });
 
   buildArchive = function (filter) {
     const archive = document.getElementById('archive');
@@ -3234,10 +3296,12 @@ window.openProfile = async function(userEmail = null) {
       const isAdmin = ud.admin === true;
       const isEditor = ud.editor === true;
       const isOrders = ud.orders === true;
-      let pills = `<span class="role-pill ${isActive?'active':'inactive'}">${isActive?'✓ Enabled':'✗ Disabled'}</span>`;
+      const jobTag = String(ud.jobTag || '').trim();
+      let pills = `<span class="role-pill ${isActive?'active':'inactive'}">${isActive?'✓ Active':'✗ BANNED'}</span>`;
       if (isAdmin)  pills += `<span class="role-pill admin">⬡ Admin</span>`;
       if (isEditor) pills += `<span class="role-pill editor">✎ Editor</span>`;
       if (isOrders) pills += `<span class="role-pill orders">📦 Orders</span>`;
+      if (jobTag) pills += `<span class="role-pill job">${escHtml(jobTag)}</span>`;
       const rolesEl = document.getElementById('profile-roles');
       const rolesRow = document.getElementById('profile-roles-row');
       if (rolesEl) rolesEl.innerHTML = pills;
