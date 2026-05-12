@@ -259,6 +259,45 @@
     .role-pill.editor{background:rgba(34,211,238,0.15);color:var(--secondary);border:1px solid rgba(34,211,238,0.35);}
     .role-pill.orders{background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.3);}
     .popup-btn svg { flex-shrink: 0; opacity: 0.7; }
+    .theme-file-input {
+      width: 100%;
+      padding: 0.55rem;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px dashed rgba(168,85,247,0.42);
+      border-radius: 8px;
+      color: #cbd5e1;
+      font-size: 0.82rem;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .theme-file-input:hover {
+      border-color: rgba(34,211,238,0.7);
+      background: linear-gradient(180deg, rgba(34,211,238,0.09), rgba(168,85,247,0.06));
+    }
+    .theme-file-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(168,85,247,0.2);
+    }
+    .theme-file-input::file-selector-button {
+      margin-right: 0.65rem;
+      padding: 0.44rem 0.7rem;
+      border: 1px solid rgba(168,85,247,0.5);
+      border-radius: 6px;
+      background: rgba(168,85,247,0.16);
+      color: var(--primary);
+      font-family: var(--font-display);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .theme-file-input:hover::file-selector-button {
+      background: rgba(34,211,238,0.15);
+      border-color: rgba(34,211,238,0.6);
+      color: var(--secondary);
+    }
     .popup-inline-form { display: none; flex-direction: column; gap: 0.5rem; padding: 0.25rem 0.75rem 0.75rem; }
     .popup-inline-form.open { display: flex; }
     .popup-inline-form input {
@@ -1975,7 +2014,7 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 
 <div>
 <label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.5rem;">Bio</label>
-<p id="profile-bio" style="font-size:0.95rem;color:var(--text);margin:0;line-height:1.5;">No bio added yet</p>
+<p id="profile-bio" style="font-size:0.95rem;color:var(--text);margin:0;line-height:1.5;white-space:pre-line;">No bio added yet</p>
 </div>
 
 <div>
@@ -1999,8 +2038,7 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 <div>
 <label style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.4rem;">Profile Picture</label>
 <div style="display:flex;gap:0.75rem;align-items:flex-end;">
-<input accept="image/*" id="profile-pfp-input" type="file" style="flex:1;padding:0.5rem;background:#0d0d14;border:1px dashed var(--border);border-radius:6px;color:var(--muted);font-size:0.85rem;"/>
-<button onclick="saveProfilePictureFromEdit()" style="padding:0.5rem 1rem;background:var(--secondary);color:#000;border:none;border-radius:6px;font-family:var(--font-display);font-size:0.6rem;font-weight:700;text-transform:uppercase;cursor:pointer;white-space:nowrap;">Upload</button>
+<input accept="image/*" class="theme-file-input" id="profile-pfp-input" onchange="saveProfilePictureFromEdit()" type="file" style="flex:1;"/>
 </div>
 </div>
 
@@ -2031,10 +2069,8 @@ document.addEventListener('click',function(e){var btn=document.getElementById('n
 <!-- Image panel -->
 <div id="banner-image-panel" style="display:none;">
   <div style="display:flex;gap:0.75rem;align-items:flex-end;">
-    <input accept="image/*" id="banner-img-input" type="file" style="flex:1;padding:0.5rem;background:#0d0d14;border:1px dashed var(--border);border-radius:6px;color:var(--muted);font-size:0.85rem;"/>
-    <button onclick="saveBannerImage()" style="padding:0.5rem 1rem;background:var(--secondary);color:#000;border:none;border-radius:6px;font-family:var(--font-display);font-size:0.6rem;font-weight:700;text-transform:uppercase;cursor:pointer;white-space:nowrap;">Upload</button>
+    <input accept="image/*" class="theme-file-input" id="banner-img-input" onchange="saveBannerImage()" type="file" style="flex:1;"/>
   </div>
-  <button onclick="clearBannerImage()" style="margin-top:0.5rem;padding:0.35rem 0.75rem;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:6px;font-size:0.75rem;cursor:pointer;">Remove image → use color</button>
 </div>
 </div>
 
@@ -3118,6 +3154,13 @@ window.fetchUserProfile = async function(email) {
   }
 };
 
+function encodeBioNewLines(text) {
+  return String(text || '').replace(/\r?\n/g, '[newLine]');
+}
+function decodeBioNewLines(text) {
+  return String(text || '').replace(/\[newLine\]/g, '\n');
+}
+
 window.openProfile = async function(userEmail = null) {
   const modal = document.getElementById('profile-modal');
   if (!modal) return;
@@ -3135,7 +3178,8 @@ window.openProfile = async function(userEmail = null) {
     document.getElementById('profile-fullname').textContent = profileData.fullName || 'No name set';
     document.getElementById('profile-email').textContent = email;
     document.getElementById('profile-phone').textContent = profileData.phone || 'Not set';
-    document.getElementById('profile-bio').textContent = profileData.bio || 'No bio added yet';
+    const decodedBio = decodeBioNewLines(profileData.bio || '');
+    document.getElementById('profile-bio').textContent = decodedBio || 'No bio added yet';
     
     const lunchA = profileData.lunchSchedule?.aDay || '';
     const lunchB = profileData.lunchSchedule?.bDay || '';
@@ -3217,7 +3261,7 @@ window.enterProfileEditMode = async function() {
   // Populate edit form
   document.getElementById('profile-edit-fullname').value = profileData.fullName || '';
   document.getElementById('profile-edit-phone').value = profileData.phone || '';
-  document.getElementById('profile-edit-bio').value = profileData.bio || '';
+  document.getElementById('profile-edit-bio').value = decodeBioNewLines(profileData.bio || '');
   document.getElementById('profile-edit-lunch-a').value = profileData.lunchSchedule?.aDay || '';
   document.getElementById('profile-edit-lunch-b').value = profileData.lunchSchedule?.bDay || '';
 
@@ -3253,7 +3297,7 @@ window.saveProfile = async function() {
   
   const fullName = document.getElementById('profile-edit-fullname').value.trim();
   const phone = document.getElementById('profile-edit-phone').value.trim();
-  const bio = document.getElementById('profile-edit-bio').value.trim();
+  const bio = encodeBioNewLines(document.getElementById('profile-edit-bio').value.trim());
   const lunchA = document.getElementById('profile-edit-lunch-a').value;
   const lunchB = document.getElementById('profile-edit-lunch-b').value;
   
@@ -3281,6 +3325,7 @@ window.saveProfile = async function() {
 
 window.saveProfilePictureFromEdit = async function() {
   const fileInput = document.getElementById('profile-pfp-input');
+  const msg = document.getElementById('profile-edit-msg');
   if (!fileInput || !fileInput.files.length) {
     alert('Please select an image first.');
     return;
@@ -3314,10 +3359,38 @@ window.saveProfilePictureFromEdit = async function() {
 
     await setDoc(doc(db, 'users', email), { pfp: compressed }, { merge: true });
     fileInput.value = '';
-    await openProfile();
+
+    const largeAvatar = document.getElementById('profile-avatar-large');
+    if (largeAvatar) {
+      largeAvatar.innerHTML = `<img src="${compressed}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+
+    const popupAvatar = document.getElementById('popup-avatar');
+    if (popupAvatar) {
+      popupAvatar.innerHTML = `<img src="${compressed}" alt="Profile">`;
+    }
+
+    const usernameText = (document.getElementById('profile-username')?.textContent || auth.currentUser?.displayName || auth.currentUser?.email || '').trim();
+    if (typeof renderUserBadge === 'function') {
+      renderUserBadge(usernameText, compressed);
+    }
+    if (typeof renderUserPopupHeader === 'function' && auth.currentUser) {
+      const popupEmail = document.getElementById('popup-email')?.textContent || auth.currentUser.email || '';
+      const popupFullName = document.getElementById('popup-full-name')?.textContent || '';
+      renderUserPopupHeader(usernameText, popupEmail, popupFullName, compressed);
+    }
+
+    if (msg) {
+      msg.textContent = '✓ Profile picture updated!';
+      msg.className = 'popup-msg ok';
+    }
   } catch (err) {
     console.error('Error uploading profile picture:', err);
     alert('Failed to upload profile picture.');
+    if (msg) {
+      msg.textContent = 'Failed to upload profile picture.';
+      msg.className = 'popup-msg err';
+    }
   }
 };
 
