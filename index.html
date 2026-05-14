@@ -2917,14 +2917,15 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const uploadSearchText = 'upload zip game zip-player local';
     const uploadMatches = !q || uploadSearchText.includes(q);
     for (const [letter, games] of Object.entries(GAMES).sort(([a], [b]) => a.localeCompare(b))) {
-      const matched = q ? games.filter(g => {
+      const sourceGames = IS_CHROMEBOOK ? games.filter(g => g.hiddenOnChromebook !== true) : games;
+      const matched = q ? sourceGames.filter(g => {
         if (g.name.toLowerCase().includes(q)) return true;
         if ((g.alias || '').toLowerCase().includes(q)) return true;
         try {
           const host = new URL(g.url).hostname.replace(/^www\./, '').toLowerCase();
           return host.includes(q) || host.replace(/\.[^.]+$/, '').includes(q);
         } catch { return false; }
-      }) : games;
+      }) : sourceGames;
       if (matched.length === 0) continue;
       totalMatches += matched.length;
       const cards = matched.map(g => {
