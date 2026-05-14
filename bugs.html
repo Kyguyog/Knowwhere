@@ -182,6 +182,34 @@
       background: rgba(100,116,139,0.12); color: var(--muted); border: 1px solid rgba(100,116,139,0.3);
     }
     .resolve-btn.mark-open:hover { background: rgba(100,116,139,0.22); }
+    .delete-btn {
+      padding: 0.3rem 0.85rem; border-radius: 6px;
+      font-family: var(--font-display); font-size: 0.58rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+      background: rgba(239,68,68,0.1); color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.3);
+      transition: background 0.15s;
+    }
+    .delete-btn:hover { background: rgba(239,68,68,0.22); }
+    .delete-confirm {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.28);
+      border-radius: 8px; padding: 0.28rem 0.6rem;
+    }
+    .delete-confirm span { font-size: 0.65rem; color: var(--danger); font-weight: 600; }
+    .delete-confirm button {
+      padding: 0.2rem 0.6rem; border-radius: 5px; border: none; cursor: pointer;
+      font-family: var(--font-display); font-size: 0.55rem; font-weight: 700;
+      letter-spacing: 0.07em; text-transform: uppercase; transition: background 0.15s;
+    }
+    .delete-confirm .confirm-yes {
+      background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid rgba(239,68,68,0.4);
+    }
+    .delete-confirm .confirm-yes:hover { background: rgba(239,68,68,0.35); }
+    .delete-confirm .confirm-no {
+      background: rgba(100,116,139,0.1); color: var(--muted); border: 1px solid rgba(100,116,139,0.3);
+    }
+    .delete-confirm .confirm-no:hover { background: rgba(100,116,139,0.2); }
 
     /* User agent display */
     .ua-display {
@@ -364,7 +392,7 @@
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
   import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
-  import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+  import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyAP-GnPXo490Frl1hGYWbje8QdhxtD19PQ",
@@ -517,7 +545,16 @@
                 <button class="resolve-btn ${resolved ? 'mark-open' : 'mark-resolved'}"
                   onclick="toggleStatus('${esc(r.id)}', ${resolved})">
                   ${resolved ? 'Re-open' : 'Mark Resolved'}
-                </button>` : ''}
+                </button>
+                ${resolved ? `
+                <span class="delete-confirm" id="del-confirm-${esc(r.id)}" style="display:none;">
+                  <span>Delete?</span>
+                  <button class="confirm-yes" onclick="deleteReport('${esc(r.id)}')">Yes, delete</button>
+                  <button class="confirm-no" onclick="cancelDelete('${esc(r.id)}')">Cancel</button>
+                </span>
+                <button class="delete-btn" id="del-btn-${esc(r.id)}" onclick="promptDelete('${esc(r.id)}')">
+                  Delete
+                </button>` : ''}` : ''}
             </div>
           </div>
 
@@ -541,6 +578,26 @@
       });
     } catch (e) {
       alert('Failed to update status: ' + e.message);
+    }
+  };
+
+  window.promptDelete = function(reportId) {
+    document.getElementById('del-btn-' + reportId).style.display = 'none';
+    document.getElementById('del-confirm-' + reportId).style.display = 'inline-flex';
+  };
+
+  window.cancelDelete = function(reportId) {
+    document.getElementById('del-confirm-' + reportId).style.display = 'none';
+    document.getElementById('del-btn-' + reportId).style.display = '';
+  };
+
+  window.deleteReport = async function(reportId) {
+    if (!isAdmin) return;
+    try {
+      await deleteDoc(doc(db, 'bugReports', reportId));
+      // onSnapshot will re-render automatically
+    } catch (e) {
+      alert('Failed to delete: ' + e.message);
     }
   };
 
