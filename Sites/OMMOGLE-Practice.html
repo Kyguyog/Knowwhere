@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOG ARENA — SOLO SCAN</title>
+<script type="module">
+import { FaceLandmarker, FilesetResolver, DrawingUtils } from
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.js";
+
+// ── helpers (exact from ommogle source) ──────────────────────────────────────
+const clamp01 = e => Math.max(0, Math.min(1, e));
+const clampR  = (e, t, r) => Math.max(t, Math.min(r, e));
+const dist    = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+function scoreLandmarks(e) {
+  if (!e || e.length < 400) return null;
+
+  // ── symmetry ──────────────────────────────────────────────────────────────
+  const symmetry = (() => {
+    const top = e[10], bot = e[152], midX = (top.x + bot.x) / 2;
+    let diff = 0, total = 0;
+    for (const [l, r] of [[33,263],[133,362],[70,300],[55,285],[61,291],[172,397]]) {
+      const lx = Math.abs(e[l].x - midX), rx = Math.abs(e[r].x - midX);
+      diff += Math.abs(lx - rx); total += (lx + rx) / 2;
+    }
+    return total === 0 ? 0.5 : clamp01(1 - diff / total);
+  })();
+
+  // ── canthal tilt ─────────────────────────────────────────────────────────
+  const slope = (a, b) => (b.y - a.y) / (Math.abs(b.x - a.x) || 1);
+  const canthalTilt = clamp01(((slope(e[33], e[133]) + slope(e[263], e[362])) / 2 + 0.05) / 0.25);
+
+  // ── jaw sharpness ─────────────────────────────────────────────────────────
+  const jawSharpness = (() => {
+    const c = e[152], d = e[172], u = e[397];
+    const f = { x: d.x - c.x, y: d.y - c.y };
+    const m = { x: u.x - c.x, y: u.y - c.y };
+    const dot = f.x*m.x + f.y*m.y;
+    const denom = (Math.hypot(f.x, f.y) * Math.hypot(m.x, m.y)) || 1;
+    return clamp01((150 - 180 * Math.acos(clampR(dot / denom, -1, 1)) / Math.PI) / 60);
+  })();
+
+  // ── eye openness (hunter eyes) ────────────────────────────────────────────
+  const eyeOpenness = (() => {
+    const h = Math.abs(e[159].y - e[145].y);
+    const x = Math.abs(e[386].y - e[374].y);
+    const lw = dist(e[33], e[133]) || 1;
+    const rw = dist(e[263], e[362]) || 1;
+    return clamp01(((h / lw + x / rw) / 2 - 0.1) / 0.25);
+  })();
+
+  // ── pose / forward growth ────────────────────────────────────────────────
+  const poseStability = (() => {
+    const midX = (e[10].x + e[152].x) / 2;
+    const faceW = Math.abs(e[172].x - e[397].x) || 1;
+    const noseDevX = Math.abs((e[1].x - midX) / faceW);
+    const midY = (e[10].y + e[152].y) / 2;
+    const faceH = Math.abs(e[152].y - e[10].y) || 1;
+    const noseDevY = Math.abs((e[1].y - midY) / faceH);
+    return clamp01(1 - Math.max(noseDevX, noseDevY) / 0.4);
+  })();
+
+  // ── smile neutral (aura) ─────────────────────────────────────────────────
+  const smileNeutral = clamp01(1 - 80 * Math.abs(e[13].y - (e[61].y + e[291].y) / 2 - 0.005));
+
+  const sub = { symmetry, canthalTilt, jawSharpness, eyeOpenness, poseStability, smileNeutral };
+
+  const overall = clampR(
+    3 + (1.4*symmetry + 1.3*canthalTilt + 1.2*jawSharpness + 0.7*eyeOpenness + 0.9*poseStability + 0.5*smileNeutral)
+      / (2.7 + 1.2 + 0.7 + 0.9 + 0.5) * 6.5,
+    1, 10
+  );
+
+  const POS = { symmetry:"SYMMETRY", canthalTilt:"POSITIVE CANTHAL TILT", jawSharpness:"SHARP JAWLINE", eyeOpenness:"HUNTER EYES", poseStability:"FORWARD GROWTH", smileNeutral:"AURA" };
+  const NEG = { symmetry:"ASYMMETRY", canthalTilt:"NEGATIVE CANTHAL TILT", jawSharpness:"SOFT JAW", eyeOpenness:"HOODED HARD", poseStability:"BAD POSE", smileNeutral:"NPC ENERGY" };
+
+  const sorted = Object.keys(sub).slice().sort((a, b) => sub[b] - sub[a]);
+  return { overall, don: POS[sorted[0]], flaw: NEG[sorted[sorted.length-1]], sub };
+}
+
+function tierFromOverall(s) {
+  if (s >= 9)   return { name:"MOG GOD",   color:"#ffd54a" };
+  if (s >= 8)   return { name:"CHADLITE",  color:"#a78bfa" };
+  if (s >= 6.5) return { name:"MTN",       color:"#60a5fa" };
+  if (s >= 5)   return { name:"MID",       color:"#999" };
+                return { name:"UNRANKED",  color:"#666" };
+}
+
+// ── landmark indices for drawing (exact from ommogle) ───────────────────────
+const JAW   = [10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,10];
+const LBROW = [70,63,105,66,107,55,65,52,53,46];
+const RBROW = [300,293,334,296,336,285,295,282,283,276];
+const LEYE  = [33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246,33];
+const REYE  = [263,249,390,373,374,380,381,382,362,398,384,385,386,387,388,466,263];
+const LIPS  = [61,146,91,181,84,17,314,405,321,375,291,409,270,269,267,0,37,39,40,185,61];
+const NOSE  = [168,6,197,195,5,4,1];
+
+// ── main ─────────────────────────────────────────────────────────────────────
+const video   = document.getElementById("webcam");
+const canvas  = document.getElementById("overlay");
+const ctx     = canvas.getContext("2d");
+
+let landmarker = null;
+let lastLandmarks = null;
+let scoreHistory = [];
+let smoothScore = null;
+let showMesh = false;
+
+async function init() {
+  document.getElementById("status").textContent = "LOADING AI MODEL…";
+  try {
+    const fr = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+    );
+    landmarker = await FaceLandmarker.createFromOptions(fr, {
+      baseOptions: { modelAssetPath: "https://cdn.jsdelivr.net/gh/Kyguyog/Omoggle-Practice@main/face_landmarker.task" },
+      numFaces: 1,
+      runningMode: "VIDEO",
+      outputFaceBlendshapes: false,
+    });
+    document.getElementById("status").textContent = "STARTING CAMERA…";
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode:"user", width:{ideal:720}, height:{ideal:1280} }
+    });
+    video.srcObject = stream;
+    video.addEventListener("loadeddata", () => {
+      document.getElementById("status-wrap").style.display = "none";
+      requestAnimationFrame(loop);
+    });
+  } catch(err) {
+    document.getElementById("status").textContent = "ERROR: " + err.message;
+  }
+}
+
+function drawPath(pts, lw, color) {
+  if (!lastLandmarks) return;
+  const W = canvas.width, H = canvas.height;
+  ctx.beginPath();
+  ctx.lineWidth = lw;
+  ctx.strokeStyle = color;
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  let first = true;
+  for (const i of pts) {
+    const p = lastLandmarks[i];
+    if (!p) continue;
+    // mirror X because video is flipped
+    const x = (1 - p.x) * W, y = p.y * H;
+    first ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    first = false;
+  }
+  ctx.stroke();
+}
+
+function drawDots(ids, color) {
+  if (!lastLandmarks) return;
+  const W = canvas.width, H = canvas.height;
+  ctx.fillStyle = color;
+  for (const i of ids) {
+    const p = lastLandmarks[i];
+    if (!p) continue;
+    ctx.beginPath();
+    ctx.arc((1 - p.x) * W, p.y * H, 2.8, 0, 2*Math.PI);
+    ctx.fill();
+  }
+}
+
+function renderMesh(highlight) {
+  const GREEN = "rgba(154, 230, 110, 0.85)";
+  const GOLD  = "#ffd54a";
+  const hl = (feature) => highlight === feature || highlight === "FACE";
+  drawPath(JAW,   hl("JAWLINE") ? 3.5 : 1.2, hl("JAWLINE") ? GOLD : GREEN);
+  drawPath(LBROW, hl("BROWS")   ? 3.0 : 1.2, hl("BROWS")   ? GOLD : GREEN);
+  drawPath(RBROW, hl("BROWS")   ? 3.0 : 1.2, hl("BROWS")   ? GOLD : GREEN);
+  drawPath(LEYE,  hl("EYES")    ? 3.0 : 1.2, hl("EYES")    ? GOLD : GREEN);
+  drawPath(REYE,  hl("EYES")    ? 3.0 : 1.2, hl("EYES")    ? GOLD : GREEN);
+  drawPath(LIPS,  hl("LIPS")    ? 3.0 : 1.2, hl("LIPS")    ? GOLD : GREEN);
+  drawPath(NOSE,  hl("NOSE")    ? 3.0 : 1.2, hl("NOSE")    ? GOLD : GREEN);
+  drawDots([33,263,1,152,61,291], hl("FACE") ? GOLD : "rgba(154, 230, 110, 0.95)");
+}
+
+let highlight = null;
+let highlightTimer = null;
+
+function loop(ts) {
+  requestAnimationFrame(loop);
+
+  // size canvas to video
+  const rect = video.getBoundingClientRect();
+  if (canvas.width !== Math.round(rect.width) || canvas.height !== Math.round(rect.height)) {
+    canvas.width  = Math.round(rect.width);
+    canvas.height = Math.round(rect.height);
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (!video.videoWidth) return;
+
+  const result = landmarker.detectForVideo(video, ts);
+  if (!result?.faceLandmarks?.[0]) {
+    lastLandmarks = null;
+    updateUI(null);
+    return;
+  }
+
+  lastLandmarks = result.faceLandmarks[0];
+  if (showMesh) renderMesh(highlight);
+
+  const score = scoreLandmarks(lastLandmarks);
+  if (!score) return;
+
+  // smooth score over last 10 frames
+  scoreHistory.push(score.overall);
+  if (scoreHistory.length > 10) scoreHistory.shift();
+  smoothScore = scoreHistory.reduce((a,b)=>a+b,0) / scoreHistory.length;
+
+  updateUI({ ...score, overall: smoothScore });
+
+  // rotate highlight to top feature every 4s
+  if (!highlightTimer) {
+    const sorted = Object.entries(score.sub).sort((a,b)=>b[1]-a[1]);
+    const map = { symmetry:"JAWLINE", canthalTilt:"EYES", jawSharpness:"JAWLINE", eyeOpenness:"EYES", poseStability:"FACE", smileNeutral:"LIPS" };
+    highlight = map[sorted[0][0]];
+    highlightTimer = setTimeout(() => { highlight = null; highlightTimer = null; }, 4000);
+  }
+}
+
+function bar(val) {
+  const pct = Math.round(val * 100);
+  const color = val > 0.65 ? "#86efac" : val > 0.4 ? "#ffd54a" : "#fca5a5";
+  return `<div class="bar-row">
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    <span class="bar-pct">${pct}</span>
+  </div>`;
+}
+
+const LABELS = { symmetry:"SYMMETRY", canthalTilt:"CANTHAL TILT", jawSharpness:"JAWLINE", eyeOpenness:"EYE OPEN", poseStability:"POSE", smileNeutral:"AURA" };
+
+function updateUI(score) {
+  const scoreEl = document.getElementById("score-panel");
+  if (!score) {
+    scoreEl.innerHTML = `<div class="no-face">NO FACE DETECTED</div>`;
+    return;
+  }
+  const tier = tierFromOverall(score.overall);
+  scoreEl.innerHTML = `
+    <div class="overall">${score.overall.toFixed(1)}</div>
+    <div class="tier" style="color:${tier.color}">★ ${tier.name}</div>
+    <div class="don-flaw">
+      <span class="don">${score.don}</span>
+      <span class="flaw">${score.flaw}</span>
+    </div>
+    <div class="sub-scores">
+      ${Object.entries(score.sub).map(([k, v]) =>
+        `<div class="sub-row">
+          <span class="sub-label">${LABELS[k]}</span>
+          ${bar(v)}
+        </div>`
+      ).join("")}
+    </div>
+  `;
+}
+
+init();
+
+document.getElementById("mesh-toggle").addEventListener("click", function() {
+  showMesh = !showMesh;
+  this.textContent = showMesh ? "OUTLINE ON" : "OUTLINE OFF";
+  this.classList.toggle("off", !showMesh);
+});
+</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green: #9ae66e;
+  --gold: #ffd54a;
+  --purple: #a78bfa;
+  --red: #fca5a5;
+  --bg: #09090b;
+  --card: #111113;
+  --border: rgba(255,255,255,0.08);
+  font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: #fff;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.32em;
+  color: rgba(255,255,255,0.5);
+}
+header .logo {
+  color: #fff;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+}
+header .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.arena {
+  width: 100%;
+  max-width: 900px;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 10px;
+}
+@media(max-width:640px){
+  .arena { grid-template-columns: 1fr; }
+}
+
+/* camera panel */
+.cam-wrap {
+  position: relative;
+  aspect-ratio: 9/12;
+  max-height: 70dvh;
+  background: var(--card);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  display: block;
+}
+#overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#status-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.82);
+  z-index: 10;
+}
+.spinner {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.12);
+  border-top-color: var(--purple);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#status {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  color: rgba(255,255,255,0.6);
+}
+
+.mesh-toggle {
+  position: absolute;
+  bottom: 10px; right: 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  font-family: inherit;
+  background: rgba(154, 230, 110, 0.15);
+  border: 1px solid rgba(154, 230, 110, 0.4);
+  color: #9ae66e;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.mesh-toggle.off {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.35);
+}
+.cam-badge {
+  position: absolute;
+  top: 10px; left: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  background: rgba(0,0,0,0.75);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.85);
+  z-index: 5;
+}
+
+/* score panel */
+.score-panel {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.panel-title {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 2px;
+}
+
+#score-panel { min-height: 180px; }
+
+.overall {
+  font-size: 72px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  background: linear-gradient(180deg, #fff 40%, rgba(255,255,255,0.5));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.tier {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+}
+.don-flaw {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.don {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: #86efac;
+}
+.flaw {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: var(--red);
+}
+.sub-scores { display: flex; flex-direction: column; gap: 6px; }
+.sub-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sub-label {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.4);
+  width: 78px;
+  flex-shrink: 0;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+}
+.bar-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.18s ease;
+}
+.bar-pct {
+  font-size: 8px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.35);
+  width: 22px;
+  text-align: right;
+}
+.no-face {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  color: rgba(255,255,255,0.25);
+  margin: auto;
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* info tips */
+.tips {
+  width: 100%;
+  max-width: 900px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+@media(max-width:480px){ .tips { grid-template-columns: 1fr 1fr; } }
+.tip {
+  background: var(--card);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.55;
+}
+.tip strong { color: rgba(255,255,255,0.8); display: block; margin-bottom: 2px; }
+
+footer {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  color: rgba(255,255,255,0.2);
+  margin-top: 4px;
+}
+</style>
+</head>
+<body>
+
+<div class="arena">
+  <!-- camera -->
+  <div class="cam-wrap">
+    <video id="webcam" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <button id="mesh-toggle" class="mesh-toggle off" title="Toggle face outline">OUTLINE OFF</button>
+    <div id="status-wrap">
+      <div class="spinner"></div>
+      <div id="status">INITIALISING…</div>
+    </div>
+  </div>
+
+  <!-- score -->
+  <div class="score-panel">
+    <div class="panel-title">LIVE SCAN</div>
+    <div id="score-panel">
+      <div class="no-face">WAITING FOR FACE…</div>
+    </div>
+  </div>
+</div>
+
+<div class="tips">
+  <div class="tip"><strong>SYMMETRY</strong>Face your camera straight-on. Even lighting helps.</div>
+  <div class="tip"><strong>CANTHAL TILT</strong>Outer eye corners higher than inner = positive tilt.</div>
+  <div class="tip"><strong>JAWLINE</strong>Clench slightly. Defined jaw angle scores higher.</div>
+  <div class="tip"><strong>HUNTER EYES</strong>Slight squint, not wide-eyed. Lidded = based.</div>
+  <div class="tip"><strong>POSE</strong>Look straight into the lens. No tilt, no rotation.</div>
+  <div class="tip"><strong>AURA</strong>Neutral lips, slight Mona Lisa. No forced expression.</div>
+</div>
+
+</body>
+</html>
