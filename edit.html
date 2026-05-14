@@ -1900,7 +1900,7 @@ function renderTopTierEditor(items) {
       ${makeCardInput('tt-name','Game name', item.name)}
       ${makeCardInput('tt-badge',"Badge (e.g. Editor's Choice)", item.badge||'')}
       <input class="tt-url admin-card-input" placeholder="Game URL" value="${escAttr(url)}" oninput="adminHandleGameUrlInput(this)" />
-      ${makeCardInput('tt-bg','Background image URL', item.backgroundImage||'')}
+      <input class="tt-bg admin-card-input" placeholder="Background image URL" value="${escAttr(item.backgroundImage||'')}" onpaste="adminHandleTopTierBgPaste(event,this)" onchange="adminHandleTopTierBgChange(this)" />
       <label class="toggle-wrap" style="margin-top:0.35rem;${toggleDim}">
         <span class="toggle-switch">
           <input type="checkbox" class="tt-popup-input" ${popupChecked ? 'checked' : ''} ${popupDisabled} />
@@ -1924,7 +1924,7 @@ window.adminAddTopTier = function() {
     <input class="tt-name admin-card-input" placeholder="Game name" />
     <input class="tt-badge admin-card-input" placeholder="Badge label" />
     <input class="tt-url admin-card-input" placeholder="Game URL" oninput="adminHandleGameUrlInput(this)" />
-    <input class="tt-bg admin-card-input" placeholder="Background image URL" />
+    <input class="tt-bg admin-card-input" placeholder="Background image URL" onpaste="adminHandleTopTierBgPaste(event,this)" onchange="adminHandleTopTierBgChange(this)" />
     <label class="toggle-wrap" style="margin-top:0.35rem;">
       <span class="toggle-switch">
         <input type="checkbox" class="tt-popup-input" />
@@ -1937,6 +1937,8 @@ window.adminAddTopTier = function() {
 
 
 function renderGameRow(g = {}) {
+  const addedAtMs = g.addedAt ? new Date(g.addedAt).getTime() : NaN;
+  const isNewGame = Number.isFinite(addedAtMs) && (Date.now() - addedAtMs) <= 7 * 24 * 60 * 60 * 1000;
   const openInPopup = g.openInPopup === true;
   const gameUrl = g.url || '';
   const isSwf = /\.swf($|\?)/i.test(gameUrl);
@@ -1945,16 +1947,26 @@ function renderGameRow(g = {}) {
   const toggleDim = isSwf ? 'opacity:0.5;' : '';
   return `
     <div class="admin-row-item" data-original-name="${escAttr(g.name || '')}">
-      <input class="admin-row-input game-name-input" placeholder="Game name" value="${escAttr(g.name || '')}" style="flex:1.2;" />
+      <div style="flex:1.2;display:flex;align-items:center;gap:0.35rem;min-width:0;">
+        <input class="admin-row-input game-name-input" placeholder="Game name" value="${escAttr(g.name || '')}" style="flex:1;" />
+        ${isNewGame ? '<span style="flex-shrink:0;padding:0.1rem 0.4rem;border-radius:999px;font-size:0.58rem;letter-spacing:0.1em;font-weight:700;color:#22c55e;background:rgba(34,197,94,0.14);border:1px solid rgba(34,197,94,0.4);text-transform:uppercase;">New</span>' : ''}
+      </div>
       <input class="admin-row-input game-alias-input" placeholder="Search alias (optional)" value="${escAttr(g.alias || '')}" style="flex:1;" />
       <input class="admin-row-input game-url-input" placeholder="Game URL" value="${escAttr(gameUrl)}" style="flex:1.8;" oninput="adminHandleGameUrlInput(this)" />
-      <div style="flex:3.3;display:flex;align-items:center;gap:0.45rem;min-width:0;">
+      <div style="flex:3.8;display:flex;align-items:center;gap:0.45rem;min-width:0;">
         <label class="toggle-wrap" style="white-space:nowrap;${toggleDim}">
           <span class="toggle-switch">
             <input type="checkbox" class="game-popup-input" ${popupChecked ? 'checked' : ''} ${popupDisabled} />
             <span class="toggle-track"></span>
           </span>
           <span class="toggle-label">${isSwf ? 'Popup (Flash)' : 'Popup'}</span>
+        </label>
+        <label class="toggle-wrap" style="white-space:nowrap;">
+          <span class="toggle-switch">
+            <input type="checkbox" class="game-hidden-chromebook-input" ${g.hiddenOnChromebook === true ? 'checked' : ''} />
+            <span class="toggle-track"></span>
+          </span>
+          <span class="toggle-label">Hide on Chromebook</span>
         </label>
         <input class="admin-row-input game-screenshot-input" placeholder="Screenshot URL (optional)" value="${escAttr(g.screenshot||'')}" style="flex:1;min-width:0;" onpaste="adminHandleGameScreenshotPaste(event, this)" onchange="adminHandleGameScreenshotUrlChange(this)" />
         <input type="file" class="game-screenshot-file-input" accept="image/*" style="display:none;" onchange="adminHandleGameScreenshotFiles(this)" />
@@ -2053,7 +2065,17 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     const screenshot = row.querySelector('.game-screenshot-input').value.trim();
     const originalName = (row.dataset.originalName || '').trim();
     const domain = getDomainFromUrl(url);
-    return { row, name, alias, url, screenshot, originalName, domain, openInPopup: !!row.querySelector('.game-popup-input').checked };
+    return {
+      row,
+      name,
+      alias,
+      url,
+      screenshot,
+      originalName,
+      domain,
+      openInPopup: !!row.querySelector('.game-popup-input').checked,
+      hiddenOnChromebook: !!row.querySelector('.game-hidden-chromebook-input')?.checked
+    };
   });
 
   const popupByDomain = new Map();
@@ -2086,6 +2108,7 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     const url = item.url;
     const openInPopup = item.openInPopup;
     const screenshot = item.screenshot;
+    const hiddenOnChromebook = item.hiddenOnChromebook;
     const originalName = item.originalName;
     const originalKey = normalizeGameKey(originalName);
     const nextKey = normalizeGameKey(name);
@@ -2094,6 +2117,9 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (nextGame && alias) nextGame.alias = alias;
     if (nextGame && openInPopup) nextGame.openInPopup = true;
     if (nextGame && screenshot) nextGame.screenshot = screenshot;
+    if (nextGame && hiddenOnChromebook) nextGame.hiddenOnChromebook = true;
+    if (nextGame && originalGame && originalGame.addedAt) nextGame.addedAt = originalGame.addedAt;
+    if (nextGame && !originalGame) nextGame.addedAt = new Date().toISOString();
 
     if (originalKey) remainingOriginalKeys.delete(originalKey);
 
@@ -2109,6 +2135,7 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (originalGame.alias) originalComparable.alias = originalGame.alias;
     if (originalGame.openInPopup === true) originalComparable.openInPopup = true;
     if (originalGame.screenshot) originalComparable.screenshot = originalGame.screenshot;
+    if (originalGame.hiddenOnChromebook === true) originalComparable.hiddenOnChromebook = true;
 
     const nextComparable = nextGame ? {
       name: nextGame.name || '',
@@ -2117,6 +2144,7 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (nextComparable && nextGame.alias) nextComparable.alias = nextGame.alias;
     if (nextComparable && nextGame.openInPopup === true) nextComparable.openInPopup = true;
     if (nextComparable && nextGame.screenshot) nextComparable.screenshot = nextGame.screenshot;
+    if (nextComparable && nextGame.hiddenOnChromebook === true) nextComparable.hiddenOnChromebook = true;
 
     const unchanged = JSON.stringify(originalComparable) === JSON.stringify(nextComparable);
     if (unchanged) return;
@@ -2258,6 +2286,36 @@ window.adminHandleGameScreenshotUrlChange = function(input) {
   adminImportGameScreenshotUrl(value, input, btn).finally(() => {
     input.dataset.importing = 'false';
   });
+};
+
+window.adminHandleTopTierBgPaste = async function(e, input) {
+  const items = Array.from((e.clipboardData && e.clipboardData.items) || []);
+  const imageItem = items.find(item => item.kind === 'file' && item.type.startsWith('image/'));
+  if (imageItem) {
+    const file = imageItem.getAsFile();
+    if (!file) return;
+    e.preventDefault();
+    const uploaded = await s3UploadFile(_nameFileFromContext(file, input));
+    input.value = uploaded.url;
+    return;
+  }
+  const pastedText = e.clipboardData && e.clipboardData.getData('text');
+  if (looksLikeImageUrl(pastedText) && !isS3ImageUrl(pastedText)) {
+    e.preventDefault();
+    const file = await s3FileFromUrl(pastedText);
+    const uploaded = await s3UploadFile(_nameFileFromContext(file, input));
+    input.value = uploaded.url;
+  }
+};
+
+window.adminHandleTopTierBgChange = function(input) {
+  const value = (input.value || '').trim();
+  if (!looksLikeImageUrl(value) || isS3ImageUrl(value) || input.dataset.importing === 'true') return;
+  input.dataset.importing = 'true';
+  s3FileFromUrl(value)
+    .then(file => s3UploadFile(_nameFileFromContext(file, input)))
+    .then(uploaded => { input.value = uploaded.url; })
+    .finally(() => { input.dataset.importing = 'false'; });
 };
 
 window.adminAddGame = function() {
