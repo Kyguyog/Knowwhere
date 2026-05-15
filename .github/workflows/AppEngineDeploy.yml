@@ -25,3 +25,13 @@ jobs:
 
     - name: Deploy to App Engine
       run: gcloud app deploy --quiet
+
+    # NEW STEP: Cleanup old versions (Keeps only the 2 most recent)
+    - name: Cleanup old versions
+      run: |
+        # List all versions sorted by creation time (newest first)
+        # tail -n +3 skips the first 2 (keeps newest + 1 fallback)
+        # xargs deletes the remaining old versions
+        gcloud app versions list --format="value(version.id)" --sort-by="~version.createTime" \
+        | tail -n +3 \
+        | xargs -r gcloud app versions delete --quiet
