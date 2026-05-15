@@ -81,7 +81,7 @@ function scoreLandmarks(e) {
 
 function tierFromOverall(s) {
   if (s >= 9)   return { name:"MOG GOD",   color:"#ffd54a" };
-  if (s >= 8)   return { name:"CHADLITE",  color:"#a78bfa" };
+  if (s >= 8)   return { name:"CHADLITE",  color:"#a855f7" };
   if (s >= 6.5) return { name:"MTN",       color:"#60a5fa" };
   if (s >= 5)   return { name:"MID",       color:"#999" };
                 return { name:"UNRANKED",  color:"#666" };
@@ -143,7 +143,7 @@ function loop(ts) {
 
 function bar(val) {
   const pct = Math.round(val * 100);
-  const color = val > 0.65 ? "#86efac" : val > 0.4 ? "#ffd54a" : "#fca5a5";
+  const color = val > 0.65 ? "#a855f7" : val > 0.4 ? "#ffd54a" : "#fca5a5";
   return `<div class="bar-row">
     <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
     <span class="bar-pct">${pct}</span>
@@ -182,6 +182,7 @@ init();
 // ── camera selector ──────────────────────────────────────────────────────────
 let currentDeviceId = null;
 let loopStarted = false;
+let shouldMirror = true;
 
 async function startCamera(deviceId) {
   if (video.srcObject) {
@@ -193,11 +194,31 @@ async function startCamera(deviceId) {
   const stream = await navigator.mediaDevices.getUserMedia(constraints);
   video.srcObject = stream;
   await video.play();
-  currentDeviceId = stream.getVideoTracks()[0]?.getSettings()?.deviceId;
+  const track = stream.getVideoTracks()[0];
+  currentDeviceId = track?.getSettings()?.deviceId;
+  const facingMode = track?.getSettings()?.facingMode;
+  shouldMirror = (facingMode === "user" || facingMode === undefined);
   document.getElementById("status-wrap").style.display = "none";
   if (!loopStarted) {
     loopStarted = true;
     requestAnimationFrame(loop);
+    const canvas = document.getElementById("mirror-canvas");
+    const ctx = canvas.getContext("2d");
+    function drawMirror() {
+      if (video.videoWidth) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.save();
+        if (shouldMirror) {
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0);
+        ctx.restore();
+      }
+      requestAnimationFrame(drawMirror);
+    }
+    drawMirror();
   }
   renderCamOptions();
 }
@@ -232,9 +253,9 @@ document.addEventListener("click", () => camDropdown.classList.add("hidden"));
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --green: #9ae66e;
+  --green: #a855f7;
   --gold: #ffd54a;
-  --purple: #a78bfa;
+  --purple: #a855f7;
   --red: #fca5a5;
   --bg: #09090b;
   --card: #111113;
@@ -299,12 +320,14 @@ header .dot {
   background: var(--card);
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(168, 85, 247, 0.25);
 }
 video {
+  display: none;
+}
+#mirror-canvas {
   width: 100%; height: 100%;
   object-fit: cover;
-  transform: scaleX(-1);
   display: block;
 }
 #status-wrap {
@@ -345,9 +368,9 @@ video {
   font-weight: 900;
   letter-spacing: 0.2em;
   font-family: inherit;
-  background: rgba(154, 230, 110, 0.15);
-  border: 1px solid rgba(154, 230, 110, 0.4);
-  color: #9ae66e;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #a855f7;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
@@ -396,7 +419,7 @@ video {
 .score-panel {
   background: var(--card);
   border-radius: 16px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(168, 85, 247, 0.25);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -419,7 +442,7 @@ video {
   font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 1;
-  background: linear-gradient(180deg, #fff 40%, rgba(255,255,255,0.5));
+  background: linear-gradient(180deg, #fff 30%, #d8b4fe);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -442,7 +465,7 @@ video {
   font-size: 9px;
   font-weight: 900;
   letter-spacing: 0.18em;
-  color: #86efac;
+  color: #d8b4fe;
 }
 .flaw {
   font-size: 9px;
@@ -539,6 +562,7 @@ footer {
   <!-- camera -->
   <div class="cam-wrap">
     <video id="webcam" autoplay playsinline muted></video>
+    <canvas id="mirror-canvas"></canvas>
     <div id="status-wrap">
       <div class="spinner"></div>
       <div id="status">INITIALISING…</div>
