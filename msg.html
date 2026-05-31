@@ -1146,6 +1146,7 @@
     Messages
   </div>
 <div class="nav-right">
+<span class="nav-user-chip" id="nav-username" onclick="copyUsername()" style="cursor:pointer;" title="Copy Your Link"></span>
 </div>
 </nav>
 
@@ -1193,8 +1194,6 @@
 <div class="chat-header-name" id="chat-header-name" style="cursor:pointer;" onclick="openMsgProfile()" title="View profile"></div>
 <div class="chat-header-sub" id="chat-header-sub"></div>
 </div>
-<button class="nav-settings-btn" id="copy-link-btn" onclick="copyConvLink()" style="display:none;margin-left:auto;" title="Copy link to this Person">
-<svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="15"><rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
 </button>
 <button class="nav-settings-btn" id="chat-settings-btn" onclick="openSettingsModal()" style="display:none;" title="AI Settings">
 <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -1212,7 +1211,7 @@
 <!-- File preview strip -->
 <div class="file-preview-strip" id="file-preview-strip"></div>
 <div class="msg-input-area">
-<input type="file" id="file-input" multiple accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.7z" style="display:none;" onchange="handleFileSelect(this)"/>
+<input type="file" id="file-input" multiple style="display:none;" onchange="handleFileSelect(this)"/>
 <button class="attach-btn" id="attach-btn" onclick="document.getElementById('file-input').click()" title="Attach file or image">
   <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
 </button>
@@ -1226,6 +1225,28 @@
 <!-- Image lightbox -->
 <div id="img-lightbox" onclick="this.classList.remove('open')">
   <img id="img-lightbox-img" src="" alt=""/>
+</div>
+<!-- File viewer modal -->
+<div id="file-viewer-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:0;" onclick="if(event.target===this)closeFileViewer()">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;width:min(92vw,820px);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.9);">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.85rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:0.6rem;min-width:0;">
+        <svg id="fv-icon" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span id="fv-filename" style="font-family:var(--font-display);font-size:0.7rem;font-weight:700;letter-spacing:0.05em;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;"></span>
+        <span id="fv-filesize" style="font-size:0.65rem;color:var(--muted);flex-shrink:0;"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">
+        <a id="fv-download-btn" href="#" download style="display:flex;align-items:center;gap:0.35rem;padding:0.4rem 0.85rem;background:var(--primary-dim);border:1px solid rgba(168,85,247,0.4);border-radius:6px;color:var(--primary);font-family:var(--font-display);font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(168,85,247,0.25)'" onmouseout="this.style.background='var(--primary-dim)'">
+          <svg fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="12"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Download
+        </a>
+        <button onclick="closeFileViewer()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:1rem;line-height:1;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+      </div>
+    </div>
+    <!-- Body -->
+    <div id="fv-body" style="flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;min-height:0;padding:1rem;"></div>
+  </div>
 </div>
 </div>
 
@@ -1413,16 +1434,21 @@ function openChatMobile(){if(!isMobile())return;document.getElementById('sidebar
 function closeChatMobile(){if(!isMobile())return;document.getElementById('sidebar').classList.remove('slide-out');document.getElementById('chat-pane').classList.remove('slide-in');}
 window.closeChatMobile=closeChatMobile;window.addEventListener('resize',()=>{if(!isMobile()){document.getElementById('sidebar').classList.remove('slide-out');document.getElementById('chat-pane').classList.remove('slide-in');}});window.openConversation=async function(convId){if(messagesUnsubscribe)messagesUnsubscribe();activeConvId=convId;aiConvActive=false;const avatar=document.getElementById('chat-header-avatar');avatar.style.color='';const aiItem=document.getElementById('ai-conv-item');if(aiItem)aiItem.classList.remove('active');const conv=allConversations.find(c=>c.id===convId);if(!conv)return;if(conv.unreadBy&&conv.unreadBy.includes(currentUser.email)){updateDoc(doc(db,'conversations',convId),{unreadBy:conv.unreadBy.filter(e=>e!==currentUser.email)}).catch(()=>{});}
 document.querySelectorAll('.conv-item').forEach(el=>el.classList.remove('active'));const convEl=document.querySelector(`.conv-item[onclick="openConversation('${convId}')"]`);if(convEl)convEl.classList.add('active');const initial=(conv.otherName||conv.otherEmail||'?')[0].toUpperCase();if(conv.otherPfp){document.getElementById('chat-header-avatar').innerHTML=`<img src="${escapeHtml(conv.otherPfp)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}else{document.getElementById('chat-header-avatar').textContent=initial;}document.getElementById('chat-header-name').textContent=conv.otherName||conv.otherEmail;document.getElementById('chat-header-name').style.cursor=conv.group?'default':'pointer';document.getElementById('chat-header-name').title=conv.group?'':'View profile';document.getElementById('chat-header-name').onclick=conv.group?null:openMsgProfile;
-// For group chats build clickable member chips; for DMs show email
-if(conv.group===true){const others=(conv.participants||[]).filter(e=>e!==currentUser.email);const subEl=document.getElementById('chat-header-sub');subEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.2rem;">'+others.map(email=>{const name=userNameCache[email]||email;return`<span class="group-member-chip" onclick="openGroupMemberProfile(event,'${escapeHtml(email)}')">${escapeHtml(name)}</span>`}).join('')+'</div>';}else{document.getElementById('chat-header-sub').textContent=conv.otherEmail||'';}const settingsBtn=document.getElementById('chat-settings-btn');if(settingsBtn)settingsBtn.style.display='none';const copyBtn=document.getElementById('copy-link-btn');if(copyBtn){if(conv.group===true){copyBtn.style.display='none';}else{copyBtn.style.display='flex';copyBtn.style.marginLeft='auto';copyBtn.title='Copy link to this Person';copyBtn._convUsername=conv.otherName||conv.otherEmail;copyBtn.onclick=copyConvLink;copyBtn.innerHTML='<svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="15"><rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';}}
+// For group chats show member count; for DMs show email
+if(conv.group===true){document.getElementById('chat-header-sub').textContent=String((conv.participants||[]).length)+' members';}else{document.getElementById('chat-header-sub').textContent=conv.otherEmail||'';}const settingsBtn=document.getElementById('chat-settings-btn');if(settingsBtn)settingsBtn.style.display='none';const copyBtn=document.getElementById('copy-link-btn');if(copyBtn){if(conv.group===true){copyBtn.style.display='none';}else{copyBtn.style.display='flex';copyBtn.style.marginLeft='auto';copyBtn.title='Copy link to this Person';copyBtn._convUsername=conv.otherName||conv.otherEmail;copyBtn.onclick=copyConvLink;copyBtn.innerHTML='<svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="15"><rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';}}
 document.getElementById('chat-empty').style.display='none';const activeChat=document.getElementById('active-chat');activeChat.style.display='flex';activeChat.style.flexDirection='column';activeChat.style.flex='1';activeChat.style.overflow='hidden';openChatMobile();const msgsRef=collection(db,'conversations',convId,'messages');const msgsQuery=query(msgsRef,orderBy('sentAt','asc'));document.getElementById('messages-area').innerHTML='<div class="loading-spinner"><div class="spinner"></div></div>';const safeKey=currentUser.email.replace(/[.@]/g,'_');const clearedAt=conv[`clearedAt_${safeKey}`]||null;messagesUnsubscribe=onSnapshot(msgsQuery,(snap)=>{renderMessages(snap.docs.map(d=>({id:d.id,...d.data()})),clearedAt);});};function renderMessages(msgs,clearedAt){const area=document.getElementById('messages-area');const wasAtBottom=area.scrollHeight-area.scrollTop-area.clientHeight<60;if(clearedAt){const cutoff=clearedAt.toMillis?clearedAt.toMillis():clearedAt;msgs=msgs.filter(m=>{const t=m.sentAt?.toMillis?m.sentAt.toMillis():(m.sentAt?new Date(m.sentAt).getTime():0);return t>cutoff;});}
 if(msgs.length===0){area.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:0.8rem;padding:2rem 0;opacity:0.6;">No messages yet. Say hi!</div>`;return;}
+// Prefetch pfps for all senders not yet cached
+const unknownEmails=[...new Set(msgs.map(m=>m.senderEmail).filter(e=>e&&!userPfpCache[e]&&!userPfpFetching[e]))];unknownEmails.forEach(email=>{userPfpFetching[email]=true;fetchUserByEmail(email).then(data=>{if(data){const pfp=normalizePfp(data);if(pfp)userPfpCache[email]=pfp;userNameCache[email]=data.username||data.fullName||email;}userPfpFetching[email]=false;}).catch(()=>{userPfpFetching[email]=false;});});
 let html='';let lastDate=null;for(const msg of msgs){const date=msg.sentAt?.toDate?msg.sentAt.toDate():new Date(msg.sentAt||Date.now());const dateStr=date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});if(dateStr!==lastDate){html+=`<div class="msg-date-divider">${dateStr}</div>`;lastDate=dateStr;}
-const isMine=msg.senderEmail===currentUser.email;const initial=(msg.senderName||msg.senderEmail||'?')[0].toUpperCase();const knownPfp=msg.senderPfp||userPfpCache[msg.senderEmail]||'';const avatarHtml=knownPfp?`<img src="${escapeHtml(knownPfp)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:initial;const timeStr=date.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+const isMine=msg.senderEmail===currentUser.email;const initial=(msg.senderName||msg.senderEmail||'?')[0].toUpperCase();
+// Always use pfp from Firestore cache only — never use stored senderPfp
+const pfp=userPfpCache[msg.senderEmail]||'';
+const avatarHtml=pfp?`<img src="${escapeHtml(pfp)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:initial;const timeStr=date.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 // Reply quote
 let replyHtml='';if(msg.replyTo){const rName=escapeHtml(msg.replyTo.senderName||msg.replyTo.senderEmail||'');const rText=msg.replyTo.text?escapeHtml(msg.replyTo.text.slice(0,80)):msg.replyTo.fileType==='image'?'📷 Image':msg.replyTo.fileName?`📎 ${escapeHtml(msg.replyTo.fileName)}`:'Message';replyHtml=`<div class="msg-reply-quote"><div class="msg-reply-quote-name">${rName}</div><div>${rText}</div></div>`;}
-// Media/file
-let mediaHtml='';if(msg.fileType==='image'&&msg.fileUrl){mediaHtml=`<img class="msg-img" src="${escapeHtml(msg.fileUrl)}" alt="image" onclick="event.stopPropagation();openLightbox('${escapeHtml(msg.fileUrl)}')">`;}else if(msg.fileUrl&&msg.fileName){const sizeTxt=msg.fileSize?formatFileSize(msg.fileSize):'';mediaHtml=`<a class="msg-file-attachment" href="${escapeHtml(msg.fileUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><svg class="msg-file-icon" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="msg-file-name">${escapeHtml(msg.fileName)}</span>${sizeTxt?`<span class="msg-file-size">${sizeTxt}</span>`:''}</a>`;}
+// Media/file — use viewer modal for everything
+let mediaHtml='';if(msg.fileType==='image'&&msg.fileUrl){mediaHtml=`<img class="msg-img" src="${escapeHtml(msg.fileUrl)}" alt="image" onclick="event.stopPropagation();openFileViewer(${JSON.stringify(msg.fileUrl)},${JSON.stringify(msg.fileName||'image')},${JSON.stringify(msg.fileType||'image')},${msg.fileSize||0})">`;}else if(msg.fileType==='video'&&msg.fileUrl){mediaHtml=`<div class="msg-file-attachment" style="cursor:pointer;" onclick="event.stopPropagation();openFileViewer(${JSON.stringify(msg.fileUrl)},${JSON.stringify(msg.fileName||'video')},${JSON.stringify('video')},${msg.fileSize||0})"><svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><polygon points="23 7 16 12 23 17 23 7"/><rect height="14" rx="2" ry="2" width="15" x="1" y="5"/></svg><span class="msg-file-name">${escapeHtml(msg.fileName||'video')}</span>${msg.fileSize?`<span class="msg-file-size">${formatFileSize(msg.fileSize)}</span>`:''}</div>`;}else if(msg.fileUrl&&msg.fileName){const sizeTxt=msg.fileSize?formatFileSize(msg.fileSize):'';const ext=(msg.fileName.split('.').pop()||'').toLowerCase();const isVideo=['mp4','webm','ogg','mov','avi','mkv'].includes(ext);const isAudio=['mp3','wav','ogg','aac','flac','m4a'].includes(ext);const fileIcon=isVideo?'<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><polygon points="23 7 16 12 23 17 23 7"/><rect height="14" rx="2" ry="2" width="15" x="1" y="5"/></svg>':isAudio?'<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>':'<svg class="msg-file-icon" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';mediaHtml=`<div class="msg-file-attachment" style="cursor:pointer;" onclick="event.stopPropagation();openFileViewer(${JSON.stringify(msg.fileUrl)},${JSON.stringify(msg.fileName)},${JSON.stringify(msg.fileType||ext)},${msg.fileSize||0})">${fileIcon}<span class="msg-file-name">${escapeHtml(msg.fileName)}</span>${sizeTxt?`<span class="msg-file-size">${sizeTxt}</span>`:''}</div>`;}
 const textHtml=msg.text?`${escapeHtml(msg.text)}`:'';
 const msgId=msg.id||'';const senderEmail=msg.senderEmail||'';const senderName=msg.senderName||msg.senderEmail||'';
 html+=`<div class="msg-row ${isMine ? 'mine' : 'theirs'}" data-msgid="${escapeHtml(msgId)}" data-sender="${escapeHtml(senderEmail)}" data-sendername="${escapeHtml(senderName)}" onclick="handleMsgClick(event,this)">
@@ -1434,11 +1460,11 @@ html+=`<div class="msg-row ${isMine ? 'mine' : 'theirs'}" data-msgid="${escapeHt
       </div>`;}
 area.innerHTML=html;if(wasAtBottom||msgs.length<=1){area.scrollTop=area.scrollHeight;}}
 window.sendMessage=async function(){const input=document.getElementById('msg-input');const text=input.value.trim();const hasFiles=pendingFiles.length>0;if(!text&&!hasFiles)return;if(aiConvActive){input.value='';input.style.height='auto';await sendAiMessage(text);return;}
-if(!activeConvId)return;const btn=document.getElementById('send-btn');btn.disabled=true;const senderName=currentUserData?.fullName||currentUserData?.username||currentUser.email;const senderPfp=normalizePfp(currentUserData)||'';try{const msgRef=collection(db,'conversations',activeConvId,'messages');
+if(!activeConvId)return;const btn=document.getElementById('send-btn');btn.disabled=true;const senderName=currentUserData?.fullName||currentUserData?.username||currentUser.email;try{const msgRef=collection(db,'conversations',activeConvId,'messages');
 // Build base payload
-const basePayload={senderEmail:currentUser.email,senderName,senderPfp,sentAt:serverTimestamp()};if(activeReply){basePayload.replyTo={msgId:activeReply.msgId,senderEmail:activeReply.senderEmail,senderName:activeReply.senderName,text:activeReply.text||'',fileType:activeReply.fileType||'',fileName:activeReply.fileName||''};}
+const basePayload={senderEmail:currentUser.email,senderName,sentAt:serverTimestamp()};if(activeReply){basePayload.replyTo={msgId:activeReply.msgId,senderEmail:activeReply.senderEmail,senderName:activeReply.senderName,text:activeReply.text||'',fileType:activeReply.fileType||'',fileName:activeReply.fileName||''};}
 if(hasFiles){// Send each file as its own message
-for(const pf of pendingFiles){const filePayload={...basePayload,text:text&&pendingFiles.indexOf(pf)===0?text:'',fileUrl:pf.dataUrl,fileName:pf.name,fileSize:pf.size,fileType:pf.isImage?'image':'file'};await addDoc(msgRef,filePayload);}}else{await addDoc(msgRef,{...basePayload,text});}
+for(const pf of pendingFiles){const filePayload={...basePayload,text:text&&pendingFiles.indexOf(pf)===0?text:'',fileUrl:pf.dataUrl,fileName:pf.name,fileSize:pf.size,mimeType:pf.mimeType||'',fileType:pf.isImage?'image':pf.isVideo?'video':'file'};await addDoc(msgRef,filePayload);}}else{await addDoc(msgRef,{...basePayload,text});}
 const conv=allConversations.find(c=>c.id===activeConvId);const recipients=(conv?.participants||[]).filter(e=>e!==currentUser.email);const currentDeletedBy=conv?.deletedBy||[];const lastMsg=hasFiles?(text||pendingFiles[0].name):(text);await updateDoc(doc(db,'conversations',activeConvId),{lastMessage:lastMsg,lastMessageAt:serverTimestamp(),unreadBy:recipients,deletedBy:currentDeletedBy.filter(e=>e!==currentUser.email&&!recipients.includes(e))});
 input.value='';input.style.height='auto';pendingFiles=[];renderFileStrip();cancelReply();}catch(e){console.error('Send error:',e);alert('Failed to send message.');}
 btn.disabled=false;};window.handleMsgKey=function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}};window.autoResizeTextarea=function(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';};let searchTimeout=null;let _selectedUsers=new Map();function _updateOpenBtn(){const count=_selectedUsers.size;const countEl=document.getElementById('group-select-count');const openBtn=document.getElementById('modal-open-btn');if(countEl)countEl.textContent=count===0?'Select people to message':`${count} selected`;if(openBtn){openBtn.disabled=count===0;openBtn.textContent=count>1?'Open Group Chat':'Open';}}window.toggleUserSelect=function(email){const resultsEl=document.getElementById('user-results');const item=resultsEl.querySelector(`[data-email="${CSS.escape(email)}"]`);if(!item)return;if(_selectedUsers.has(email)){_selectedUsers.delete(email);item.classList.remove('selected');const check=item.querySelector('.sel-check');if(check)check.remove();}else{const name=item.querySelector('.user-result-name')?.textContent||email;_selectedUsers.set(email,{email,name});item.classList.add('selected');item.insertAdjacentHTML('beforeend','<span class="sel-check" style="color:var(--primary);font-size:0.85rem;font-weight:700;flex-shrink:0;margin-left:auto;">✓</span>');}if(_updateOpenBtn)_updateOpenBtn();};window.openNewConvModal=function(){_selectedUsers=new Map();document.getElementById('new-conv-modal').classList.add('open');document.getElementById('user-search-input').value='';document.getElementById('modal-error').classList.remove('show');_updateOpenBtn();const existingEmails=new Set(allConversations.filter(c=>!(c.deletedBy&&c.deletedBy.includes(currentUser.email))).flatMap(c=>c.group===true?(c.participants||[]).filter(e=>e!==currentUser.email):[c.otherEmail]));const allOther=allUsers.filter(u=>u.email!==currentUser.email);_renderUserList(allOther);setTimeout(()=>document.getElementById('user-search-input').focus(),50);};window.closeNewConvModal=function(){document.getElementById('new-conv-modal').classList.remove('open');};document.getElementById('new-conv-modal').addEventListener('click',e=>{if(e.target===document.getElementById('new-conv-modal'))closeNewConvModal();});window.searchUsers=function(q){clearTimeout(searchTimeout);searchTimeout=setTimeout(()=>_searchUsers(q),200);};function _renderUserList(users){const resultsEl=document.getElementById('user-results');if(users.length===0){resultsEl.innerHTML=`<div style="color:var(--muted);font-size:0.78rem;text-align:center;padding:1rem 0;">No users found.</div>`;return;}
@@ -1511,9 +1537,10 @@ window.handleFileSelect=function(input){
   const files=Array.from(input.files||[]);
   files.forEach(file=>{
     const isImage=file.type.startsWith('image/');
+    const isVideo=file.type.startsWith('video/');
     const reader=new FileReader();
     reader.onload=function(e){
-      pendingFiles.push({name:file.name,size:file.size,isImage,dataUrl:e.target.result,type:file.type});
+      pendingFiles.push({name:file.name,size:file.size,isImage,isVideo,mimeType:file.type,dataUrl:e.target.result});
       renderFileStrip();
     };
     reader.readAsDataURL(file);
@@ -1524,19 +1551,87 @@ function renderFileStrip(){
   const strip=document.getElementById('file-preview-strip');
   if(pendingFiles.length===0){strip.classList.remove('has-files');strip.innerHTML='';return;}
   strip.classList.add('has-files');
-  strip.innerHTML=pendingFiles.map((f,i)=>`<div class="file-chip">
-    ${f.isImage?`<img src="${f.dataUrl}" alt=""/>`:
-    `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewbox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`}
-    <span class="file-chip-name">${escapeHtml(f.name)}</span>
-    <button class="file-chip-del" onclick="removePendingFile(${i})" title="Remove">✕</button>
-  </div>`).join('');
+  strip.innerHTML=pendingFiles.map((f,i)=>{
+    let thumb='';
+    if(f.isImage){thumb=`<img src="${f.dataUrl}" alt="" style="width:32px;height:32px;object-fit:cover;border-radius:5px;flex-shrink:0;"/>`;}
+    else if(f.isVideo){thumb=`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewbox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect height="14" rx="2" ry="2" width="15" x="1" y="5"/></svg>`;}
+    else{thumb=`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewbox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;}
+    return`<div class="file-chip">${thumb}<span class="file-chip-name">${escapeHtml(f.name)}</span><button class="file-chip-del" onclick="removePendingFile(${i})" title="Remove">✕</button></div>`;
+  }).join('');
 }
 window.removePendingFile=function(i){pendingFiles.splice(i,1);renderFileStrip();};
 
 function formatFileSize(bytes){if(!bytes)return'';if(bytes<1024)return bytes+'B';if(bytes<1048576)return(bytes/1024).toFixed(1)+'KB';return(bytes/1048576).toFixed(1)+'MB';}
 
-// ── LIGHTBOX ──
+// ── PFP FETCH GUARD (prevents duplicate fetches) ──
+const userPfpFetching={};
+
+// ── LIGHTBOX (images only, kept for backward compat) ──
 window.openLightbox=function(url){const lb=document.getElementById('img-lightbox');const img=document.getElementById('img-lightbox-img');img.src=url;lb.classList.add('open');};
+
+// ── FILE VIEWER MODAL ──
+window.openFileViewer=function(url,name,type,size){
+  const modal=document.getElementById('file-viewer-modal');
+  const body=document.getElementById('fv-body');
+  const fname=document.getElementById('fv-filename');
+  const fsize=document.getElementById('fv-filesize');
+  const dlBtn=document.getElementById('fv-download-btn');
+  fname.textContent=name||'File';
+  fsize.textContent=size?formatFileSize(size):'';
+  dlBtn.href=url;
+  dlBtn.download=name||'download';
+  body.innerHTML='<div class="loading-spinner"><div class="spinner"></div> Loading...</div>';
+  modal.style.display='flex';
+  const ext=(name||'').split('.').pop().toLowerCase();
+  const isImage=type==='image'||/^(png|jpe?g|gif|webp|bmp|svg|ico|avif|tiff?)$/.test(ext);
+  const isVideo=type==='video'||/^(mp4|webm|ogg|mov|avi|mkv|m4v)$/.test(ext);
+  const isAudio=/^(mp3|wav|ogg|aac|flac|m4a|opus)$/.test(ext);
+  const isText=/^(txt|md|csv|json|xml|yaml|yml|log|sh|bat|py|js|ts|html|css|sql|env|ini|cfg|toml|rs|go|rb|php|java|c|cpp|h|cs|swift|kt)$/.test(ext);
+  const isPdf=ext==='pdf';
+  if(isImage){
+    const img=document.createElement('img');
+    img.src=url;img.alt=name||'image';
+    img.style.cssText='max-width:100%;max-height:72vh;border-radius:8px;object-fit:contain;';
+    img.onerror=()=>{body.innerHTML=`<div style="text-align:center;color:var(--muted);padding:2rem;">Could not load image</div>`;};
+    body.innerHTML='';body.appendChild(img);
+  } else if(isVideo){
+    body.innerHTML=`<video controls style="max-width:100%;max-height:72vh;border-radius:8px;" src="${escapeHtml(url)}">Your browser does not support video.</video>`;
+  } else if(isAudio){
+    body.innerHTML=`<div style="padding:2rem;text-align:center;width:100%;"><audio controls style="width:100%;max-width:420px;" src="${escapeHtml(url)}"></audio><div style="margin-top:1rem;font-size:0.8rem;color:var(--muted);">${escapeHtml(name)}</div></div>`;
+  } else if(isPdf){
+    body.innerHTML=`<iframe src="${escapeHtml(url)}" style="width:100%;height:68vh;border:none;border-radius:6px;" title="${escapeHtml(name)}"></iframe>`;
+  } else if(isText){
+    // Fetch and display text content
+    fetch(url).then(r=>r.text()).then(text=>{
+      const pre=document.createElement('pre');
+      pre.style.cssText='width:100%;max-height:66vh;overflow:auto;font-size:0.8rem;line-height:1.55;color:var(--text);white-space:pre-wrap;word-break:break-word;font-family:monospace;background:var(--bg);border-radius:8px;padding:1rem;border:1px solid var(--border);';
+      pre.textContent=text.slice(0,200000);
+      body.innerHTML='';body.appendChild(pre);
+    }).catch(()=>{showDownloadOnly(body,name,url);});
+  } else {
+    // Unsupported — show download prompt
+    showDownloadOnly(body,name,url);
+  }
+};
+function showDownloadOnly(body,name,url){
+  body.innerHTML=`<div style="text-align:center;padding:3rem 2rem;display:flex;flex-direction:column;align-items:center;gap:1.25rem;">
+    <svg fill="none" height="52" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewbox="0 0 24 24" width="52" style="color:var(--muted);opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <div style="color:var(--text);font-size:0.9rem;">${escapeHtml(name)}</div>
+    <div style="color:var(--muted);font-size:0.8rem;">Preview not available for this file type.</div>
+    <a href="${escapeHtml(url)}" download="${escapeHtml(name)}" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.65rem 1.5rem;background:var(--primary);color:#fff;border-radius:8px;font-family:var(--font-display);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;box-shadow:0 0 20px rgba(168,85,247,0.3);">
+      <svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+      Download
+    </a>
+  </div>`;
+}
+window.closeFileViewer=function(){
+  const modal=document.getElementById('file-viewer-modal');
+  modal.style.display='none';
+  const body=document.getElementById('fv-body');
+  // Stop any playing video/audio
+  body.querySelectorAll('video,audio').forEach(m=>{m.pause();m.src='';});
+  body.innerHTML='';
+};
 
 // ── GROUP MEMBER PROFILE ──
 window.openGroupMemberProfile=function(e,email){e.stopPropagation();const name=userNameCache[email]||email;const pfp=userPfpCache[email]||'';openMsgProfileByEmail(email,name,pfp);};
