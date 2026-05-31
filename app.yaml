@@ -1,10 +1,3 @@
-runtime: php82
+runtime: nodejs20
 
-handlers:
-- url: /
-  static_files: index.html
-  upload: index.html
-
-- url: /(.*)
-  static_files: \1
-  upload: (.*)
+entrypoint: node server.js
