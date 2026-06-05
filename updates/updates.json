@@ -1,5 +1,13 @@
 [
   {
+    "sha": "7165d5a8b845c51fc6d7e47ebf29222cd5dd2ffb",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/7165d5a8b845c51fc6d7e47ebf29222cd5dd2ffb",
+    "message": "Update Firebase creds\n\nI accedentally deleted the old firebase project so i had to recreate it",
+    "date": "2026-06-05T23:30:35Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "ca2f5788a828eb9ce13aca2d3f9c6c0688d4ac35",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/ca2f5788a828eb9ce13aca2d3f9c6c0688d4ac35",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
