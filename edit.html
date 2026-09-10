@@ -159,97 +159,6 @@
       margin-top: 0.25rem;
     }
     .auth-error.show { display: block; }
-    .auth-user-name {
-      font-family: var(--font-display);
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: var(--primary);
-      cursor: pointer;
-      padding: 0.35rem 0.75rem;
-      border: 1px solid rgba(168,85,247,0.35);
-      border-radius: 6px;
-      background: var(--primary-dim);
-      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .auth-user-name:hover { background: rgba(168,85,247,0.25); border-color: var(--primary); box-shadow: 0 0 12px rgba(168,85,247,0.3); }
-    .auth-user-name svg { opacity: 0.7; }
-
-    /* ── USER POPUP ── */
-    #user-popup {
-      display: none;
-      position: fixed;
-      top: 64px;
-      right: 1.5rem;
-      z-index: 9998;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      width: 280px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 24px rgba(168,85,247,0.1);
-      overflow: hidden;
-      animation: popIn 0.15s ease;
-    }
-    #user-popup.open { display: block; }
-    @keyframes popIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-    .popup-header {
-      padding: 1rem 1.25rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .popup-header-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
-    .popup-header-name { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: var(--primary); }
-    .popup-header-email { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
-    .popup-section { padding: 0.5rem; }
-    .popup-section + .popup-section { border-top: 1px solid var(--border); }
-    .popup-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      padding: 0.65rem 0.75rem;
-      background: transparent;
-      border: none;
-      border-radius: 6px;
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.15s, color 0.15s;
-    }
-    .popup-btn:hover { background: rgba(255,255,255,0.05); }
-    .popup-btn.danger { color: var(--danger); }
-    .popup-btn.danger:hover { background: var(--danger-dim); }
-    .popup-btn svg { flex-shrink: 0; opacity: 0.7; }
-    .popup-inline-form { display: none; flex-direction: column; gap: 0.5rem; padding: 0.25rem 0.75rem 0.75rem; }
-    .popup-inline-form.open { display: flex; }
-    .popup-inline-form input {
-      width: 100%;
-      background: #0d0d14;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.6rem 0.75rem;
-      color: var(--text);
-      font-size: 0.85rem;
-      font-family: var(--font-body);
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .popup-inline-form input:focus { border-color: var(--primary); }
-    .popup-inline-form input::placeholder { color: var(--muted); }
-    .popup-inline-form-row { display: flex; gap: 0.4rem; }
-    .popup-save-btn { flex: 1; padding: 0.5rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-family: var(--font-display); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s; }
-    .popup-save-btn:hover { opacity: 0.85; }
-    .popup-cancel-btn { flex: 1; padding: 0.5rem; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-display); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
-    .popup-msg { font-size: 0.75rem; padding: 0.3rem 0.1rem; display: none; }
-    .popup-msg.ok { display: block; color: #22c55e; }
-    .popup-msg.err { display: block; color: var(--danger); }
-
 /* ── ADMIN PANEL ── */
     #admin-panel {
       display: none;
@@ -566,14 +475,6 @@
     .admin-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
         
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-      background: rgba(10,10,15,0.95);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center;
-      padding: 0 2rem; height: 56px;
-    }
     #main-content.visible { display: block; }
   </style>
 </head>
@@ -919,130 +820,6 @@ window.adminAddShopItem = function() {
     }
   };
 
-
-  
-  
-  window.toggleUserPopup = function() {
-    const popup = document.getElementById('user-popup');
-    popup.classList.toggle('open');
-    
-    document.querySelectorAll('.popup-inline-form').forEach(f => f.classList.remove('open'));
-    document.querySelectorAll('.popup-msg').forEach(m => { m.className = 'popup-msg'; });
-  };
-
-  window.togglePopupForm = function(id) {
-    const form = document.getElementById(id);
-    const isOpen = form.classList.contains('open');
-    document.querySelectorAll('.popup-inline-form').forEach(f => f.classList.remove('open'));
-    document.querySelectorAll('.popup-msg').forEach(m => { m.className = 'popup-msg'; });
-    if (!isOpen) {
-      form.classList.add('open');
-      
-      if (id === 'password-form') {
-        const emailField = document.getElementById('password-form-username');
-        if (emailField && auth.currentUser) emailField.value = auth.currentUser.email;
-      }
-    }
-  };
-
-  
-  document.addEventListener('click', (e) => {
-    const popup = document.getElementById('user-popup');
-    const badge = document.getElementById('nav-user-badge');
-    if (popup && popup.classList.contains('open') && !popup.contains(e.target) && !badge.contains(e.target)) {
-      popup.classList.remove('open');
-    }
-  });
-
-  window.saveUsername = async function() {
-    const val = document.getElementById('new-username').value.trim();
-    const msg = document.getElementById('username-msg');
-    msg.className = 'popup-msg';
-    if (!val) { msg.textContent = 'Please enter a username.'; msg.className = 'popup-msg err'; return; }
-    try {
-      
-      const valLower = val.toLowerCase();
-      const usersSnap = await getDocs(collection(db, 'users'));
-      for (const d of usersSnap.docs) {
-        if (d.id === auth.currentUser.email) continue; 
-        const uData = d.data();
-        if (uData.username && uData.username.toLowerCase() === valLower) {
-          msg.textContent = 'That username is already taken.';
-          msg.className = 'popup-msg err';
-          return;
-        }
-      }
-      const reqSnap = await getDocs(collection(db, 'signupRequests'));
-      for (const d of reqSnap.docs) {
-        const rData = d.data();
-        if (rData.username && rData.username.toLowerCase() === valLower &&
-            (rData.status === 'pending' || rData.status === 'approved')) {
-          msg.textContent = 'That username is already taken.';
-          msg.className = 'popup-msg err';
-          return;
-        }
-      }
-      await updateProfile(auth.currentUser, { displayName: val });
-      await setDoc(doc(db, 'users', auth.currentUser.email), { username: val }, { merge: true });
-      
-      const nameBtn = document.querySelector('.auth-user-name');
-      if (nameBtn) {
-        
-        for (let i = nameBtn.childNodes.length - 1; i >= 0; i--) {
-          if (nameBtn.childNodes[i].nodeType === 3) {
-            nameBtn.childNodes[i].textContent = val;
-            break;
-          }
-        }
-      }
-      document.getElementById('popup-display-name').textContent = val;
-      document.getElementById('new-username').value = '';
-      msg.textContent = 'Username updated!';
-      msg.className = 'popup-msg ok';
-      setTimeout(() => { msg.className = 'popup-msg'; togglePopupForm('username-form'); }, 1500);
-    } catch(e) {
-      console.error('saveUsername error:', e.code, e.message);
-      msg.textContent = e.message || 'Failed to update username.';
-      msg.className = 'popup-msg err';
-    }
-  };
-
-  window.savePassword = async function() {
-    const pw = document.getElementById('new-password').value;
-    const cpw = document.getElementById('confirm-password').value;
-    const msg = document.getElementById('password-msg');
-    msg.className = 'popup-msg';
-    if (!pw) { msg.textContent = 'Please enter a password.'; msg.className = 'popup-msg err'; return; }
-    if (pw.length < 6) { msg.textContent = 'Password must be at least 6 characters.'; msg.className = 'popup-msg err'; return; }
-    if (pw !== cpw) { msg.textContent = 'Passwords do not match.'; msg.className = 'popup-msg err'; return; }
-    try {
-      await updatePassword(auth.currentUser, pw);
-      
-      try {
-        await setDoc(doc(db, 'users', auth.currentUser.email), { password: pw }, { merge: true });
-      } catch(fe) { console.warn('Could not save password to Firestore:', fe); }
-      document.getElementById('new-password').value = '';
-      document.getElementById('confirm-password').value = '';
-      msg.textContent = 'Password updated!';
-      msg.className = 'popup-msg ok';
-      setTimeout(() => { msg.className = 'popup-msg'; togglePopupForm('password-form'); }, 1500);
-    } catch(e) {
-      if (e.code === 'auth/requires-recent-login') {
-        msg.textContent = 'Please sign out and sign in again first.';
-      } else {
-        msg.textContent = 'Failed to update password.';
-      }
-      msg.className = 'popup-msg err';
-    }
-  };
-
-  window.handleSignOut = async function() {
-    await signOut(auth);
-  };
-
-  
-  
-  
   let accountStatusUnsubscribe = null;
   let _forcedSignout = false;
 
@@ -1130,9 +907,6 @@ window.adminAddShopItem = function() {
       } catch(e) {
         username = user.displayName || user.email;
       }
-
-      window.renderUserBadge && window.renderUserBadge(username, '');
-      window.renderUserPopupHeader && window.renderUserPopupHeader(username, user.email, fullName, '');
 
       try {
         const contentSnap = await getDoc(doc(db, 'siteContent', 'main'));

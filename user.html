@@ -159,97 +159,6 @@
       margin-top: 0.25rem;
     }
     .auth-error.show { display: block; }
-    .auth-user-name {
-      font-family: var(--font-display);
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: var(--primary);
-      cursor: pointer;
-      padding: 0.35rem 0.75rem;
-      border: 1px solid rgba(168,85,247,0.35);
-      border-radius: 6px;
-      background: var(--primary-dim);
-      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .auth-user-name:hover { background: rgba(168,85,247,0.25); border-color: var(--primary); box-shadow: 0 0 12px rgba(168,85,247,0.3); }
-    .auth-user-name svg { opacity: 0.7; }
-
-    /* ── USER POPUP ── */
-    #user-popup {
-      display: none;
-      position: fixed;
-      top: 64px;
-      right: 1.5rem;
-      z-index: 9998;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      width: 280px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 24px rgba(168,85,247,0.1);
-      overflow: hidden;
-      animation: popIn 0.15s ease;
-    }
-    #user-popup.open { display: block; }
-    @keyframes popIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-    .popup-header {
-      padding: 1rem 1.25rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .popup-header-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
-    .popup-header-name { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: var(--primary); }
-    .popup-header-email { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
-    .popup-section { padding: 0.5rem; }
-    .popup-section + .popup-section { border-top: 1px solid var(--border); }
-    .popup-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      padding: 0.65rem 0.75rem;
-      background: transparent;
-      border: none;
-      border-radius: 6px;
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.15s, color 0.15s;
-    }
-    .popup-btn:hover { background: rgba(255,255,255,0.05); }
-    .popup-btn.danger { color: var(--danger); }
-    .popup-btn.danger:hover { background: var(--danger-dim); }
-    .popup-btn svg { flex-shrink: 0; opacity: 0.7; }
-    .popup-inline-form { display: none; flex-direction: column; gap: 0.5rem; padding: 0.25rem 0.75rem 0.75rem; }
-    .popup-inline-form.open { display: flex; }
-    .popup-inline-form input {
-      width: 100%;
-      background: #0d0d14;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.6rem 0.75rem;
-      color: var(--text);
-      font-size: 0.85rem;
-      font-family: var(--font-body);
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .popup-inline-form input:focus { border-color: var(--primary); }
-    .popup-inline-form input::placeholder { color: var(--muted); }
-    .popup-inline-form-row { display: flex; gap: 0.4rem; }
-    .popup-save-btn { flex: 1; padding: 0.5rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-family: var(--font-display); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s; }
-    .popup-save-btn:hover { opacity: 0.85; }
-    .popup-cancel-btn { flex: 1; padding: 0.5rem; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-display); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
-    .popup-msg { font-size: 0.75rem; padding: 0.3rem 0.1rem; display: none; }
-    .popup-msg.ok { display: block; color: #22c55e; }
-    .popup-msg.err { display: block; color: var(--danger); }
-
 /* ── ADMIN PANEL ── */
     #admin-panel {
       display: none;
@@ -562,14 +471,6 @@
     .admin-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
         
-    nav {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(10,10,15,0.95);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center;
-      padding: 0 2rem; height: 56px;
-    }
     #main-content.visible { display: block; }
   </style>
 </head>
@@ -621,28 +522,19 @@ from"https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";import{getFire
 await setDoc(doc(db,'users',email),{password:newPassword},{merge:true});};window._updateSignupRequestPassword=async function(requestId,newPassword){await updateDoc(doc(db,'signupRequests',requestId),{password:newPassword});};window._approveSignup=async function(requestId,email,password,fullName,username){const secondaryAppName='secondary-signup-'+Date.now();const secondaryApp=initializeApp(firebaseConfig,secondaryAppName);const secondaryAuth=getAuth(secondaryApp);try{await createUserWithEmailAndPassword(secondaryAuth,email,password);await signOut(secondaryAuth);}finally{await deleteApp(secondaryApp).catch(()=>{});}
 await setDoc(doc(db,'users',email),{email,username:username||'',fullName:fullName||'',password:password||'',createdAt:new Date().toISOString(),admin:false},{merge:true});await deleteDoc(doc(db,'signupRequests',requestId));};window._denySignup=async function(requestId){await updateDoc(doc(db,'signupRequests',requestId),{status:'denied',deniedAt:new Date().toISOString()});};window.switchTab=function(tab){document.getElementById('auth-error').classList.remove('show');if(window._retryCountdownInterval){clearInterval(window._retryCountdownInterval);window._retryCountdownInterval=null;}};function friendlyError(code){const map={'auth/invalid-email':'That email address doesn\'t look right.','auth/user-not-found':'No account found with that email.','auth/wrong-password':'Incorrect password. Try again.','auth/email-already-in-use':'An account with that email already exists.','auth/weak-password':'Password must be at least 6 characters.','auth/too-many-requests':'Too many attempts. Try again later.','auth/invalid-credential':'Email or password is incorrect.','auth/user-disabled':'This account has been disabled.',};return map[code]||'Something went wrong. Please try again.';}
 window.handleAuth=async function(){const email=document.getElementById('auth-email').value.trim();const password=document.getElementById('auth-password').value;const errEl=document.getElementById('auth-error');const btn=document.getElementById('auth-submit');errEl.classList.remove('show');if(!email||!password){errEl.textContent='Please fill in all fields.';errEl.classList.add('show');return;}
-btn.disabled=true;btn.textContent='Logging in...';try{const cred=await signInWithEmailAndPassword(auth,email,password);const user=cred.user;}catch(err){errEl.textContent=friendlyError(err.code);errEl.classList.add('show');btn.disabled=false;btn.textContent='Login';}};window.toggleUserPopup=function(){const popup=document.getElementById('user-popup');popup.classList.toggle('open');document.querySelectorAll('.popup-inline-form').forEach(f=>f.classList.remove('open'));document.querySelectorAll('.popup-msg').forEach(m=>{m.className='popup-msg';});};window.togglePopupForm=function(id){const form=document.getElementById(id);const isOpen=form.classList.contains('open');document.querySelectorAll('.popup-inline-form').forEach(f=>f.classList.remove('open'));document.querySelectorAll('.popup-msg').forEach(m=>{m.className='popup-msg';});if(!isOpen){form.classList.add('open');if(id==='password-form'){const emailField=document.getElementById('password-form-username');if(emailField&&auth.currentUser)emailField.value=auth.currentUser.email;}}};document.addEventListener('click',(e)=>{const popup=document.getElementById('user-popup');const badge=document.getElementById('nav-user-badge');if(popup&&popup.classList.contains('open')&&!popup.contains(e.target)&&!badge.contains(e.target)){popup.classList.remove('open');}});window.saveUsername=async function(){const val=document.getElementById('new-username').value.trim();const msg=document.getElementById('username-msg');msg.className='popup-msg';if(!val){msg.textContent='Please enter a username.';msg.className='popup-msg err';return;}
-try{const valLower=val.toLowerCase();const usersSnap=await getDocs(collection(db,'users'));for(const d of usersSnap.docs){if(d.id===auth.currentUser.email)continue;const uData=d.data();if(uData.username&&uData.username.toLowerCase()===valLower){msg.textContent='That username is already taken.';msg.className='popup-msg err';return;}}
-const reqSnap=await getDocs(collection(db,'signupRequests'));for(const d of reqSnap.docs){const rData=d.data();if(rData.username&&rData.username.toLowerCase()===valLower&&(rData.status==='pending'||rData.status==='approved')){msg.textContent='That username is already taken.';msg.className='popup-msg err';return;}}
-await updateProfile(auth.currentUser,{displayName:val});await setDoc(doc(db,'users',auth.currentUser.email),{username:val},{merge:true});const nameBtn=document.querySelector('.auth-user-name');if(nameBtn){for(let i=nameBtn.childNodes.length-1;i>=0;i--){if(nameBtn.childNodes[i].nodeType===3){nameBtn.childNodes[i].textContent=val;break;}}}
-document.getElementById('popup-display-name').textContent=val;document.getElementById('new-username').value='';msg.textContent='Username updated!';msg.className='popup-msg ok';setTimeout(()=>{msg.className='popup-msg';togglePopupForm('username-form');},1500);}catch(e){console.error('saveUsername error:',e.code,e.message);msg.textContent=e.message||'Failed to update username.';msg.className='popup-msg err';}};window.savePassword=async function(){const pw=document.getElementById('new-password').value;const cpw=document.getElementById('confirm-password').value;const msg=document.getElementById('password-msg');msg.className='popup-msg';if(!pw){msg.textContent='Please enter a password.';msg.className='popup-msg err';return;}
-if(pw.length<6){msg.textContent='Password must be at least 6 characters.';msg.className='popup-msg err';return;}
-if(pw!==cpw){msg.textContent='Passwords do not match.';msg.className='popup-msg err';return;}
-try{await updatePassword(auth.currentUser,pw);try{await setDoc(doc(db,'users',auth.currentUser.email),{password:pw},{merge:true});}catch(fe){console.warn('Could not save password to Firestore:',fe);}
-document.getElementById('new-password').value='';document.getElementById('confirm-password').value='';msg.textContent='Password updated!';msg.className='popup-msg ok';setTimeout(()=>{msg.className='popup-msg';togglePopupForm('password-form');},1500);}catch(e){if(e.code==='auth/requires-recent-login'){msg.textContent='Please sign out and sign in again first.';}else{msg.textContent='Failed to update password.';}
-msg.className='popup-msg err';}};window.handleSignOut=async function(){if(accountStatusUnsubscribe)accountStatusUnsubscribe();await signOut(auth);};let accountStatusUnsubscribe=null;let _forcedSignout=false;onAuthStateChanged(auth,async(user)=>{const wall=document.getElementById('auth-wall');const main=document.getElementById('main-content');const badge=document.getElementById('nav-user-badge');if(!user&&_forcedSignout){_forcedSignout=false;wall.classList.remove('hidden');main.classList.remove('visible');if(badge)badge.innerHTML='';const errEl=document.getElementById('auth-error');if(errEl){errEl.textContent='Your account has been disabled. Contact an admin for help.';errEl.classList.add('show');}
+btn.disabled=true;btn.textContent='Logging in...';try{const cred=await signInWithEmailAndPassword(auth,email,password);const user=cred.user;}catch(err){errEl.textContent=friendlyError(err.code);errEl.classList.add('show');btn.disabled=false;btn.textContent='Login';}};let accountStatusUnsubscribe=null;let _forcedSignout=false;onAuthStateChanged(auth,async(user)=>{const wall=document.getElementById('auth-wall');const main=document.getElementById('main-content');const badge=document.getElementById('nav-user-badge');if(!user&&_forcedSignout){_forcedSignout=false;wall.classList.remove('hidden');main.classList.remove('visible');if(badge)badge.innerHTML='';const errEl=document.getElementById('auth-error');if(errEl){errEl.textContent='Your account has been disabled. Contact an admin for help.';errEl.classList.add('show');}
 return;}
 if(user){try{const activeSnap=await getDoc(doc(db,'users',user.email));const activeSnapLower=!activeSnap.exists()&&user.email&&user.email.toLowerCase()!==user.email?await getDoc(doc(db,'users',user.email.toLowerCase())):activeSnap;if(activeSnapLower.exists()){const d=activeSnapLower.data();if(d.active===false){_forcedSignout=true;await signOut(auth);return;}}if(accountStatusUnsubscribe)accountStatusUnsubscribe();const accountDocId=activeSnap.exists()?user.email:user.email.toLowerCase();accountStatusUnsubscribe=onSnapshot(doc(db,'users',accountDocId),async(snap)=>{const data=snap.exists()?snap.data():null;if(data&&data.active===false&&auth.currentUser){_forcedSignout=true;if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}await signOut(auth);}});}catch(e){console.warn('Could not verify account status — signing out for safety:',e);_forcedSignout=true;await signOut(auth);return;}
 wall.classList.add('hidden');main.classList.add('visible');let username=user.email;let fullName='';try{const snap=await getDoc(doc(db,'users',user.email));if(snap.exists()){const snapData=snap.data();if(snapData.username){username=snapData.username;if(user.displayName!==username){await updateProfile(user,{displayName:username});}}else{username=user.displayName||user.email;}
 fullName=snapData.fullName||'';}else{username=user.displayName||user.email;}}catch(e){username=user.displayName||user.email;}
-window.renderUserBadge&&window.renderUserBadge(username,'');window.renderUserPopupHeader&&window.renderUserPopupHeader(username,user.email,fullName,'');
+
 try{const contentSnap=await getDoc(doc(db,'siteContent','main'));if(contentSnap.exists())window._siteData=contentSnap.data();}catch(e){}
 try{const userSnap=await getDoc(doc(db,'users',user.email));const userSnapLower=!userSnap.exists()&&user.email&&user.email.toLowerCase()!==user.email?await getDoc(doc(db,'users',user.email.toLowerCase())):userSnap;const userData=userSnapLower.exists()?userSnapLower.data():{};const isAdmin=userData.admin===true;const isEditor=userData.editor===true;if(isAdmin){window._isAdmin=true;window._isEditor=false;injectAdminPanels();setTimeout(()=>openApprovalsPanel(),100);}else{window.location.href='/';}window._canSeeAllOrders=(userData.orders===true||userData.admin===true);const ordersSection=document.getElementById('orders-popup-section');if(ordersSection)ordersSection.style.display='block';}catch(e){console.warn('Could not check admin/editor status:',e);}}else{wall.classList.remove('hidden');main.classList.remove('visible');if(badge)badge.innerHTML='';if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';document.getElementById('auth-error').classList.remove('show');}});document.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!document.getElementById('auth-wall').classList.contains('hidden')){const loginVisible=document.getElementById('login-form-wrap').style.display!=='none';if(loginVisible)handleAuth();}});window._fetchAiHistory=async function(email){const q=query(collection(db,'aiHistory'),where('email','==',email));const snap=await getDocs(q);return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>new Date(b.updatedAt||b.createdAt||0)-new Date(a.updatedAt||a.createdAt||0));};window._fetchUserConversations=async function(email){const convoSnap=await getDocs(query(collection(db,'conversations'),where('participants','array-contains',email)));const convos=await Promise.all(convoSnap.docs.map(async(d)=>{const data=d.data();const messagesSnap=await getDocs(collection(db,'conversations',d.id,'messages'));const messages=messagesSnap.docs.map(md=>({id:md.id,...md.data()})).sort((a,b)=>{const ta=a.sentAt?.toMillis?a.sentAt.toMillis():new Date(a.sentAt||0).getTime();const tb=b.sentAt?.toMillis?b.sentAt.toMillis():new Date(b.sentAt||0).getTime();return ta-tb;});const lastTs=data.lastMessageAt?.toMillis?data.lastMessageAt.toMillis():new Date(data.lastMessageAt||0).getTime();return{id:d.id,...data,messages,lastTs};}));return convos.sort((a,b)=>(b.lastTs||0)-(a.lastTs||0));};window._getAiHistoryDoc=async function(docId){const docSnap=await getDoc(doc(db,'aiHistory',docId));if(!docSnap.exists())throw new Error('History not found');return docSnap.data();};</script>
 
 <script>window._isAdmin=false;window._siteData=null;window._adminOriginalData=null;window.injectAdminPanels=function(){if(document.getElementById('approvals-panel'))return;const mount=document.getElementById('admin-panels-mount');mount.innerHTML=`
 <div id="admin-panel" style="display:none;"></div>
 
-<div id="approvals-panel" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:10000;background:#000;overflow:hidden;display:flex;flex-direction:column;">
+<div id="approvals-panel" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:9997;background:#000;overflow:hidden;display:flex;flex-direction:column;">
   <div style="background:#000;width:100%;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
     <!-- Sub-tabs -->
     <div style="display:flex;border-bottom:1px solid var(--border);background:rgba(168,85,247,0.03);">

@@ -133,49 +133,6 @@
     }
     .auth-back:hover { color: var(--text); }
 
-    /* ── NAV ── */
-    nav {
-      flex-shrink: 0;
-      background: rgba(10,10,15,0.95);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.5rem;
-      height: 56px;
-      z-index: 100;
-    }
-    .nav-logo {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: 1rem;
-      letter-spacing: 0;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      text-decoration: none;
-      color: var(--text);
-    }
-    .nav-logo .know-text { color: var(--text); text-decoration: none; letter-spacing: 0.05em; }
-    .nav-logo span { color: var(--primary); letter-spacing: 0.05em; text-decoration: none; }
-    .nav-logo img { width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(168,85,247,0.7)); }
-    .nav-title {
-      font-family: var(--font-display);
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--secondary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
     .nav-user-chip {
       font-family: var(--font-display);
       font-size: 0.6rem;
@@ -187,20 +144,6 @@
       border-radius: 6px;
       background: var(--primary-dim);
     }
-    .nav-signout {
-      font-family: var(--font-display);
-      font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      padding: 0.3rem 0.7rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: transparent;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s;
-    }
-    .nav-signout:hover { color: var(--danger); border-color: var(--danger); }
     .nav-settings-btn {
       width: 32px;
       height: 32px;
