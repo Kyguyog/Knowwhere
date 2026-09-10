@@ -182,6 +182,13 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#111;color:#eee;d
 .game-item.selected{background:#44475a;border-left:3px solid #8be9fd}
 .game-item .name{font-weight:600;font-size:14px}
 .game-item .url{font-size:11px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.toggle{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #333;font-size:13px;color:#ddd;cursor:pointer;user-select:none}
+.toggle .switch{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle .switch input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;inset:0;background:#444;border-radius:20px;transition:.2s}
+.toggle .slider:before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#eee;border-radius:50%;transition:.2s}
+.toggle input:checked+.slider{background:#8be9fd}
+.toggle input:checked+.slider:before{transform:translateX(16px)}
 #main{flex:1;overflow-y:auto;padding:24px}
 #main h2{margin-bottom:16px;color:#8be9fd}
 #main .no-selection{color:#666;text-align:center;margin-top:100px;font-size:18px}
@@ -205,6 +212,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#111;color:#eee;d
 <div id="sidebar">
   <h2>Games Without Screenshots</h2>
   <div class="count" id="count">Loading...</div>
+  <label class="toggle">
+    <span class="switch"><input type="checkbox" id="show-slash" onchange="renderSidebar()"><span class="slider"></span></span>
+    <span>Show / URLs</span>
+  </label>
   <div id="game-list"></div>
 </div>
 <div id="main">
@@ -218,16 +229,22 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#111;color:#eee;d
   <div class="image-grid" id="image-grid"></div>
 </div>
 <script>
-let games=[], currentIdx=-1;
+let games=[], visibleGames=[], currentIdx=-1;
 async function loadGames(){
   document.getElementById("count").textContent="Loading...";
   document.getElementById("game-list").innerHTML="";
   const r=await fetch("/api/games");
   games=await r.json();
   games.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  document.getElementById("count").textContent=games.length+" game"+(games.length!==1?"s":"")+" without screenshots";
+  renderSidebar();
+}
+function renderSidebar(){
+  const showSlash=document.getElementById("show-slash").checked;
+  visibleGames=games.filter(g=>showSlash||!((g.url||"").trim().startsWith("/")));
+  document.getElementById("count").textContent=visibleGames.length+" game"+(visibleGames.length!==1?"s":"")+" without screenshots";
   const list=document.getElementById("game-list");
-  games.forEach((g,i)=>{
+  list.innerHTML="";
+  visibleGames.forEach((g,i)=>{
     const div=document.createElement("div");
     div.className="game-item";
     div.innerHTML=`<div class="name">${esc(g.name||"Unnamed")}</div><div class="url">${esc(g.url||"")}</div>`;
@@ -239,7 +256,7 @@ function esc(s){const d=document.createElement("div");d.textContent=s;return d.i
 async function selectGame(idx){
   currentIdx=idx;
   document.querySelectorAll(".game-item").forEach((el,i)=>el.classList.toggle("selected",i===idx));
-  const g=games[idx];
+  const g=visibleGames[idx];
   document.getElementById("placeholder").style.display="none";
   document.getElementById("game-header").style.display="block";
   document.getElementById("game-name").textContent=g.name||"Unnamed";
@@ -273,25 +290,14 @@ async function setScreenshot(game, imgUrl, card){
   const res=await r.json();
   if(res.ok){
     showToast("Screenshot saved!");
-    games.splice(currentIdx,1);
+    const gi=games.indexOf(game);
+    if(gi>-1) games.splice(gi,1);
     renderSidebar();
-    if(games.length>0) selectGame(Math.min(currentIdx,games.length-1));
+    if(visibleGames.length>0) selectGame(Math.min(currentIdx,visibleGames.length-1));
     else{document.getElementById("placeholder").style.display="block";document.getElementById("game-header").style.display="none";document.getElementById("image-grid").innerHTML="";}
   } else {
     showToast("Error: "+(res.error||"unknown"),true);
   }
-}
-function renderSidebar(){
-  document.getElementById("count").textContent=games.length+" game"+(games.length!==1?"s":"")+" without screenshots";
-  const list=document.getElementById("game-list");
-  list.innerHTML="";
-  games.forEach((g,i)=>{
-    const div=document.createElement("div");
-    div.className="game-item";
-    div.innerHTML=`<div class="name">${esc(g.name||"Unnamed")}</div><div class="url">${esc(g.url||"")}</div>`;
-    div.onclick=()=>selectGame(i);
-    list.appendChild(div);
-  });
 }
 function showToast(msg,err){
   const t=document.createElement("div");
