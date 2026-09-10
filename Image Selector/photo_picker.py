@@ -15,6 +15,7 @@ FIREBASE_PROJECT = "knowwhere-firebase"
 FIREBASE_API_KEY = "AIzaSyB_7DGpmrVotodTuPJDXoZrKrKbkzPhWDw"
 FIRESTORE_BASE = f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT}/databases/(default)/documents"
 DOC_PATH = f"{FIRESTORE_BASE}/siteContent/main"
+SITE_BASE_URL = "https://knowwhere-site.uc.r.appspot.com"
 
 
 def firestore_to_python(value):
@@ -79,6 +80,8 @@ def save_games(games):
 def scrape_images(url):
     """Scrape image URLs from a given page."""
     images = []
+    if url.startswith("/"):
+        url = SITE_BASE_URL + url
     try:
         parsed = urlparse(url)
         base_url = f"{parsed.scheme}://{parsed.netloc}"
