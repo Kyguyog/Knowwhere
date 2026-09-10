@@ -487,6 +487,8 @@
       .admin-row-item { flex-wrap: wrap; }
       .admin-row-item > * { flex: 1 1 100% !important; min-width: 0 !important; }
       .admin-row-item > button.admin-row-remove { flex: 0 0 auto !important; margin-left: 0; }
+      .admin-row-item > div[style*="flex:3.8"] { flex-wrap: wrap !important; }
+      #admin-games .game-screenshot-input { flex: 1 1 100% !important; }
       .admin-row-list .admin-card-item { padding: 0.65rem; }
 
       #admin-games div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
@@ -563,7 +565,7 @@ function shopEditorCard(item, n) {
   <div class="admin-card-item">
     <div class="admin-card-header">
       <span class="admin-card-label">Item ${n}</span>
-      <button class="admin-row-remove" onclick="this.closest('.admin-card-item').remove()">✕</button>
+      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
     </div>
     <input class="shop-item-name admin-card-input" placeholder="Name (e.g. Monster Zero)" value="${safeName}" />
     <input class="shop-item-price admin-card-input" placeholder="Price (e.g. 3.99)" value="${safePrice}" type="number" min="0" step="0.01" />
@@ -1590,6 +1592,7 @@ function renderGameRow(g = {}) {
       <input class="admin-row-input game-url-input" placeholder="Game URL" value="${escAttr(gameUrl)}" style="flex:1.8;" oninput="adminHandleGameUrlInput(this)" />
       <input class="admin-row-input game-desc-input" placeholder="Description (shown on hover)" value="${escAttr(g.description||'')}" style="flex:1.8;" />
       <div style="flex:3.8;display:flex;align-items:center;gap:0.45rem;min-width:0;">
+        <input class="admin-row-input game-screenshot-input" placeholder="Screenshot URL (optional)" value="${escAttr(g.screenshot||'')}" style="flex:1;min-width:0;" />
         <label class="toggle-wrap" style="white-space:nowrap;${toggleDim}">
           <span class="toggle-switch">
             <input type="checkbox" class="game-popup-input" ${popupChecked ? 'checked' : ''} ${popupDisabled} />
@@ -1611,9 +1614,8 @@ function renderGameRow(g = {}) {
           </span>
           <span class="toggle-label" title="Toggle to add/remove this game from the Top Tier section">Top Tier</span>
         </label>
-        <input class="admin-row-input game-screenshot-input" placeholder="Screenshot URL (optional)" value="${escAttr(g.screenshot||'')}" style="flex:1;min-width:0;" />
+        <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
       </div>
-      <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>
     </div>`;
 }
 
@@ -1830,6 +1832,14 @@ window.adminAddGame = function() {
   row.querySelector('input').focus();
 };
 
+window.adminRemoveRow = function(btn) {
+  const row = btn ? btn.closest('.admin-row-item, .admin-card-item') : null;
+  if (!row) return;
+  const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+  if (isMobile && !confirm('Delete this entry?')) return;
+  row.remove();
+};
+
 document.addEventListener('change', function(e) {
   if (!e.target) return;
   if (e.target.classList.contains('game-popup-input')) {
@@ -1852,14 +1862,16 @@ function renderSitesEditor(items) {
     <div class="admin-row-item">
       <input class="admin-row-input" placeholder="Display name" value="${escAttr(s.name)}" style="flex:1;" />
       <input class="admin-row-input" placeholder="https://..." value="${escAttr(url)}" style="flex:2;" oninput="adminHandleGameUrlInput(this)" />
-      <label class="toggle-wrap" style="white-space:nowrap;${toggleDim}">
-        <span class="toggle-switch">
-          <input type="checkbox" class="site-popup-input" ${popupChecked ? 'checked' : ''} ${popupDisabled} />
-          <span class="toggle-track"></span>
-        </span>
-        <span class="toggle-label">${isSwf ? 'Popup (Flash)' : 'Popup'}</span>
-      </label>
-      <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>
+      <div style="display:flex;align-items:center;gap:0.45rem;min-width:0;">
+        <label class="toggle-wrap" style="white-space:nowrap;${toggleDim}">
+          <span class="toggle-switch">
+            <input type="checkbox" class="site-popup-input" ${popupChecked ? 'checked' : ''} ${popupDisabled} />
+            <span class="toggle-track"></span>
+          </span>
+          <span class="toggle-label">${isSwf ? 'Popup (Flash)' : 'Popup'}</span>
+        </label>
+        <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1870,14 +1882,16 @@ window.adminAddSite = function() {
   div.innerHTML = `
     <input class="admin-row-input" placeholder="Display name" style="flex:1;" />
     <input class="admin-row-input" placeholder="https://..." style="flex:2;" oninput="adminHandleGameUrlInput(this)" />
-    <label class="toggle-wrap" style="white-space:nowrap;">
-      <span class="toggle-switch">
-        <input type="checkbox" class="site-popup-input" />
-        <span class="toggle-track"></span>
-      </span>
-      <span class="toggle-label">Popup</span>
-    </label>
-    <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>`;
+    <div style="display:flex;align-items:center;gap:0.45rem;min-width:0;">
+      <label class="toggle-wrap" style="white-space:nowrap;">
+        <span class="toggle-switch">
+          <input type="checkbox" class="site-popup-input" />
+          <span class="toggle-track"></span>
+        </span>
+        <span class="toggle-label">Popup</span>
+      </label>
+      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
+    </div>`;
   document.getElementById('ae-sites-list').appendChild(div);
 };
 
@@ -1886,7 +1900,7 @@ function renderBannedEditor(items) {
   document.getElementById('ae-banned-list').innerHTML = items.map(name => `
     <div class="admin-row-item">
       <input class="admin-row-input" placeholder="Name" value="${escAttr(name)}" />
-      <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>
+      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
     </div>`).join('');
 }
 
@@ -1895,7 +1909,7 @@ window.adminAddBanned = function() {
   div.className = 'admin-row-item';
   div.innerHTML = `
     <input class="admin-row-input" placeholder="Name" />
-    <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>`;
+    <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>`;
   document.getElementById('ae-banned-list').appendChild(div);
 };
 
@@ -1905,7 +1919,7 @@ function renderCommandLinksEditor(items) {
     <div class="admin-card-item">
       <div class="admin-card-header">
         <span class="admin-card-label">Link ${i+1}</span>
-        <button class="admin-row-remove" onclick="this.closest('.admin-card-item').remove()">✕</button>
+        <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
       </div>
       <input class="cl-title admin-card-input" placeholder="Title" value="${escAttr(link.title)}" />
       <input class="cl-desc admin-card-input" placeholder="Description" value="${escAttr(link.description||'')}" />
@@ -1919,7 +1933,7 @@ window.adminAddCommandLink = function() {
   div.innerHTML = `
     <div class="admin-card-header">
       <span class="admin-card-label">New Link</span>
-      <button class="admin-row-remove" onclick="this.closest('.admin-card-item').remove()">✕</button>
+      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
     </div>
     <input class="cl-title admin-card-input" placeholder="Title" />
     <input class="cl-desc admin-card-input" placeholder="Description" />
