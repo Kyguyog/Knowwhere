@@ -1209,19 +1209,12 @@ window.injectAdminPanels = function() {
     <div class="admin-tabs">
       <button class="admin-tab active" onclick="switchAdminTab('games')">🎮 Games</button>
       <button class="admin-tab" onclick="switchAdminTab('game-requests')">📥 Game Requests</button>
-      <button class="admin-tab" onclick="switchAdminTab('toptier')">⭐ Top Tier</button>
       <button class="admin-tab" onclick="switchAdminTab('sites')">Sites</button>
       <button class="admin-tab" onclick="switchAdminTab('shop')">🛒 Shop</button>
       <button class="admin-tab" onclick="switchAdminTab('banned')">🚫 Banned</button>
       <button class="admin-tab" onclick="switchAdminTab('command')">Command</button>
     </div>
     <div class="admin-body">
-      <div class="admin-section" id="admin-toptier">
-        <p class="admin-hint" style="margin-bottom:1rem;">Fill in name, badge, game URL, and background image URL for each card.</p>
-        <div id="ae-toptier-list"></div>
-        <button class="admin-add-btn" onclick="adminAddTopTier()">+ Add Card</button>
-        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('toptier')">Save Top Tier</button><span class="admin-status" id="status-toptier"></span></div>
-      </div>
       <div class="admin-section" id="admin-games">
         <p class="admin-hint" style="margin-bottom:0.75rem;">Add, edit, or remove games. Each entry needs a name and URL. Screenshot previews only appear when you add a screenshot URL here. URLs ending in <code>.swf</code> are forced into popup mode and played via Ruffle (Flash emulator).</p>
         <div id="ae-games-list" class="admin-row-list"></div>
@@ -1663,9 +1656,6 @@ window.openAdminPanel = function() {
   window._adminOriginalData = JSON.parse(JSON.stringify(data));
 
   
-  renderTopTierEditor(data.topTier || []);
-
-  
   renderGamesEditor(data.games || {});
 
   
@@ -1786,59 +1776,6 @@ function makeCardInput(cls, placeholder, val) {
   return `<input class="${cls} admin-card-input" placeholder="${placeholder}" value="${escAttr(val)}" />`;
 }
 
-function renderTopTierEditor(items) {
-  document.getElementById('ae-toptier-list').innerHTML = items.map((item, i) => {
-    const url = item.url || '';
-    const isSwf = /\.swf($|\?)/i.test(url);
-    const popupChecked = isSwf || item.openInPopup === true;
-    const popupDisabled = isSwf ? 'disabled' : '';
-    const toggleDim = isSwf ? 'opacity:0.5;' : '';
-    const labelText = isSwf ? 'Open in popup (Flash)' : 'Open in popup';
-    return `
-    <div class="admin-card-item">
-      <div class="admin-card-header">
-        <span class="admin-card-label">Card ${i+1}</span>
-        <button class="admin-row-remove" onclick="this.closest('.admin-card-item').remove()">✕</button>
-      </div>
-      ${makeCardInput('tt-name','Game name', item.name)}
-      ${makeCardInput('tt-badge',"Badge (e.g. Editor's Choice)", item.badge||'')}
-      <input class="tt-url admin-card-input" placeholder="Game URL" value="${escAttr(url)}" oninput="adminHandleGameUrlInput(this)" />
-      <input class="tt-bg admin-card-input" placeholder="Background image URL" value="${escAttr(item.backgroundImage||'')}" />
-      <label class="toggle-wrap" style="margin-top:0.35rem;${toggleDim}">
-        <span class="toggle-switch">
-          <input type="checkbox" class="tt-popup-input" ${popupChecked ? 'checked' : ''} ${popupDisabled} />
-          <span class="toggle-track"></span>
-        </span>
-        <span class="toggle-label">${labelText}</span>
-      </label>
-    </div>`;
-  }).join('');
-}
-
-window.adminAddTopTier = function() {
-  const div = document.createElement('div');
-  div.className = 'admin-card-item';
-  const i = document.getElementById('ae-toptier-list').children.length + 1;
-  div.innerHTML = `
-    <div class="admin-card-header">
-      <span class="admin-card-label">New Card</span>
-      <button class="admin-row-remove" onclick="this.closest('.admin-card-item').remove()">✕</button>
-    </div>
-    <input class="tt-name admin-card-input" placeholder="Game name" />
-    <input class="tt-badge admin-card-input" placeholder="Badge label" />
-    <input class="tt-url admin-card-input" placeholder="Game URL" oninput="adminHandleGameUrlInput(this)" />
-    <input class="tt-bg admin-card-input" placeholder="Background image URL" />
-    <label class="toggle-wrap" style="margin-top:0.35rem;">
-      <span class="toggle-switch">
-        <input type="checkbox" class="tt-popup-input" />
-        <span class="toggle-track"></span>
-      </span>
-      <span class="toggle-label">Open in popup</span>
-    </label>`;
-  document.getElementById('ae-toptier-list').appendChild(div);
-};
-
-
 function renderGameRow(g = {}) {
   const openInPopup = g.openInPopup === true;
   const gameUrl = g.url || '';
@@ -1869,6 +1806,13 @@ function renderGameRow(g = {}) {
           </span>
           <span class="toggle-label">Hide on Chromebook</span>
         </label>
+        <label class="toggle-wrap" style="white-space:nowrap;">
+          <span class="toggle-switch">
+            <input type="checkbox" class="game-toptier-input" ${g.isTopTier === true ? 'checked' : ''} />
+            <span class="toggle-track"></span>
+          </span>
+          <span class="toggle-label" title="Toggle to add/remove this game from the Top Tier section">Top Tier</span>
+        </label>
         <input class="admin-row-input game-screenshot-input" placeholder="Screenshot URL (optional)" value="${escAttr(g.screenshot||'')}" style="flex:1;min-width:0;" />
       </div>
       <button class="admin-row-remove" onclick="this.closest('.admin-row-item').remove()">✕</button>
@@ -1879,7 +1823,7 @@ window.adminHandleGameUrlInput = function(input) {
   const container = input.closest('.admin-row-item, .admin-card-item');
   if (!container) return;
   const isSwf = /\.swf($|\?)/i.test(input.value.trim());
-  const popupInput = container.querySelector('.game-popup-input, .tt-popup-input, .site-popup-input');
+  const popupInput = container.querySelector('.game-popup-input, .site-popup-input');
   const toggleLabel = container.querySelector('.toggle-label');
   const toggleWrap = container.querySelector('.toggle-wrap');
   if (isSwf) {
@@ -1974,7 +1918,8 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
       domain,
       description: row.querySelector('.game-desc-input').value.trim(),
       openInPopup: !!row.querySelector('.game-popup-input').checked,
-      hiddenOnChromebook: !!row.querySelector('.game-hidden-chromebook-input')?.checked
+      hiddenOnChromebook: !!row.querySelector('.game-hidden-chromebook-input')?.checked,
+      isTopTier: !!row.querySelector('.game-toptier-input')?.checked
     };
   });
 
@@ -2009,6 +1954,7 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     const openInPopup = item.openInPopup;
     const screenshot = item.screenshot;
     const hiddenOnChromebook = item.hiddenOnChromebook;
+    const isTopTier = item.isTopTier;
     const description = item.description;
     const originalName = item.originalName;
     const originalKey = normalizeGameKey(originalName);
@@ -2019,6 +1965,7 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (nextGame && openInPopup) nextGame.openInPopup = true;
     if (nextGame && screenshot) nextGame.screenshot = screenshot;
     if (nextGame && hiddenOnChromebook) nextGame.hiddenOnChromebook = true;
+    if (nextGame && isTopTier) nextGame.isTopTier = true;
     if (nextGame && description) nextGame.description = description;
     if (nextGame && originalGame && originalGame.addedAt) nextGame.addedAt = originalGame.addedAt;
     if (nextGame && !originalGame) nextGame.addedAt = new Date().toISOString();
@@ -2038,6 +1985,7 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (originalGame.openInPopup === true) originalComparable.openInPopup = true;
     if (originalGame.screenshot) originalComparable.screenshot = originalGame.screenshot;
     if (originalGame.hiddenOnChromebook === true) originalComparable.hiddenOnChromebook = true;
+    if (originalGame.isTopTier === true) originalComparable.isTopTier = true;
     if (originalGame.description) originalComparable.description = originalGame.description;
 
     const nextComparable = nextGame ? {
@@ -2048,6 +1996,7 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (nextComparable && nextGame.openInPopup === true) nextComparable.openInPopup = true;
     if (nextComparable && nextGame.screenshot) nextComparable.screenshot = nextGame.screenshot;
     if (nextComparable && nextGame.hiddenOnChromebook === true) nextComparable.hiddenOnChromebook = true;
+    if (nextComparable && nextGame.isTopTier === true) nextComparable.isTopTier = true;
     if (nextComparable && nextGame.description) nextComparable.description = nextGame.description;
 
     const unchanged = JSON.stringify(originalComparable) === JSON.stringify(nextComparable);
@@ -2192,15 +2141,7 @@ window.adminSave = async function(section) {
   try {
     let patch = {};
 
-    if (section === 'toptier') {
-      patch.topTier = [...document.querySelectorAll('#ae-toptier-list .admin-card-item')].map(card => ({
-        name:            card.querySelector('.tt-name').value.trim(),
-        badge:           card.querySelector('.tt-badge').value.trim(),
-        url:             card.querySelector('.tt-url').value.trim(),
-        backgroundImage: card.querySelector('.tt-bg').value.trim(),
-        openInPopup:     !!card.querySelector('.tt-popup-input')?.checked
-      }));
-    } else if (section === 'games') {
+    if (section === 'games') {
       const latestData = await window._firestoreGetSiteContent();
       const rows = [...document.querySelectorAll('#ae-games-list .admin-row-item')];
       const mergedGames = mergeGameEditorChanges(
