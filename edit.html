@@ -474,6 +474,30 @@
     }
     .admin-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      .auth-box { padding: 2rem 1.25rem; }
+      .admin-header { padding: 1rem 1.25rem; }
+      .admin-header-title { font-size: 0.75rem; }
+      .admin-tab { padding: 0.7rem 1rem; }
+      .admin-body { padding: 1rem; }
+      .admin-save-row { flex-wrap: wrap; gap: 0.75rem; }
+      .admin-save-btn { padding: 0.6rem 1.25rem; }
+      .admin-textarea { min-height: 160px; }
+      .admin-row-item { flex-wrap: wrap; }
+      .admin-row-item > * { flex: 1 1 100% !important; min-width: 0 !important; }
+      .admin-row-item > button.admin-row-remove { flex: 0 0 auto !important; margin-left: 0; }
+      .admin-row-list .admin-card-item { padding: 0.65rem; }
+
+      #admin-games div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+      #admin-games div[style*="grid-template-columns:auto auto auto auto 1fr"] { grid-template-columns: 1fr !important; gap: 0.5rem !important; }
+      #admin-games [id^="form-usr-"] { padding: 0.65rem; }
+    }
+    @media (max-width: 480px) {
+      .admin-hint { font-size: 0.68rem; }
+      .admin-tab { padding: 0.65rem 0.8rem; font-size: 0.55rem; }
+    }
+
         
     #main-content.visible { display: block; }
   </style>

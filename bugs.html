@@ -280,6 +280,24 @@
     .auth-box h2 { font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.75rem; }
     .auth-box p { color: var(--muted); font-size: 0.875rem; }
     .auth-box a { color: var(--primary); text-decoration: none; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      .wrap, .form-wrap { padding: 1.5rem 1rem 2rem; }
+      .tab-bar { overflow-x: auto; }
+      .tab-btn { padding: 0.75rem 1rem; white-space: nowrap; }
+      .page-title { font-size: 1.15rem; }
+      .toolbar { gap: 0.5rem; }
+      .search-wrap { width: 100%; max-width: none; min-width: 0; flex-basis: 100%; }
+      .report-card { padding: 1rem; }
+      .report-top { align-items: flex-start; }
+      .report-page { max-width: 100%; overflow-wrap: break-word; }
+      .form-card { padding: 1.25rem 1rem; }
+      .field textarea { min-height: 120px; }
+      .submit-btn { width: 100%; }
+      .auth-box { padding: 1.75rem 1.25rem; }
+      .empty-state, .loading-state { padding: 2.5rem 1rem; }
+    }
   </style>
 </head>
 <body>

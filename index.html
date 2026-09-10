@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>KnowWhere</title>
 <link href="favicon.png" rel="icon" type="image/x-icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -1400,6 +1401,78 @@
     }
     .cart-checkout-btn:hover { transform: scale(1.02); box-shadow: 0 0 32px rgba(168,85,247,0.6); }
 
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      section { padding: 3rem 1.25rem; }
+      .section-alt { padding: 3rem 1.25rem; }
+      #shop { padding: 3rem 1.25rem; }
+      section .container { width: 100%; }
+      .section-heading { margin-bottom: 2rem; }
+      .section-heading h2 { font-size: 1.7rem; }
+      .section-heading p { font-size: 0.88rem; }
+
+      #home { padding-top: 56px; }
+      .home-content { padding: 1.5rem 1.25rem; }
+      .skull-wrap img { width: 90px; height: 90px; }
+      h1.home-title { display: none; }
+      .home-sub { font-size: 0.8rem; letter-spacing: 0.2em; margin-bottom: 1.75rem; }
+      .home-btns { width: 100%; }
+      .home-btns .btn-primary, .home-btns .btn-secondary {
+        width: 100%;
+        justify-content: center;
+        padding: 0.8rem 1.5rem;
+      }
+
+      .notice-wrap { padding: 1.5rem 1.25rem; }
+      .notice-inner { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1.25rem; }
+      .notice-inner h3 { font-size: 0.7rem; }
+
+      .hire-card { padding: 1.5rem; }
+      .hire-card h3 { font-size: 1.3rem; }
+
+      .top-tier-grid { grid-template-columns: 1fr; }
+      .game-feature h3 { font-size: 1.3rem; }
+
+      .search-wrap { width: 100%; margin-bottom: 2rem; }
+      #search-input { padding: 0.9rem 3rem 0.9rem 2.8rem; font-size: 0.95rem; }
+
+      .archive-grid { gap: 2.5rem; }
+      .letter-group { padding-left: 0; }
+      .letter-bg { display: none; }
+      .letter-heading { font-size: 1rem; }
+      .games-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; }
+      .game-card { padding: 0.65rem 0.75rem; font-size: 0.82rem; }
+      .game-preview-tooltip { display: none; }
+
+      .shop-header-row { align-items: center; }
+      .shelf-unit { padding: 1.5rem 1.15rem 0; }
+      .shelf-products { grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); }
+      #cart-drawer { width: 100%; max-width: 100vw; right: -100%; }
+
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-item { padding: 1.75rem 1rem; border-right: none; border-bottom: 1px solid var(--border); }
+      .stat-item:last-child { border-bottom: none; }
+      .stat-num { font-size: 2.2rem; }
+
+      .command-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .banned-grid { grid-template-columns: 1fr; }
+      .shame-heading { font-size: 1.5rem; }
+
+      #user-popup { left: 0.75rem; right: 0.75rem; width: auto; }
+      .auth-box { padding: 2rem 1.25rem; }
+
+      footer { padding: 2rem 1.25rem; }
+    }
+    @media (max-width: 480px) {
+      .section-heading h2 { font-size: 1.5rem; }
+      .games-grid { grid-template-columns: 1fr 1fr; }
+      .game-card { font-size: 0.78rem; }
+      .letter-heading { letter-spacing: 0.05em; }
+      .stat-num { font-size: 1.9rem; }
+      .skull-wrap img { width: 76px; height: 76px; }
+      .home-sub { letter-spacing: 0.15em; }
+      .shelf-products { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+    }
 
   </style>
 </head>
