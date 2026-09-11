@@ -1,5 +1,13 @@
 [
   {
+    "sha": "6db6a83b86a7247c1d10b8a9e813041e1c63f1e9",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/6db6a83b86a7247c1d10b8a9e813041e1c63f1e9",
+    "message": "alllow hiding sidebar",
+    "date": "2026-09-11T00:00:50Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "8d990b6e7d768cd0d93768c040ea0b1e00c2e4dc",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/8d990b6e7d768cd0d93768c040ea0b1e00c2e4dc",
     "message": "Update edit.html",
