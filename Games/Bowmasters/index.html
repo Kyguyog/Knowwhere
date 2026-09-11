@@ -1,0 +1,83 @@
+<!DOCTYPE html><html><head>
+
+    <title>Bowmasters</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="MobileOptimized" content="960">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, initial-scale=1.0, user-scalable=no, minimal-ui">
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" type="text/css" href="style/index.css">
+
+    <script>
+window.__logs = [];
+['log','warn','error','info','debug'].forEach(m => {
+  console['__orig'+m] = console[m].bind(console);
+  console[m] = function() {
+    try {
+      var s = Array.from(arguments).map(a => {
+        if (a instanceof Error) return (a.stack || a.message);
+        if (a && a.stack && a.message) return a.stack;
+        if (typeof a === 'object') { try { return JSON.stringify(a).substring(0,500); } catch(e) { return String(a); } }
+        return String(a);
+      }).join(' ');
+      window.__logs.push(m.toUpperCase()+': '+s);
+      localStorage.setItem('bm_logs', JSON.stringify(window.__logs.slice(-200)));
+    } catch(e) {}
+    console['__orig'+m].apply(console, arguments);
+  };
+});
+window.addEventListener('error', e => {
+  try {
+    var s = 'ONERROR: ' + (e.error ? (e.error.stack || e.error.message) : e.message) + ' @' + e.filename + ':' + e.lineno;
+    window.__logs.push(s);
+    localStorage.setItem('bm_logs', JSON.stringify(window.__logs.slice(-200)));
+  } catch(err) {}
+});
+window.addEventListener('unhandledrejection', e => {
+  try {
+    var s = 'REJECTION: ' + (e.reason && (e.reason.stack || e.reason.message) ? (e.reason.stack || e.reason.message) : (e.reason+'')) ;
+    window.__logs.push(s);
+    localStorage.setItem('bm_logs', JSON.stringify(window.__logs.slice(-200)));
+  } catch(err) {}
+});
+window.__initErr = null;
+try {
+  document.addEventListener('DOMContentLoaded', function() {
+    try { localStorage.setItem('bm_ready', document.readyState + ' ' + location.href); } catch(e){}
+  });
+} catch(e) { window.__initErr = String(e); }
+</script>
+    <script>
+(function(){
+  if (typeof window._rafPatched !== 'undefined') return;
+  window._rafPatched = true;
+  var lastTime = 0;
+  var realRaf = window.requestAnimationFrame.bind(window);
+  var realCaf = window.cancelAnimationFrame.bind(window);
+  function raf(cb){
+    var now = performance.now();
+    var delay = Math.max(0, 16 - (now - lastTime));
+    lastTime = now + delay;
+    var id = setTimeout(function(){ cb(now + delay); }, delay);
+    return id;
+  }
+  function caf(id){ clearTimeout(id); }
+  window.requestAnimationFrame = raf;
+  window.cancelAnimationFrame = caf;
+})();
+</script>
+    <script src="crazygames-sdk-v3.js"></script>
+<script src="game.js"></script>
+<script>window.addEventListener("load", () => window.runGame());</script></head>
+
+
+<body>
+    <div id="game"></div>
+    <div id="banner-container"></div>
+
+</body></html>
