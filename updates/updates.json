@@ -1,5 +1,13 @@
 [
   {
+    "sha": "41e9261e6e98576d9370f4729146435864b514ac",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/41e9261e6e98576d9370f4729146435864b514ac",
+    "message": "remove broken games, fix idle breakout",
+    "date": "2026-09-11T01:48:15Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "a000837205803c18dfd0544f698cd8bcea88cf09",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/a000837205803c18dfd0544f698cd8bcea88cf09",
     "message": "Remove duplicate game files",
