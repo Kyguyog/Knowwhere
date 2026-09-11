@@ -2150,6 +2150,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
         <div class="game-popup-head">
           <div class="game-popup-title" id="game-popup-title">Game</div>
           <div class="game-popup-actions">
+            <button type="button" class="game-popup-btn" id="game-popup-newtab">New Tab</button>
             <button type="button" class="game-popup-btn" id="game-popup-fullscreen">Fullscreen</button>
             <button type="button" class="game-popup-btn" id="game-popup-close">Close</button>
           </div>
@@ -2178,11 +2179,17 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       } catch (_) {}
       setTimeout(focusGameFrame, 80);
     });
+    document.getElementById('game-popup-newtab').addEventListener('click', () => {
+      if (activePopupSrc) {
+        window.open(activePopupSrc, '_blank', 'noopener');
+      }
+    });
     document.addEventListener('fullscreenchange', () => { setTimeout(focusGameFrame, 120); });
     document.addEventListener('webkitfullscreenchange', () => { setTimeout(focusGameFrame, 120); });
     document.addEventListener('msfullscreenchange', () => { setTimeout(focusGameFrame, 120); });
   }
   let activePopupPlay = null;
+  let activePopupSrc = '';
   let popupPlayAutosaveTimer = null;
   const POPUP_PLAY_AUTOSAVE_MS = 5000;
   const POPUP_PLAY_INACTIVE_MS = 5 * 60 * 1000;
@@ -2279,6 +2286,9 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const titleEl = document.getElementById('game-popup-title');
     const ruffleContainer = document.getElementById('game-popup-ruffle');
     titleEl.textContent = title || 'Game';
+    activePopupSrc = src;
+    const newTabBtn = document.getElementById('game-popup-newtab');
+    if (newTabBtn) newTabBtn.style.display = isSwfUrl(src) ? 'none' : '';
     flushPopupPlaytime(true);
     if (trackPlaytime) {
       const now = Date.now();
