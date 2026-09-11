@@ -1,5 +1,13 @@
 [
   {
+    "sha": "1f1a861d3d8d6d2e19dd15c765ecbc59f7058641",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/1f1a861d3d8d6d2e19dd15c765ecbc59f7058641",
+    "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
+    "date": "2026-09-11T00:05:23Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "6db6a83b86a7247c1d10b8a9e813041e1c63f1e9",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/6db6a83b86a7247c1d10b8a9e813041e1c63f1e9",
     "message": "alllow hiding sidebar",
