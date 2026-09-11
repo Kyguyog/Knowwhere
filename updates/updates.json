@@ -1,5 +1,13 @@
 [
   {
+    "sha": "a000837205803c18dfd0544f698cd8bcea88cf09",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/a000837205803c18dfd0544f698cd8bcea88cf09",
+    "message": "Remove duplicate game files",
+    "date": "2026-09-11T01:08:06Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "7d999f3f6994762cd81eae37e022c6cfea259213",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/7d999f3f6994762cd81eae37e022c6cfea259213",
     "message": "djs",
