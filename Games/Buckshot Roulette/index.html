@@ -11,6 +11,7 @@
     <script src="assets/main.js"></script>
     <div id="loading-text" style="color: white; font-family: cursive; font-size: 48px; text-align: center; margin-top: 20px;">LOADING...</div>
     <progress id="load-progress" value="0" max="20" style="display: block; width: 40%; margin: 20px auto 0;"></progress>
+    <div id="load-warning" style="color: #999; font-family: sans-serif; font-size: 14px; text-align: center; margin-top: 12px;">This game may take up to 5 minutes to load. It is most likely not frozen.</div>
     <canvas id="canvas"> Your browser does not support the canvas tag. </canvas>
     <noscript> Your browser does not support JavaScript. </noscript>
     <div id="status">
@@ -43,6 +44,8 @@
             const statusNotice = document.getElementById('status-notice');
             loadingText.remove();
             if (loadProgress) loadProgress.remove();
+            const loadWarning = document.getElementById('load-warning');
+            if (loadWarning) loadWarning.remove();
             let initializing = true;
             let statusMode = '';
 
