@@ -88,3 +88,30 @@ body {
     text-align: center;
     z-index: 1;
 }
+
+#load-progress {
+    height: 8px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+}
+
+#load-progress::-webkit-progress-bar {
+    background-color: #333;
+    border-radius: 4px;
+}
+
+#load-progress::-webkit-progress-value {
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+#load-progress::-moz-progress-bar {
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+#load-progress::-moz-progress-track {
+    background-color: #333;
+    border-radius: 4px;
+}

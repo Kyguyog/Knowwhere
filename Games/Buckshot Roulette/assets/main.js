@@ -1,6 +1,6 @@
 const originalFetch = window.fetch;
 
-function mergeFiles(fileParts) {
+function mergeFiles(fileParts, onProgress) {
     return new Promise((resolve, reject) => {
         let buffers = [];
 
@@ -16,6 +16,7 @@ function mergeFiles(fileParts) {
                 return response.arrayBuffer();
             }).then((data) => {
                 buffers.push(data);
+                if (onProgress) onProgress();
                 fetchPart(index + 1);
             }).catch(reject);
         }
@@ -30,9 +31,27 @@ function getParts(file, start, end) {
     }
     return parts;
 }
+
+const pckParts = getParts("buckshot-roulette.pck", 1, 17);
+const wasmParts = getParts("buckshot-roulette.wasm", 1, 3);
+const totalParts = pckParts.length + wasmParts.length;
+let loadedParts = 0;
+
+function onPartLoaded() {
+    loadedParts++;
+    const loadingText = document.getElementById('loading-text');
+    if (loadingText) {
+        loadingText.textContent = 'LOADING... (' + loadedParts + '/' + totalParts + ')';
+    }
+    const progressBar = document.getElementById('load-progress');
+    if (progressBar) {
+        progressBar.value = loadedParts;
+    }
+}
+
 Promise.all([
-    mergeFiles(getParts("buckshot-roulette.pck", 1, 17)),
-    mergeFiles(getParts("buckshot-roulette.wasm", 1, 3))
+    mergeFiles(pckParts, onPartLoaded),
+    mergeFiles(wasmParts, onPartLoaded)
 ]).then(([pckUrl, wasmUrl]) => {
     window.fetch = async function (url, ...args) {
         if (url.endsWith("buckshot-roulette.pck")) {
