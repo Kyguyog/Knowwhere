@@ -1247,8 +1247,7 @@ window.godotRunStart = function() {
 	const loadProgress = document.getElementById('load-progress');
 	const loadWarning = document.getElementById('load-warning');
 	const originalFetch = window.fetch;
-	const mergedData = {};
-	const pendingRequests = {};
+	const mergedUrls = {};
 	const totalParts = 3;
 	let loadedParts = 0;
 
@@ -1263,54 +1262,37 @@ window.godotRunStart = function() {
 		}
 	}
 
-	window.fetch = function(url, ...args) {
-		const urlString = url.toString();
-
-		if (urlString.endsWith("index.pck") || urlString.endsWith("index.wasm")) {
-
-			if (mergedData[urlString]) {
-				return Promise.resolve(new Response(mergedData[urlString]));
-			}
-
-			return new Promise((resolve) => {
-				if (!pendingRequests[urlString]) pendingRequests[urlString] = [];
-				pendingRequests[urlString].push(resolve);
-			});
-		}
-		return originalFetch(url, ...args);
-	};
+	function filename(url) {
+		return url.toString().split('?')[0].split('#')[0].split('/').pop();
+	}
 
 	async function mergeFiles(baseFileName, partUrls) {
 		const buffers = [];
 		console.log(`[Merger] Starting merge for ${baseFileName}...`);
 
-		try {
-			for (const partUrl of partUrls) {
-				const response = await originalFetch(partUrl);
-
-				if (!response.ok) throw new Error(`Missing part: ${partUrl}`);
-
-				const data = await response.arrayBuffer();
-				buffers.push(data);
-				updateProgress();
-				console.log(`[Merger] Loaded ${partUrl}`);
-			}
-
-			const mergedBlob = new Blob(buffers, { type: 'application/octet-stream' });
-			mergedData[baseFileName] = mergedBlob;
-
-			if (pendingRequests[baseFileName]) {
-				pendingRequests[baseFileName].forEach(resolve => {
-					resolve(new Response(mergedBlob));
-				});
-				delete pendingRequests[baseFileName];
-			}
-
-			return mergedBlob;
-		} catch (err) {
-			console.error(`[Merger] Failed to merge ${baseFileName}:`, err);
+		for (const partUrl of partUrls) {
+			const response = await originalFetch(partUrl);
+			if (!response.ok) throw new Error(`Missing part: ${partUrl}`);
+			const data = await response.arrayBuffer();
+			buffers.push(data);
+			updateProgress();
+			console.log(`[Merger] Loaded ${partUrl}`);
 		}
+
+		const mergedBlob = new Blob(buffers, { type: 'application/octet-stream' });
+		mergedUrls[baseFileName] = URL.createObjectURL(mergedBlob);
 	}
+
+	window.fetch = function (url, ...args) {
+		const name = filename(url);
+		if (name === "index.pck" || name === "index.wasm") {
+			const blobUrl = mergedUrls[name];
+			if (blobUrl) {
+				return originalFetch(blobUrl, ...args);
+			}
+		}
+		return originalFetch(url, ...args);
+	};
 
 	async function init() {
 		const pckParts = [1, 2].map(i => GITHUB_BASE + "index.pck.part" + i);
