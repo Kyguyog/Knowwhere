@@ -1,4 +1,5 @@
 const originalFetch = window.fetch;
+const GITHUB_BASE = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Buckshot%20Roulette/";
 
 function mergeFiles(fileParts, onProgress) {
     return new Promise((resolve, reject) => {
@@ -27,13 +28,13 @@ function mergeFiles(fileParts, onProgress) {
 function getParts(file, start, end) {
     let parts = [];
     for (let i = start; i <= end; i++) {
-        parts.push(file + ".part" + i);
+        parts.push(GITHUB_BASE + file + ".part" + i);
     }
     return parts;
 }
 
-const pckParts = getParts("buckshot-roulette.pck", 1, 17);
-const wasmParts = getParts("buckshot-roulette.wasm", 1, 3);
+const pckParts = getParts("buckshot-roulette.pck", 1, 4);
+const wasmParts = [GITHUB_BASE + "buckshot-roulette.wasm"];
 const totalParts = pckParts.length + wasmParts.length;
 let loadedParts = 0;
 
@@ -45,6 +46,7 @@ function onPartLoaded() {
     }
     const progressBar = document.getElementById('load-progress');
     if (progressBar) {
+        progressBar.max = totalParts;
         progressBar.value = loadedParts;
     }
 }
