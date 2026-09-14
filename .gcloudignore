@@ -23,3 +23,7 @@ Image Selector
 
 # PHP Composer dependencies:
 /vendor/
+
+# exclude game assets
+Games/Blackhole/assets/
+Games/Buckshot Roulette/assets/
