@@ -20,9 +20,12 @@
 README.md
 workflows
 Image Selector
+push-2-app_engine.sh
 
 # PHP Composer dependencies:
 /vendor/
 
 # exclude game assets
-Games/*/assets/
+Games/Blackhole/assets/
+Games/Buckshot Roulette/assets/
+Games/FNAF/assets/
