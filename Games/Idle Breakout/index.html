@@ -81,5 +81,17 @@
         <!-- Run the game code -->
         <script type="text/javascript" src="html5game/Coding_BreakOut1.js?MBCYB=1433039701"></script>
         <script>window.onload = GameMaker_Init;</script>
+        <script>
+            (function() {
+                function pokeResize() {
+                    try { if (!_ie2) _pe2 = true; } catch (e) {}
+                }
+                pokeResize();
+                window.addEventListener('load', function() {
+                    setTimeout(pokeResize, 0);
+                    setTimeout(pokeResize, 500);
+                });
+            })();
+        </script>
     </body>
 </html>
