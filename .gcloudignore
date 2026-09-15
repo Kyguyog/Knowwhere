@@ -25,5 +25,4 @@ Image Selector
 /vendor/
 
 # exclude game assets
-Games/Blackhole/assets/
-Games/Buckshot Roulette/assets/
+Games/*/assets/
