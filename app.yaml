@@ -1,10 +1,26 @@
 runtime: php82
 
 handlers:
+# 1. Root index.html: cached for 1 hour
 - url: /
   static_files: index.html
   upload: index.html
+  expiration: "1h"
 
+# 2. Other HTML files: cached for 3 hours
+- url: /(.*\.html)$
+  static_files: \1
+  upload: (.*\.html)$
+  expiration: "3h"
+
+# 3. Non-code media assets (images, audio, video, fonts): cached for 7 days
+- url: /(.*\.(png|jpe?g|gif|webp|svg|ico|ogg|mp3|wav|m4a|mp4|webm|woff2?|ttf|otf))$
+  static_files: \1
+  upload: (.*\.(png|jpe?g|gif|webp|svg|ico|ogg|mp3|wav|m4a|mp4|webm|woff2?|ttf|otf))$
+  expiration: "7d"
+
+# 4. Code & game logic files (.js, .pck, .json, .wasm, etc.) and everything else: cached for 12 hours
 - url: /(.*)
   static_files: \1
   upload: (.*)
+  expiration: "12h"
