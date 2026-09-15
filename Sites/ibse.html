@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Idle Breakout Save Editor</title>
+<style>
+:root {
+  --bg-primary: #fdfdfd;
+  --bg-secondary: #f6f6f6;
+  --bg-input: #ffffff;
+  --bg-input-disabled: #eaeaea;
+  --text-primary: #222;
+  --text-secondary: #666;
+  --border-color: #ccc;
+  --success-bg: #e6ffe6;
+  --warn-bg: #fff3cd;
+  --highlight-search: #ffff99;
+  --highlight-edit: #fff;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-input: #1c2128;
+  --bg-input-disabled: #21262d;
+  --text-primary: #c9d1d9;
+  --text-secondary: #8b949e;
+  --border-color: #30363d;
+  --success-bg: #1a3a1a;
+  --warn-bg: #3d2f1a;
+  --highlight-search: #4a4a00;
+  --highlight-edit: #0d1117;
+}
+
+body { 
+  font-family: "Segoe UI", sans-serif; 
+  background: var(--bg-primary); 
+  color: var(--text-primary); 
+  margin:0; 
+  padding:20px; 
+  display:flex; 
+  justify-content:center;
+  transition: background 0.3s, color 0.3s;
+}
+.container { max-width: 950px; width:100%; text-align:center; position: relative; }
+h2, h3 { margin-bottom: 10px; color: var(--text-primary); }
+textarea, input { 
+  padding: 8px; 
+  margin-top: 4px; 
+  box-sizing: border-box; 
+  font-family: monospace; 
+  font-size:16px; 
+  border:1px solid var(--border-color); 
+  border-radius:4px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+textarea { width: 100%; }
+input[type="text"], input[type="number"] { min-width: 80px; font-size:16px; }
+input.note-input { min-width:200px; flex:1; font-size:16px; }
+input.value-box { background: var(--bg-input-disabled); flex:1; min-width:80px; font-size:16px; }
+input.compare-box { background: var(--bg-input-disabled); flex:1; min-width:80px; font-size:16px; }
+input.value-diff { background: #ff4444 !important; color: white; font-weight: bold; }
+button { 
+  margin-top: 6px; 
+  padding: 6px 14px; 
+  cursor: pointer; 
+  border:none; 
+  border-radius:4px; 
+  background:#4CAF50; 
+  color:white; 
+  font-weight:bold; 
+  font-size:14px; 
+  transition:0.2s; 
+}
+button:hover { background:#45a049; }
+#output, #status, #valueSearchResult, #base64Result { 
+  margin-top: 14px; 
+  font-weight: 600; 
+  padding: 6px; 
+  border-radius: 6px; 
+  background: var(--bg-secondary); 
+  font-size:16px; 
+  white-space: pre-wrap; 
+  word-break: break-word; 
+  border: 1px solid var(--border-color);
+  transition: background 0.3s, border-color 0.3s;
+}
+#status.ok { background: var(--success-bg); }
+#status.warn { background: var(--warn-bg); }
+.controls { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; justify-content:center; }
+.note-container { display:flex; gap:8px; align-items:center; margin-top:6px; justify-content:center; }
+.note-container label { width: 35px; font-weight:bold; color: var(--text-secondary); }
+.note-container.highlight-row { background: var(--highlight-search); border-radius: 4px; padding: 4px; margin: 2px 0; }
+.spacer-row { 
+  height: 20px; 
+  margin: 8px 0; 
+  border-top: 2px dashed var(--border-color); 
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.spacer-row button {
+  margin: 0;
+  padding: 2px 8px;
+  font-size: 12px;
+  background: #f44336;
+}
+.spacer-row button:hover {
+  background: #d32f2f;
+}
+.section { margin-bottom:30px; text-align:center; }
+.highlight-btn { background:#2196F3; }
+.highlight-btn:hover { background:#1976D2; }
+input.search-box { width: 400px; font-size:18px; padding:10px; }
+input#index { width: 120px; font-size:18px; padding:6px; }
+input#editValue { width: 300px; font-size:16px; }
+.edit-btn { background:#FF9800; }
+.edit-btn:hover { background:#e68a00; }
+input::placeholder { color: var(--text-secondary); }
+textarea::placeholder { color: var(--text-secondary); }
+
+#themeToggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+#themeToggle:hover {
+  background: var(--bg-input-disabled);
+  transform: scale(1.1);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<button id="themeToggle" title="Toggle theme">🌙</button>
+
+<h2>Idle Breakout Save Editor</h2>
+
+<!-- Save Data Section -->
+<div class="section">
+  <h3 id="saveDataTitle">Paste Your Save Code or Decoded Data</h3>
+  <p style="font-size: 14px; color: var(--text-secondary);">Paste your Base64 save code from Idle Breakout (it will auto-decode), or paste decoded comma-separated values directly.</p>
+  <textarea id="data" rows="5" placeholder="Paste your Idle Breakout save code or decoded data here..."></textarea>
+  
+  <div id="compareSection" style="display:none; margin-top:15px;">
+    <h3>Second Save File (Compare)</h3>
+    <p style="font-size: 14px; color: var(--text-secondary);">Paste the second save code to compare with the first one.</p>
+    <textarea id="data2" rows="5" placeholder="Paste your second Idle Breakout save code here..."></textarea>
+  </div>
+  
+  <div class="controls">
+    <button id="confirmBtn">Lock Data for Editing</button>
+    <button id="copyEncodedBtn" style="background:#2196F3;">Copy Base64</button>
+  </div>
+  <div id="copyStatus" style="display:none; margin-top:10px; padding:8px; background:var(--success-bg); border-radius:6px; font-weight:bold;">✅ Base64 copied to clipboard!</div>
+  
+  <!-- Other Section (Collapsible) -->
+  <details style="margin-top: 20px;">
+    <summary style="cursor: pointer; font-weight: bold; font-size: 18px; padding: 10px; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border-color);">Advanced/Outdated Tools</summary>
+    <div style="margin-top: 15px;">
+      <button id="showEncodedBtn" style="background:#9C27B0;">Show Base64 in Box</button>
+      
+      <div id="encodedOutput" style="display:none; margin-top:14px; padding:10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:6px; position:relative;">
+        <button id="closeEncodedBtn" style="position:absolute; top:8px; right:8px; background:#f44336; padding:4px 10px; font-size:16px; margin:0;">✕</button>
+        <p style="margin:0 0 8px 0; font-weight:bold;">Encoded Save Code:</p>
+        <textarea id="encodedData" rows="3" readonly style="width:100%; background:var(--bg-input-disabled);"></textarea>
+      </div>
+      
+      <div style="margin-top: 20px;">
+        <button id="toggleCompareBtn" style="background:#FF5722;">Enable Compare Mode</button>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Compare two save files to find differences</p>
+      </div>
+      
+      <p style="margin-top: 20px;">Jump to specific value (1–113):</p>
+      <input type="number" id="index" min="1" max="113" placeholder="e.g. 5">
+      <button id="highlightBtn" class="highlight-btn" disabled>Highlight Value</button>
+      <div id="output"></div>
+      <div id="editSection" style="display:none;">
+        <p>Edit value:</p>
+        <input type="text" id="editValue">
+        <button id="saveEditBtn">Save Edit</button>
+        <div id="status"></div>
+      </div>
+      
+      <h3 style="margin-top: 25px;">Search by Value</h3>
+      <input type="text" id="valueSearch" class="search-box" placeholder="Type a value to find its position(s)">
+      <div id="valueSearchResult"></div>
+      
+      <h3 style="margin-top: 25px;">Manual Label Upload</h3>
+      <input type="file" id="fileInput" accept=".json" style="display:none">
+      <button id="importNotesBtn">Upload Labels (.json)</button>
+    </div>
+  </details>
+</div>
+
+<!-- Notes Section -->
+<div class="section">
+  <h3 id="notesTitle">Value Labels & Editor</h3>
+  <p style="font-size: 14px; color: var(--text-secondary);" id="notesDescription">Add labels to remember what each value does. Click "Edit" to modify values directly.</p>
+  <input type="text" id="noteSearch" class="search-box" placeholder="Search labels or values...">
+  <div style="margin-top: 10px;">
+    <button id="addSpacerBtn" style="background:#607D8B;">Add Spacer</button>
+    <input type="number" id="spacerPosition" min="1" max="114" placeholder="After position #" style="width: 150px; margin-left: 8px;">
+  </div>
+  <div id="notesContainer"></div>
+  <div class="controls" style="margin-top:10px;" id="notesControls">
+    <button id="exportNotesBtn">Download Labels (.json)</button>
+    <button id="pullGithubBtn" style="background:#9C27B0;">Pull Latest from GitHub</button>
+  </div>
+  <div id="status"></div>
+  
+  <div style="margin-top: 30px; padding: 15px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+    <h3 style="margin-top: 0;">How to Use Idle Breakout Save Editor</h3>
+    <ol style="text-align: left; max-width: 700px; margin: 0 auto; line-height: 1.8;">
+      <li>Open Idle Breakout on Hoodamath and go to <strong>Settings → Export</strong></li>
+      <li>Copy your save code and paste it in the box at the top</li>
+      <li>It will automatically decode and show your save values below</li>
+      <li>Click <strong>"Lock Data for Editing"</strong> to enable editing</li>
+      <li><strong>Add labels to values</strong> so you know what they do either manually or <strong>via a .json file</strong></li>
+      <li>You can go to my <a href="https://github.com/Kyguyog/Idle-Breakout-Save-Modder" target="_blank">Github</a> to get the latest JSON file</li>
+      <li>Click <strong>"Edit"</strong> next to any value to modify it</li>
+      <li>When done, click <strong>Copy Base64</strong></li>
+      <li>Import the text in your clipboard into Idle Breakout <strong>Settings → Export</strong></li>
+    </ol>
+  </div>
+</div>
+
+<script>
+// CONFIGURATION: Update this URL to point to the latest labels JSON file
+const GITHUB_LABELS_URL = "https://raw.githubusercontent.com/Kyguyog/Idle-Breakout-Save-Modder/refs/heads/main/IBSM_11-12_18_31_51.json";
+
+let values = Array(113).fill("");
+let values2 = Array(113).fill("");
+let locked = false;
+let compareMode = false;
+let highlightActive = false;
+let lastHighlightedIdx = null;
+let notes = Array(113).fill("");
+
+const dataBox = document.getElementById("data");
+const dataBox2 = document.getElementById("data2");
+const indexInput = document.getElementById("index");
+const outputBox = document.getElementById("output");
+const editBox = document.getElementById("editValue");
+const editSection = document.getElementById("editSection");
+const statusBox = document.getElementById("status");
+const confirmBtn = document.getElementById("confirmBtn");
+const highlightBtn = document.getElementById("highlightBtn");
+const saveEditBtn = document.getElementById("saveEditBtn");
+const notesContainer = document.getElementById("notesContainer");
+const fileInput = document.getElementById("fileInput");
+const exportNotesBtn = document.getElementById("exportNotesBtn");
+const importNotesBtn = document.getElementById("importNotesBtn");
+const valueSearch = document.getElementById("valueSearch");
+const valueSearchResult = document.getElementById("valueSearchResult");
+const noteSearch = document.getElementById("noteSearch");
+const base64Input = document.getElementById("base64Input");
+const base64Result = document.getElementById("base64Result");
+const themeToggle = document.getElementById("themeToggle");
+const showEncodedBtn = document.getElementById("showEncodedBtn");
+const encodedOutput = document.getElementById("encodedOutput");
+const encodedData = document.getElementById("encodedData");
+const copyEncodedBtn = document.getElementById("copyEncodedBtn");
+const closeEncodedBtn = document.getElementById("closeEncodedBtn");
+const copyStatus = document.getElementById("copyStatus");
+const toggleCompareBtn = document.getElementById("toggleCompareBtn");
+const compareSection = document.getElementById("compareSection");
+const notesTitle = document.getElementById("notesTitle");
+const notesDescription = document.getElementById("notesDescription");
+const notesControls = document.getElementById("notesControls");
+const pullGithubBtn = document.getElementById("pullGithubBtn");
+const addSpacerBtn = document.getElementById("addSpacerBtn");
+const spacerPosition = document.getElementById("spacerPosition");
+
+const valueBoxes = [];
+const valueBoxes2 = [];
+
+// Spacers array to track where spacers should appear (after which index)
+let spacers = [];
+
+// Load notes and spacers from localStorage on startup
+try {
+  const savedNotes = localStorage.getItem('ibsm_notes');
+  if(savedNotes) {
+    const parsed = JSON.parse(savedNotes);
+    if(Array.isArray(parsed) && parsed.length === 113) {
+      notes = parsed;
+    }
+  }
+  const savedSpacers = localStorage.getItem('ibsm_spacers');
+  if(savedSpacers) {
+    const parsed = JSON.parse(savedSpacers);
+    if(Array.isArray(parsed)) {
+      spacers = parsed;
+    }
+  }
+} catch(e) {
+  console.log("No saved notes found or error loading:", e);
+}
+
+// Function to save notes to localStorage
+function saveNotesToStorage() {
+  try {
+    localStorage.setItem('ibsm_notes', JSON.stringify(notes));
+  } catch(e) {
+    console.error("Failed to save notes to localStorage:", e);
+  }
+}
+
+// Function to save spacers to localStorage
+function saveSpacersToStorage() {
+  try {
+    localStorage.setItem('ibsm_spacers', JSON.stringify(spacers));
+  } catch(e) {
+    console.error("Failed to save spacers to localStorage:", e);
+  }
+}
+
+// Set dark mode as the default theme
+document.body.setAttribute("data-theme", "dark");
+themeToggle.textContent = "☀️";
+
+// Theme toggle
+themeToggle.addEventListener("click", ()=>{
+  const currentTheme = document.body.getAttribute("data-theme");
+  const newTheme = currentTheme === "dark" ? "light" : "dark";
+  document.body.setAttribute("data-theme", newTheme);
+  themeToggle.textContent = newTheme === "dark" ? "☀️" : "🌙";
+});
+
+// Auto-detect and decode Base64 in main textarea
+dataBox.addEventListener("input", ()=>{
+  const val = dataBox.value.trim();
+  if(!val) return;
+  
+  // Check if it's Base64
+  function isBase64(str){
+    try{
+      return btoa(atob(str))===str.replace(/\s+/g,'');
+    }catch(e){ return false; }
+  }
+  
+  if(isBase64(val)){
+    try{
+      const decoded = atob(val);
+      dataBox.value = decoded;
+      if(locked){
+        values = decoded.split(",").slice(0,113);
+        while(values.length<113) values.push("");
+        values.forEach((v,i)=>updateValue(i,v));
+      }
+    }catch(e){ }
+  }
+});
+
+// Auto-detect and decode Base64 in second textarea
+dataBox2.addEventListener("input", ()=>{
+  const val = dataBox2.value.trim();
+  if(!val) return;
+  
+  function isBase64(str){
+    try{
+      return btoa(atob(str))===str.replace(/\s+/g,'');
+    }catch(e){ return false; }
+  }
+  
+  if(isBase64(val)){
+    try{
+      const decoded = atob(val);
+      dataBox2.value = decoded;
+      if(locked && compareMode){
+        values2 = decoded.split(",").slice(0,113);
+        while(values2.length<113) values2.push("");
+        renderNotes();
+      }
+    }catch(e){ }
+  }
+});
+
+function renderNotes() {
+  notesContainer.innerHTML = "";
+  valueBoxes.length = 0;
+  valueBoxes2.length = 0;
+  
+  for(let i=0;i<113;i++){
+    const div = document.createElement("div");
+    div.className = "note-container";
+    div.dataset.index = i;
+
+    const label = document.createElement("label");
+    label.innerText = i+1;
+
+    const noteInput = document.createElement("input");
+    noteInput.type="text";
+    noteInput.className="note-input";
+    noteInput.value=notes[i];
+    noteInput.placeholder="Unknown";
+    noteInput.addEventListener("input", ()=>{
+      notes[i]=noteInput.value;
+      saveNotesToStorage();
+    });
+
+    const valueInput = document.createElement("input");
+    valueInput.type="text";
+    valueInput.value=values[i]||"";
+    valueInput.readOnly=true;
+    valueInput.className="value-box";
+
+    if(compareMode){
+      // In compare mode, show two value boxes with edit buttons
+      const valueInput2 = document.createElement("input");
+      valueInput2.type="text";
+      valueInput2.value=values2[i]||"";
+      valueInput2.readOnly=true;
+      valueInput2.className="compare-box";
+      
+      // Check if values differ
+      if(values[i] !== values2[i]){
+        valueInput.classList.add("value-diff");
+        valueInput2.classList.add("value-diff");
+      }
+      
+      // Edit button for first value
+      const editBtn1 = document.createElement("button");
+      editBtn1.textContent="Edit";
+      editBtn1.className="edit-btn";
+      editBtn1.style.fontSize="12px";
+      editBtn1.style.padding="4px 8px";
+      editBtn1.addEventListener("click",()=>{
+        if(valueInput.readOnly){
+          valueInput.readOnly=false;
+          const isDark = document.body.getAttribute("data-theme") === "dark";
+          valueInput.style.background = isDark ? "#0d1117" : "#fff";
+          valueInput.style.borderColor="#4CAF50";
+          valueInput.focus();
+          editBtn1.textContent="Save";
+          editBtn1.style.background="#4CAF50";
+        }else{
+          updateValue(i,valueInput.value);
+          valueInput.readOnly=true;
+          valueInput.style.background="";
+          valueInput.style.borderColor="";
+          editBtn1.textContent="Edit";
+          editBtn1.style.background="";
+          
+          // Re-check for differences
+          if(values[i] !== values2[i]){
+            valueInput.classList.add("value-diff");
+            valueInput2.classList.add("value-diff");
+          } else {
+            valueInput.classList.remove("value-diff");
+            valueInput2.classList.remove("value-diff");
+          }
+          
+          statusBox.className="ok";
+          statusBox.innerText=`✅ Value #${i+1} (File 1) updated successfully.`;
+          setTimeout(()=>statusBox.innerText="",3000);
+        }
+      });
+      
+      // Edit button for second value
+      const editBtn2 = document.createElement("button");
+      editBtn2.textContent="Edit";
+      editBtn2.className="edit-btn";
+      editBtn2.style.fontSize="12px";
+      editBtn2.style.padding="4px 8px";
+      editBtn2.addEventListener("click",()=>{
+        if(valueInput2.readOnly){
+          valueInput2.readOnly=false;
+          const isDark = document.body.getAttribute("data-theme") === "dark";
+          valueInput2.style.background = isDark ? "#0d1117" : "#fff";
+          valueInput2.style.borderColor="#4CAF50";
+          valueInput2.focus();
+          editBtn2.textContent="Save";
+          editBtn2.style.background="#4CAF50";
+        }else{
+          values2[i]=valueInput2.value;
+          dataBox2.value=values2.join(",");
+          valueInput2.value=valueInput2.value;
+          valueInput2.readOnly=true;
+          valueInput2.style.background="";
+          valueInput2.style.borderColor="";
+          editBtn2.textContent="Edit";
+          editBtn2.style.background="";
+          
+          // Re-check for differences
+          if(values[i] !== values2[i]){
+            valueInput.classList.add("value-diff");
+            valueInput2.classList.add("value-diff");
+          } else {
+            valueInput.classList.remove("value-diff");
+            valueInput2.classList.remove("value-diff");
+          }
+          
+          statusBox.className="ok";
+          statusBox.innerText=`✅ Value #${i+1} (File 2) updated successfully.`;
+          setTimeout(()=>statusBox.innerText="",3000);
+        }
+      });
+      
+      valueBoxes.push(valueInput);
+      valueBoxes2.push(valueInput2);
+      
+      div.appendChild(label);
+      div.appendChild(noteInput);
+      div.appendChild(valueInput);
+      div.appendChild(editBtn1);
+      div.appendChild(valueInput2);
+      div.appendChild(editBtn2);
+    } else {
+      // Normal mode with edit button
+      const editBtn = document.createElement("button");
+      editBtn.textContent="Edit";
+      editBtn.className="edit-btn";
+      editBtn.addEventListener("click",()=>{
+        if(valueInput.readOnly){
+          valueInput.readOnly=false;
+          const isDark = document.body.getAttribute("data-theme") === "dark";
+          valueInput.style.background = isDark ? "#0d1117" : "#fff";
+          valueInput.style.borderColor="#4CAF50";
+          valueInput.focus();
+          editBtn.textContent="Save";
+          editBtn.style.background="#4CAF50";
+        }else{
+          updateValue(i,valueInput.value);
+          valueInput.readOnly=true;
+          valueInput.style.background="";
+          valueInput.style.borderColor="";
+          editBtn.textContent="Edit";
+          editBtn.style.background="";
+          statusBox.className="ok";
+          statusBox.innerText=`✅ Value #${i+1} updated successfully.`;
+          setTimeout(()=>statusBox.innerText="",3000);
+        }
+      });
+
+      valueBoxes.push(valueInput);
+
+      div.appendChild(label);
+      div.appendChild(noteInput);
+      div.appendChild(valueInput);
+      div.appendChild(editBtn);
+    }
+    
+    notesContainer.appendChild(div);
+    
+    // Add spacer after this row if specified
+    if(spacers.includes(i)){
+      const spacerDiv = document.createElement("div");
+      spacerDiv.className = "spacer-row";
+      spacerDiv.dataset.after = i;
+      
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "Remove Spacer";
+      removeBtn.addEventListener("click", ()=>{
+        spacers = spacers.filter(s => s !== i);
+        saveSpacersToStorage();
+        renderNotes();
+      });
+      
+      spacerDiv.appendChild(removeBtn);
+      notesContainer.appendChild(spacerDiv);
+    }
+  }
+}
+
+function updateValue(idx,newVal){
+  values[idx]=newVal;
+  dataBox.value=values.join(",");
+  if(valueBoxes[idx]) valueBoxes[idx].value=newVal;
+}
+
+renderNotes();
+
+function showValue(){
+  if(!locked){ outputBox.innerText="Lock (confirm) your data first."; editSection.style.display="none"; return; }
+  const idx=parseInt(indexInput.value);
+  if(isNaN(idx)||idx<1||idx>113){ outputBox.innerText="Enter a valid value number (1–113)"; editSection.style.display="none"; return; }
+  const value=values[idx-1];
+  outputBox.innerText=`Value #${idx}: ${value}`;
+  editBox.value=value;
+  editSection.style.display="block";
+}
+
+indexInput.addEventListener("input", ()=>{
+  if(highlightActive && lastHighlightedIdx!==null) undoHighlight();
+  showValue();
+});
+
+confirmBtn.addEventListener("click", ()=>{
+  if(!locked){
+    let raw=dataBox.value.trim();
+    if(!raw){ alert("Please paste your save code first!"); return; }
+    let allValues=raw.split(",");
+    values=allValues.slice(0,113);
+    while(values.length<113) values.push("");
+    dataBox.value=values.join(",");
+    dataBox.readOnly=true;
+    
+    if(compareMode){
+      let raw2=dataBox2.value.trim();
+      if(!raw2){ alert("Please paste your second save code!"); return; }
+      let allValues2=raw2.split(",");
+      values2=allValues2.slice(0,113);
+      while(values2.length<113) values2.push("");
+      dataBox2.value=values2.join(",");
+      dataBox2.readOnly=true;
+    }
+    
+    locked=true;
+    confirmBtn.textContent="Unlock Data";
+    confirmBtn.style.background="#ffd966";
+    confirmBtn.style.color="#000";
+    highlightBtn.disabled=false;
+    showValue();
+    renderNotes();
+  }else{
+    undoHighlight();
+    dataBox.readOnly=false;
+    if(compareMode) dataBox2.readOnly=false;
+    locked=false;
+    confirmBtn.textContent="Lock Data for Editing";
+    confirmBtn.style.background="";
+    confirmBtn.style.color="";
+    highlightBtn.disabled=true;
+    outputBox.innerText="Data unlocked. Lock it again when ready to edit.";
+    editSection.style.display="none";
+    renderNotes();
+  }
+});
+
+copyEncodedBtn.addEventListener("click", ()=>{
+  const dataToEncode = dataBox.value.trim();
+  if(!dataToEncode){ alert("No data to copy!"); return; }
+  try{
+    const encoded = btoa(dataToEncode);
+    navigator.clipboard.writeText(encoded).then(()=>{
+      copyStatus.style.display="block";
+      setTimeout(()=>copyStatus.style.display="none", 3000);
+    }).catch(()=>{
+      // Fallback for older browsers
+      const temp = document.createElement("textarea");
+      temp.value = encoded;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+      copyStatus.style.display="block";
+      setTimeout(()=>copyStatus.style.display="none", 3000);
+    });
+  }catch(e){
+    alert("Failed to copy Base64!");
+  }
+});
+
+showEncodedBtn.addEventListener("click", ()=>{
+  const dataToEncode = dataBox.value.trim();
+  if(!dataToEncode){ alert("No data to encode!"); return; }
+  try{
+    const encoded = btoa(dataToEncode);
+    encodedData.value = encoded;
+    encodedOutput.style.display="block";
+  }catch(e){
+    alert("Failed to encode data!");
+  }
+});
+
+closeEncodedBtn.addEventListener("click", ()=>{
+  encodedOutput.style.display="none";
+});
+
+// Toggle compare mode
+toggleCompareBtn.addEventListener("click", ()=>{
+  compareMode = !compareMode;
+  if(compareMode){
+    compareSection.style.display="block";
+    toggleCompareBtn.textContent="Disable Compare Mode";
+    toggleCompareBtn.style.background="#4CAF50";
+    notesTitle.textContent="Value Labels & Comparison";
+    notesDescription.textContent="Labels and values from both save files. Differences are highlighted in red. Click Edit buttons to modify values.";
+    if(locked){
+      locked=false;
+      confirmBtn.textContent="Lock Data for Editing";
+      confirmBtn.style.background="";
+      confirmBtn.style.color="";
+    }
+  } else {
+    compareSection.style.display="none";
+    toggleCompareBtn.textContent="Enable Compare Mode";
+    toggleCompareBtn.style.background="#FF5722";
+    notesTitle.textContent="Value Labels & Editor";
+    notesDescription.textContent="Add labels to remember what each value does. Click \"Edit\" to modify values directly.";
+    values2 = Array(113).fill("");
+    dataBox2.value = "";
+  }
+  renderNotes();
+});
+
+saveEditBtn.addEventListener("click", ()=>{
+  const idx=parseInt(indexInput.value)-1;
+  if(isNaN(idx)||idx<0||idx>112) return;
+  updateValue(idx,editBox.value);
+  statusBox.className="ok";
+  statusBox.innerText=`✅ Value #${idx+1} updated successfully.`;
+  showValue();
+});
+
+highlightBtn.addEventListener("click", ()=>{
+  const idx=parseInt(indexInput.value)-1;
+  if(!locked||isNaN(idx)||idx<0||idx>112) return;
+  if(!highlightActive) highlightValue(idx);
+  else undoHighlight();
+});
+
+function highlightValue(idx){
+  const beforeLen=values.slice(0,idx).join(",").length;
+  const start=beforeLen+(idx>0?1:0);
+  const end=start+values[idx].length;
+  dataBox.focus();
+  dataBox.setSelectionRange(start,end);
+  highlightActive=true;
+  lastHighlightedIdx=idx;
+  highlightBtn.textContent="Clear Highlight";
+}
+
+function undoHighlight(){
+  if(!highlightActive) return;
+  dataBox.setSelectionRange(0,0);
+  highlightActive=false;
+  lastHighlightedIdx=null;
+  highlightBtn.textContent="Highlight Value";
+  indexInput.focus();
+}
+
+// Add spacer functionality
+addSpacerBtn.addEventListener("click", ()=>{
+  const pos = parseInt(spacerPosition.value);
+  if(isNaN(pos) || pos < 1 || pos > 113){
+    alert("Please enter a valid position (1-113)");
+    return;
+  }
+  const afterIndex = pos - 1; // Convert to 0-based index
+  if(spacers.includes(afterIndex)){
+    alert("A spacer already exists at this position!");
+    return;
+  }
+  spacers.push(afterIndex);
+  spacers.sort((a,b) => a-b); // Keep sorted
+  saveSpacersToStorage();
+  renderNotes();
+  spacerPosition.value = "";
+});
+
+// Notes export/import
+exportNotesBtn.addEventListener("click", ()=>{
+  const exportData = {
+    notes: notes,
+    spacers: spacers
+  };
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], {type:"application/json"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  
+  // Generate filename with UTC time and date
+  const now = new Date();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(now.getUTCDate()).padStart(2, '0');
+  const hours = String(now.getUTCHours()).padStart(2, '0');
+  const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+  
+  link.download = `IBSM_${month}-${day}_${hours}:${minutes}:${seconds}.json`;
+  link.click();
+});
+
+importNotesBtn.addEventListener("click", ()=>fileInput.click());
+fileInput.addEventListener("change", e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result);
+      
+      // Check if it's the new format with spacers
+      if(imported.notes && Array.isArray(imported.notes) && imported.notes.length === 113){
+        notes = imported.notes;
+        spacers = imported.spacers || [];
+        saveNotesToStorage();
+        saveSpacersToStorage();
+        renderNotes();
+        values.forEach((v,i)=>updateValue(i,v));
+        alert("Notes and spacers imported successfully!");
+      } 
+      // Legacy format - just array of notes
+      else if(Array.isArray(imported) && imported.length === 113){
+        notes = imported;
+        spacers = []; // Clear spacers for legacy imports
+        saveNotesToStorage();
+        saveSpacersToStorage();
+        renderNotes();
+        values.forEach((v,i)=>updateValue(i,v));
+        alert("Notes imported successfully!");
+      } 
+      else {
+        alert("Invalid file format (must be 113 notes).");
+      }
+    } catch(err){ 
+      alert("Failed to read JSON file."); 
+    }
+  };
+  reader.readAsText(file);
+  fileInput.value="";
+});
+
+// Pull latest labels from GitHub
+pullGithubBtn.addEventListener("click", async ()=>{
+  try {
+    pullGithubBtn.disabled = true;
+    pullGithubBtn.textContent = "Fetching...";
+    
+    // Fetch the JSON file from the configured URL
+    const response = await fetch(GITHUB_LABELS_URL);
+    if(!response.ok) throw new Error("Failed to fetch JSON file from GitHub");
+    
+    const jsonData = await response.json();
+    
+    // Check if it's the new format with spacers
+    if(jsonData.notes && Array.isArray(jsonData.notes) && jsonData.notes.length === 113){
+      notes = jsonData.notes;
+      spacers = jsonData.spacers || [];
+      saveNotesToStorage();
+      saveSpacersToStorage();
+      renderNotes();
+    }
+    // Legacy format - just array of notes
+    else if(Array.isArray(jsonData) && jsonData.length === 113){
+      notes = jsonData;
+      spacers = []; // Clear spacers for legacy format
+      saveNotesToStorage();
+      saveSpacersToStorage();
+      renderNotes();
+    }
+    else {
+      throw new Error("Invalid JSON format (must be 113 notes)");
+    }
+    
+    pullGithubBtn.disabled = false;
+    pullGithubBtn.textContent = "Pull Latest from GitHub";
+    
+  } catch(err) {
+    alert(`❌ Failed to pull from GitHub: ${err.message}`);
+    pullGithubBtn.disabled = false;
+    pullGithubBtn.textContent = "Pull Latest from GitHub";
+  }
+});
+
+// Value search
+valueSearch.addEventListener("input", ()=>{
+  const val=valueSearch.value.trim();
+  if(!val){ valueSearchResult.innerText=""; return; }
+  if(!locked){ valueSearchResult.innerText="Lock data first."; return; }
+  const matches=[];
+  values.forEach((v,i)=>{ if(v===val) matches.push(i+1); });
+  valueSearchResult.innerText = matches.length>0 ? `Value found at number(s): ${matches.join(", ")}` : "Value not found.";
+});
+
+// Notes search - searches both labels and values, highlights entire row
+noteSearch.addEventListener("input", ()=>{
+  const q=noteSearch.value.toLowerCase();
+  const containers = notesContainer.querySelectorAll(".note-container");
+  
+  containers.forEach((container, i) => {
+    if(!q) {
+      // Clear all highlights
+      container.classList.remove("highlight-row");
+      const noteInput = container.querySelector("input.note-input");
+      if(noteInput) noteInput.style.background="";
+      return;
+    }
+    
+    const noteInput = container.querySelector("input.note-input");
+    const noteText = noteInput ? noteInput.value.toLowerCase() : "";
+    const value1 = values[i] ? values[i].toLowerCase() : "";
+    const value2 = compareMode && values2[i] ? values2[i].toLowerCase() : "";
+    
+    // Check if query matches label or any value
+    if(noteText.includes(q) || value1.includes(q) || value2.includes(q)) {
+      container.classList.add("highlight-row");
+    } else {
+      container.classList.remove("highlight-row");
+      if(noteInput) noteInput.style.background="";
+    }
+  });
+});
+
+// Smart Base64 live detection & main data injection
+function isBase64(str){
+  try{
+    return btoa(atob(str))===str.replace(/\s+/g,'');
+  }catch(e){ return false; }
+}
+
+if(base64Input) {
+  base64Input.addEventListener("input", ()=>{
+    const val = base64Input.value.trim();
+    if(!val){ base64Result.innerText=""; return; }
+    if(isBase64(val)){
+      try{
+        const decoded = atob(val);
+        dataBox.value = decoded;
+        if(locked){
+          values = decoded.split(",").slice(0,113);
+          while(values.length<113) values.push("");
+          values.forEach((v,i)=>updateValue(i,v));
+        }
+        base64Input.value = "";
+        base64Result.innerText = "✅ Save code decoded and loaded!";
+        setTimeout(()=>base64Result.innerText="Waiting for save code...",2000);
+      }catch(e){ base64Result.innerText="❌ Invalid Base64"; }
+    }else{
+      try{
+        const encoded = btoa(val);
+        base64Result.innerText = encoded;
+      }catch(e){ base64Result.innerText="❌ Failed to encode"; }
+    }
+  });
+}
+</script>
+</div>
+</body>
+</html>
