@@ -1,5 +1,13 @@
 [
   {
+    "sha": "8f4a9c7e129bddd28697c2f4d467feab15e164bf",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/8f4a9c7e129bddd28697c2f4d467feab15e164bf",
+    "message": "Delete files and JS version of Eagler due to large size",
+    "date": "2026-09-16T14:18:53Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "463d74faf737060a95d5bd9a7af64a0e873378e6",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/463d74faf737060a95d5bd9a7af64a0e873378e6",
     "message": "Add Drive Mad",
