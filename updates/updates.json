@@ -1,5 +1,13 @@
 [
   {
+    "sha": "bf02f11f53b1daf68b35c3b8c1750feedb1be876",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/bf02f11f53b1daf68b35c3b8c1750feedb1be876",
+    "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
+    "date": "2026-09-16T17:23:08Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "42106f34efb0a9b9ed9dab453b33077f57a2a5b9",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/42106f34efb0a9b9ed9dab453b33077f57a2a5b9",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/eca889b0dd14c2238cd04331c01ff2c6a9aaa737",
     "message": "[update] remove branch selector\n\ni removed it cus it doesnt work",
     "date": "2026-04-28T20:34:07Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "236d95d15d7ac1bfaf66aedd0a65f4dafd16b7ab",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/236d95d15d7ac1bfaf66aedd0a65f4dafd16b7ab",
-    "message": "[fix] Fix Updates Page\n\nGithub is normally blocked so we changed it to hopefully unblock it",
-    "date": "2026-04-28T20:26:32Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
