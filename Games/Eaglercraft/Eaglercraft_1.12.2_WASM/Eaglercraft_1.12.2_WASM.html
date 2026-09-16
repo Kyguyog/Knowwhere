@@ -1,29 +1,4 @@
 <!DOCTYPE html>
-
-
-
-<!--
-
-This file is from 04/01/2026
-
-Be aware that some server owners are lazy and do not update their client regularly
-
-This is the WASM-GC version of Eaglercraft 1.12 and may not be compatible with outdated browsers
-
--->
-
-
-
-
-
-
-
-
-
-
-
-
-
 <html style="width:100%;height:100%;background-color:black;">
 <head>
 <meta charset="UTF-8" />
@@ -35,20 +10,115 @@ This is the WASM-GC version of Eaglercraft 1.12 and may not be compatible with o
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Eaglercraft 1.12 WASM-GC Offline" />
 <meta property="og:description" content="this file is not a website, whoever uploaded it to this URL is a dumbass" />
-<script type="text/javascript" src="assets/script_0.js"></script>
-<script type="text/javascript" src="assets/script_1.js"></script>
-<script type="text/javascript" src="assets/script_2.js"></script>
-<link type="image/png" rel="shortcut icon" href="assets/asset_1.png" />
+<link type="image/png" rel="shortcut icon" href="https://githubusercontent.com" />
+
+    <!-- Network Fetch Interceptor Hook -->
+    <script type="text/javascript">
+        const repoBase = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/Games/Eaglercraft/Eaglercraft_1.12.2_WASM/assets/";
+
+        // Intercept browser network requests to catch hardcoded engine paths
+        const nativeFetch = window.fetch;
+        window.fetch = function(...args) {
+            let url = args[0];
+            if (typeof url === 'string') {
+                // If the game tries to download any game asset chunks, force the GitHub path
+                if (url.includes('asset_0.bin')) {
+                    args[0] = repoBase + 'asset_0.bin';
+                } else if (url.includes('asset_1.bin')) {
+                    args[0] = repoBase + 'asset_1.bin';
+                } else if (url.includes('assets.epk')) {
+                    args[0] = repoBase + 'assets.epk';
+                }
+            }
+            return nativeFetch.apply(this, args);
+        };
+    </script>
 </head>
 <body style="margin:0px;width:100%;height:100%;overflow:hidden;background-color:white;" id="game_frame">
 <div style="margin:0px;width:100%;height:100%;font-family:sans-serif;display:flex;align-items:center;user-select:none;" id="launch_countdown_screen">
 <div style="margin:auto;text-align:center;">
 <h1>This file is from <span style="color:#AA0000;">04/01/2026</span></h1>
-<h3>Get the latest version at <a href="https://eaglercraft.com"><span style="color:#AA0000;">eaglercraft.com</span></a></h3>
+<h3>Get the latest version at <a href="https://eaglercraft.com" target="_blank"><span style="color:#AA0000;">eaglercraft.com</span></a></h3>
 <h2>Game will launch in <span id="launchCountdownNumber">5</span>...</h2>
 <div style="border:2px solid black;width:100%;height:15px;padding:1px;margin-bottom:20vh;"><div id="launchCountdownProgress" style="background-color:#555555;width:0%;height:100%;"></div>
 <p style="margin-top:30px;"><button id="skipCountdown" autofocus>Skip Countdown</button></p></div>
 </div>
 </div>
+
+    <!-- The Final Pure GitHub WASM-GC Dynamic Executor -->
+    <script type="text/javascript">
+        // Standard option layout matching original configurations
+        window.eaglercraftXOpts = {
+            container: "game_frame", 
+            assetsURI: "assets/asset_0.bin", 
+            worldsDB: "worlds_1122_wasm",
+            servers: [
+                { serverName: "ArchMC", serverAddress: "wss://mc.arch.lol/", hideAddress: false }
+            ]
+        };
+
+        const scriptFiles = ["script_0.js", "script_1.js", "script_2.js"];
+
+        // Forces script element loading with proper execution context mapping
+        function injectScriptElement(url) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                
+                nativeFetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error("Network issue pulling from GitHub repository");
+                        return response.text();
+                    })
+                    .then(code => {
+                        const blob = new Blob([code], { type: 'application/javascript' });
+                        const blobURL = URL.createObjectURL(blob);
+                        
+                        script.src = blobURL;
+                        script.onload = () => {
+                            // Keep context alive long enough for engine initialization steps
+                            setTimeout(() => URL.revokeObjectURL(blobURL), 5000);
+                            resolve();
+                        };
+                        script.onerror = reject;
+                        document.body.appendChild(script);
+                    })
+                    .catch(err => {
+                        console.error("Fetch pipeline failure:", err);
+                        reject(err);
+                    });
+            });
+        }
+
+        async function startEngineQueue() {
+            try {
+                // Step 1: Load all 3 structural scripts sequentially
+                for (const file of scriptFiles) {
+                    await injectScriptElement(repoBase + file);
+                    console.log(`Loaded: ${file}`);
+                }
+                
+                // Step 2: Clear countdown overlays once memory finishes mounting
+                const overlay = document.getElementById("launch_countdown_screen");
+                if (overlay) overlay.style.display = "none";
+                
+                // Step 3: Spark the engine execution loop!
+                console.log("Triggering Eaglercraft WASM engine main()...");
+                if (typeof main === "function") {
+                    main();
+                } else if (typeof window.main === "function") {
+                    window.main();
+                } else {
+                    console.warn("Main execution function block was not globally declared.");
+                }
+                
+            } catch (queueError) {
+                console.error("Initialization queue failure:", queueError);
+            }
+        }
+
+        // Run execution queue right away
+        startEngineQueue();
+    </script>
 </body>
 </html>
