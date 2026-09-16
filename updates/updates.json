@@ -1,5 +1,13 @@
 [
   {
+    "sha": "42106f34efb0a9b9ed9dab453b33077f57a2a5b9",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/42106f34efb0a9b9ed9dab453b33077f57a2a5b9",
+    "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
+    "date": "2026-09-16T15:43:03Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "8f4a9c7e129bddd28697c2f4d467feab15e164bf",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/8f4a9c7e129bddd28697c2f4d467feab15e164bf",
     "message": "Delete files and JS version of Eagler due to large size",
