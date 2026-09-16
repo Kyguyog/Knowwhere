@@ -1,0 +1,7 @@
+Assets manifest for EaglercraftX_1.8_JS
+============================================================
+
+File: asset_0.png
+Type: image/png
+Size: 1258 bytes (0.0012 MB)
+

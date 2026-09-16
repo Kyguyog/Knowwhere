@@ -1,0 +1,11 @@
+Assets manifest for EaglercraftX_1.8_WASM
+============================================================
+
+File: asset_0.png
+Type: image/png
+Size: 1863 bytes (0.0018 MB)
+
+File: asset_1.png
+Type: image/png
+Size: 1258 bytes (0.0012 MB)
+
