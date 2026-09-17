@@ -30,9 +30,6 @@ Games/Blackhole/assets/
 Games/Buckshot Roulette/assets/
 Games/FNAF/assets/
 Games/Bowmasters/assets/
+
 # eaglercraft assets
-Games/EaglerCraft/Eaglercraft_1.12.2_JS/assets/
-Games/EaglerCraft/Eaglercraft_1.12.2_WASM/assets/
-Games/EaglerCraft/Eaglercraft_1.8_JS/assets/
-Games/EaglerCraft/Eaglercraft_1.8_WASM/assets/
-Games/EaglerCraft/Eaglercraft_1.5.2_JS/assets/
+Games/Blackhole/assets
