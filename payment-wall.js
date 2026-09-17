@@ -78,6 +78,12 @@ function buildWall() {
       '<p style="font-size:0.85rem;color:var(--muted,#64748b);line-height:1.6;margin:0 0 1.5rem;">' +
         "KnowWhere is <strong style=\"color:var(--text,#f1f5f9);\">$3/month</strong>. Until this month's dues are covered, " +
         "access is limited to messaging staff to arrange payment.</p>" +
+      '<div style="font-size:0.78rem;color:#fca5a5;line-height:1.55;text-align:left;border:1px solid rgba(239,68,68,0.4);' +
+        'background:rgba(239,68,68,0.1);border-radius:8px;padding:0.65rem 0.75rem;margin-bottom:1.25rem;">' +
+        '<strong style="font-family:var(--font-display,Orbitron,sans-serif);font-size:0.62rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;display:block;margin-bottom:0.3rem;">' +
+          "⚠ Venmo warning</strong>" +
+        "If you pay via Venmo, you <strong>must</strong> put your <strong>email and username</strong> in the payment " +
+        "description. Otherwise you will have to prove it to an admin over video call or in person.</div>" +
       '<a href="' + VENMO_IMG + '" target="_blank" rel="noopener" title="Open the Venmo QR code to scan" ' +
         'style="display:block;margin:0 auto 1rem;width:180px;height:180px;border-radius:12px;overflow:hidden;border:1px solid var(--border,#222230);background:#fff;">' +
         '<img src="' + VENMO_IMG + '" alt="Venmo QR code to pay $3" style="width:100%;height:100%;object-fit:contain;display:block;"></a>' +

@@ -1598,13 +1598,6 @@ function renderGameRow(g = {}) {
         </label>
         <label class="toggle-wrap" style="white-space:nowrap;">
           <span class="toggle-switch">
-            <input type="checkbox" class="game-hidden-chromebook-input" ${g.hiddenOnChromebook === true ? 'checked' : ''} />
-            <span class="toggle-track"></span>
-          </span>
-          <span class="toggle-label">Hide on CB</span>
-        </label>
-        <label class="toggle-wrap" style="white-space:nowrap;">
-          <span class="toggle-switch">
             <input type="checkbox" class="game-toptier-input" ${g.isTopTier === true ? 'checked' : ''} />
             <span class="toggle-track"></span>
           </span>
@@ -1714,7 +1707,6 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
       domain,
       description: row.querySelector('.game-desc-input').value.trim(),
       openInPopup: !!row.querySelector('.game-popup-input').checked,
-      hiddenOnChromebook: !!row.querySelector('.game-hidden-chromebook-input')?.checked,
       isTopTier: !!row.querySelector('.game-toptier-input')?.checked
     };
   });
@@ -1749,7 +1741,6 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     const url = item.url;
     const openInPopup = item.openInPopup;
     const screenshot = item.screenshot;
-    const hiddenOnChromebook = item.hiddenOnChromebook;
     const isTopTier = item.isTopTier;
     const description = item.description;
     const originalName = item.originalName;
@@ -1760,7 +1751,6 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (nextGame && alias) nextGame.alias = alias;
     if (nextGame && openInPopup) nextGame.openInPopup = true;
     if (nextGame && screenshot) nextGame.screenshot = screenshot;
-    if (nextGame && hiddenOnChromebook) nextGame.hiddenOnChromebook = true;
     if (nextGame && isTopTier) nextGame.isTopTier = true;
     if (nextGame && description) nextGame.description = description;
     if (nextGame && originalGame && originalGame.addedAt) nextGame.addedAt = originalGame.addedAt;
@@ -1780,7 +1770,6 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (originalGame.alias) originalComparable.alias = originalGame.alias;
     if (originalGame.openInPopup === true) originalComparable.openInPopup = true;
     if (originalGame.screenshot) originalComparable.screenshot = originalGame.screenshot;
-    if (originalGame.hiddenOnChromebook === true) originalComparable.hiddenOnChromebook = true;
     if (originalGame.isTopTier === true) originalComparable.isTopTier = true;
     if (originalGame.description) originalComparable.description = originalGame.description;
 
@@ -1791,7 +1780,6 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (nextComparable && nextGame.alias) nextComparable.alias = nextGame.alias;
     if (nextComparable && nextGame.openInPopup === true) nextComparable.openInPopup = true;
     if (nextComparable && nextGame.screenshot) nextComparable.screenshot = nextGame.screenshot;
-    if (nextComparable && nextGame.hiddenOnChromebook === true) nextComparable.hiddenOnChromebook = true;
     if (nextComparable && nextGame.isTopTier === true) nextComparable.isTopTier = true;
     if (nextComparable && nextGame.description) nextComparable.description = nextGame.description;
 
