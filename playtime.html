@@ -75,6 +75,17 @@
   .auth-submit { border: 0; border-radius: 6px; padding: 0.8rem 1rem; background: var(--primary); color: #fff; font-family: var(--font-display); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
   .auth-error { display: none; color: var(--danger); font-size: 0.8rem; }
   .auth-error.show { display: block; }
+  .auth-logo { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-bottom: 1.75rem; }
+  .auth-logo img { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 0 12px rgba(168,85,247,0.8)); }
+  .auth-logo-name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 900; letter-spacing: 0.05em; }
+  .auth-logo-name span { color: var(--primary); }
+  .auth-field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .auth-field label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .auth-field input { width: 100%; background: #0d0d14; border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem 1rem; color: var(--text); font-size: 0.95rem; font-family: var(--font-body); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+  .auth-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+  .auth-tabs { display: flex; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 1.75rem; }
+  .auth-tab { flex: 1; padding: 0.65rem; background: transparent; border: none; color: var(--muted); font-family: var(--font-display); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, color 0.2s; }
+  .auth-tab.active { background: var(--primary-dim); color: var(--primary); border-bottom: 2px solid var(--primary); }
   @media (max-width: 760px) {
     nav { padding: 0 1rem; }
     .heading { display: block; }
@@ -99,37 +110,32 @@
 </style>
 </head>
 <body>
-<div id="auth-wall">
-  <div class="auth-box">
-    <div class="auth-title">KNOW<span>WHERE</span></div>
-    <form class="auth-form" onsubmit="handleAuth();return false;">
-      <input type="email" id="auth-email" autocomplete="email" placeholder="Email">
-      <input type="password" id="auth-password" autocomplete="current-password" placeholder="Password">
-      <div class="auth-error" id="auth-error"></div>
-      <button class="auth-submit" id="auth-submit" type="submit">Login</button>
-    </form>
-  </div>
-</div>
+<div id="auth-wall"></div>
+<script>window.KW_AUTH_OPTS = { allowUsername: true, signup: true };</script>
+<script src="auth.js"></script>
 
+<script src="tab-config.js"></script>
 <script src="nav.js"></script>
 <script type="module" src="user-menu.js"></script>
+<script type="module" src="notifications.js"></script>
+<script type="module" src="auth-flows.js"></script>
 
 <main class="wrap">
   <div class="heading">
     <div>
       <h1>Playtime <span>Leaderboard</span></h1>
-      <p class="sub">Popup-mode game sessions are counted here. The total view combines all tracked games, and the game view breaks down playtime for one game at a time.</p>
+      <p class="sub">Popup-mode game sessions are counted here. The By Game tab lists every game by total playtime — pick one to break it down by player.</p>
     </div>
   </div>
 
   <div class="tabs">
-    <button class="tab active" id="tab-total" onclick="setView('total')">Total</button>
+    <button class="tab active" id="tab-total" onclick="setView('total')">By Player</button>
     <button class="tab" id="tab-game" onclick="setView('game')">By Game</button>
   </div>
 
   <div class="toolbar" id="game-toolbar" style="display:none;">
-    <input id="game-search" type="text" placeholder="Search or pick a game..." list="game-options" oninput="filterGameOptions(this.value)" onchange="renderCurrentView()">
-    <datalist id="game-options"></datalist>
+    <button class="tab" id="back-btn" onclick="backFromDrill()" style="display:none;border-color:transparent;color:var(--secondary);">← Back</button>
+    <input id="game-search" type="text" placeholder="Search games..." oninput="renderCurrentView()">
   </div>
 
   <div class="board" id="leaderboard">
@@ -159,6 +165,7 @@ let playtimeRows = [];
 let currentView = "total";
 let allGameNames = [];
 let selectedGameName = "";
+let selectedPlayer = "";
 
 function escHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -189,56 +196,145 @@ function aggregateTotal(rows) {
   return [...byPlayer.values()].map(row => ({ ...row, gameCount: row.games.size, gameName: `${row.games.size} games` })).sort((a, b) => b.totalSeconds - a.totalSeconds);
 }
 function aggregateGame(rows, gameName) {
-  return rows.filter(row => row.gameName === gameName).sort((a, b) => (Number(b.totalSeconds) || 0) - (Number(a.totalSeconds) || 0));
+  const byPlayer = new Map();
+  rows.filter(row => row.gameName === gameName).forEach(row => {
+    const key = String(row.email || playerName(row)).toLowerCase();
+    const existing = byPlayer.get(key) || { username: row.username || playerName(row), email: row.email || "", totalSeconds: 0, plays: 0 };
+    existing.username = row.username || existing.username;
+    existing.totalSeconds += Number(row.totalSeconds) || 0;
+    existing.plays += Number(row.plays) || 0;
+    byPlayer.set(key, existing);
+  });
+  return [...byPlayer.values()].sort((a, b) => (Number(b.totalSeconds) || 0) - (Number(a.totalSeconds) || 0));
+}
+function aggregateGames(rows) {
+  const byGame = new Map();
+  rows.forEach(row => {
+    const nm = row.gameName;
+    if (!nm) return;
+    const existing = byGame.get(nm) || { gameName: nm, totalSeconds: 0, plays: 0 };
+    existing.totalSeconds += Number(row.totalSeconds) || 0;
+    existing.plays += Number(row.plays) || 0;
+    byGame.set(nm, existing);
+  });
+  return [...byGame.values()].sort((a, b) => (Number(b.totalSeconds) || 0) - (Number(a.totalSeconds) || 0));
+}
+function escAttr(value) {
+  return String(value || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function aggregatePlayerGames(rows, playerKey) {
+  const key = String(playerKey || "").toLowerCase();
+  if (!key) return [];
+  const mine = rows.filter(row => String(row.email || playerName(row)).toLowerCase() === key);
+  const byGame = new Map();
+  mine.forEach(row => {
+    const nm = row.gameName;
+    if (!nm) return;
+    const existing = byGame.get(nm) || { gameName: nm, totalSeconds: 0, plays: 0 };
+    existing.totalSeconds += Number(row.totalSeconds) || 0;
+    existing.plays += Number(row.plays) || 0;
+    byGame.set(nm, existing);
+  });
+  return [...byGame.values()].sort((a, b) => (Number(b.totalSeconds) || 0) - (Number(a.totalSeconds) || 0));
 }
 function renderRows(rows, mode) {
   const board = document.getElementById("leaderboard");
+  const backBtn = document.getElementById("back-btn");
+  const drilled = mode === "game" || mode === "player-games";
+  if (backBtn) backBtn.style.display = drilled ? "flex" : "none";
   if (!rows.length) {
     board.innerHTML = '<div class="empty">No playtime found.</div>';
     return;
   }
   const header = '<div class="row head"><div>Rank</div><div>Player</div><div class="game-col">Game</div><div class="time">Time</div><div class="plays-col">Plays</div></div>';
-  const body = rows.map((row, index) => `
-    <div class="row">
+  const body = rows.map((row, index) => {
+    let name, sub, gameCell, clickAttr = "";
+    if (mode === "total") {
+      name = playerName(row);
+      sub = row.email || "";
+      gameCell = row.gameName || "";
+      const key = String(row.email || playerName(row)).toLowerCase();
+      clickAttr = ` style="cursor:pointer;" onclick="drillPlayer('${escAttr(key)}')"`;
+    } else if (mode === "game-all") {
+      name = row.gameName || "Unknown Game";
+      sub = "";
+      gameCell = "";
+      clickAttr = ` style="cursor:pointer;" onclick="drillGame('${escAttr(row.gameName || "")}')"`;
+    } else if (mode === "game") {
+      name = playerName(row);
+      sub = row.email || "";
+      gameCell = "";
+    } else {
+      name = row.gameName || "Unknown Game";
+      sub = "";
+      gameCell = "";
+    }
+    return `
+    <div class="row"${clickAttr}>
       <div class="rank">#${index + 1}</div>
       <div>
-        <div class="name">${escHtml(playerName(row))}</div>
-        <div class="muted">${escHtml(row.email || "")}</div>
+        <div class="name">${escHtml(name)}</div>
+        ${sub ? `<div class="muted">${escHtml(sub)}</div>` : ""}
       </div>
-      <div class="muted game-col">${escHtml(mode === "total" ? row.gameName : row.gameName || "")}</div>
+      <div class="muted game-col">${escHtml(gameCell)}</div>
       <div class="time">${formatTime(row.totalSeconds)}</div>
       <div class="muted plays-col">${Number(row.plays) || 0}</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
   board.innerHTML = header + body;
 }
-window.renderCurrentView = function () {
-  const currentInput = (document.getElementById("game-search")?.value || "").trim().toLowerCase();
-  const exact = allGameNames.find(game => game.toLowerCase() === currentInput);
-  if (exact) selectedGameName = exact;
-  if (!currentInput) selectedGameName = "";
-  let rows = currentView === "total" ? aggregateTotal(playtimeRows) : aggregateGame(playtimeRows, selectedGameName || "");
-  renderRows(rows, currentView);
+window.drillPlayer = function (key) {
+  if (currentView !== "total") return;
+  selectedPlayer = key || "";
+  renderCurrentView();
 };
-window.filterGameOptions = function(query) {
+window.drillGame = function (name) {
+  if (currentView !== "game") return;
+  selectedGameName = name || "";
+  renderCurrentView();
+};
+window.backFromDrill = function () {
+  if (currentView === "total") selectedPlayer = "";
+  else selectedGameName = "";
   const input = document.getElementById("game-search");
-  const list = document.getElementById("game-options");
-  const q = String(query || "").trim().toLowerCase();
-  const filteredGames = q ? allGameNames.filter(game => game.toLowerCase().includes(q)) : allGameNames.slice();
-  list.innerHTML = filteredGames.map(game => `<option value="${escHtml(game)}"></option>`).join("");
-
-  const exactMatch = allGameNames.find(game => game.toLowerCase() === q);
-  if (exactMatch) {
-    selectedGameName = exactMatch;
-  } else if (!q) {
-    selectedGameName = "";
+  if (input) input.value = "";
+  renderCurrentView();
+};
+window.renderCurrentView = function () {
+  const input = document.getElementById("game-search");
+  const toolbar = document.getElementById("game-toolbar");
+  if (input) input.style.display = currentView === "game" ? "" : "none";
+  if (toolbar) toolbar.style.display = (currentView === "game" || selectedPlayer) ? "flex" : "none";
+  const currentInput = (input?.value || "").trim().toLowerCase();
+  let rows, mode;
+  if (currentView === "total") {
+    if (selectedPlayer) {
+      rows = aggregatePlayerGames(playtimeRows, selectedPlayer);
+      mode = "player-games";
+    } else {
+      rows = aggregateTotal(playtimeRows);
+      mode = "total";
+    }
+  } else if (selectedGameName) {
+    rows = aggregateGame(playtimeRows, selectedGameName);
+    mode = "game";
+  } else {
+    rows = aggregateGames(playtimeRows);
+    if (currentInput) rows = rows.filter(row => String(row.gameName || "").toLowerCase().includes(currentInput));
+    mode = "game-all";
   }
-  if (currentView === "game") renderCurrentView();
+  renderRows(rows, mode);
 };
 window.setView = function (view) {
   currentView = view;
+  selectedPlayer = "";
+  selectedGameName = "";
+  const input = document.getElementById("game-search");
+  if (input) input.value = "";
   document.getElementById("tab-total").classList.toggle("active", view === "total");
   document.getElementById("tab-game").classList.toggle("active", view === "game");
-  document.getElementById("game-toolbar").style.display = view === "game" ? "flex" : "none";
+  const backBtn = document.getElementById("back-btn");
+  if (backBtn) backBtn.style.display = "none";
   renderCurrentView();
 };
 async function loadPlaytime() {
@@ -247,32 +343,11 @@ async function loadPlaytime() {
   allGameNames = [...new Set(playtimeRows.map(row => row.gameName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const input = document.getElementById("game-search");
   selectedGameName = "";
+  selectedPlayer = "";
   input.value = "";
-  filterGameOptions("");
   renderCurrentView();
 }
-window.handleAuth = async function () {
-  const email = document.getElementById("auth-email").value.trim();
-  const password = document.getElementById("auth-password").value;
-  const err = document.getElementById("auth-error");
-  const btn = document.getElementById("auth-submit");
-  err.classList.remove("show");
-  if (!email || !password) {
-    err.textContent = "Please fill in all fields.";
-    err.classList.add("show");
-    return;
-  }
-  btn.disabled = true;
-  btn.textContent = "Logging in...";
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-  } catch (e) {
-    err.textContent = "Login failed.";
-    err.classList.add("show");
-    btn.disabled = false;
-    btn.textContent = "Login";
-  }
-};
+/* __kwSignIn provided by auth-flows.js */
 onAuthStateChanged(auth, async user => {
   if (!user) return;
   document.getElementById("auth-wall").classList.add("hidden");
