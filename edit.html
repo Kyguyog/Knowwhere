@@ -1010,6 +1010,7 @@ window.injectAdminPanels = function() {
       <button class="admin-tab active" onclick="switchAdminTab('games')">🎮 Games</button>
       <button class="admin-tab" onclick="switchAdminTab('game-requests')">📥 Game Requests</button>
       <button class="admin-tab" onclick="switchAdminTab('sites')">Sites</button>
+      <button class="admin-tab" onclick="switchAdminTab('tabcloaks')">🕶️ Tab Cloaks</button>
       <button class="admin-tab" onclick="switchAdminTab('shop')">🛒 Shop</button>
       <button class="admin-tab" onclick="switchAdminTab('banned')">🚫 Banned</button>
       <button class="admin-tab" onclick="switchAdminTab('command')">Command</button>
@@ -1033,6 +1034,12 @@ window.injectAdminPanels = function() {
         <div id="ae-sites-list" class="admin-row-list"></div>
         <button class="admin-add-btn" onclick="adminAddSite()">+ Add Site</button>
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('sites')">Save Sites</button><span class="admin-status" id="status-sites"></span></div>
+      </div>
+      <div class="admin-section" id="admin-tabcloaks">
+        <p class="admin-hint" style="margin-bottom:0.75rem;">These are the tab cloak presets shown in the Tab settings. Users still have the custom name/icon option. Each preset needs a name and an icon URL (e.g. a favicon).</p>
+        <div id="ae-tabcloaks-list" class="admin-row-list"></div>
+        <button class="admin-add-btn" onclick="adminAddTabCloak()">+ Add Preset</button>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('tabcloaks')">Save Tab Cloaks</button><span class="admin-status" id="status-tabcloaks"></span></div>
       </div>
       <div class="admin-section" id="admin-shop">
         <p class="admin-hint" style="margin-bottom:1rem;">Add Item to the shop shelf. Paste a transparent PNG image URL, set the name and price.</p>
@@ -1462,6 +1469,9 @@ window.openAdminPanel = function() {
   renderSitesEditor(data.sites || []);
 
   
+  renderTabCloaksEditor((data.tabCloaks && data.tabCloaks.length) ? data.tabCloaks : (window._tabCloakDefaults || []));
+
+  
   renderShopEditor(data.shop || []);
 
   
@@ -1876,6 +1886,33 @@ function renderSitesEditor(items) {
   }).join('');
 }
 
+window._tabCloakDefaults = [
+  { name: "Google", icon: "https://www.google.com/favicon.ico" },
+  { name: "Google Classroom", icon: "https://classroom.google.com/favicon.ico" },
+  { name: "Canvas", icon: "https://canvas.instructure.com/favicon.ico" },
+  { name: "Desmos", icon: "https://www.desmos.com/favicon.ico" },
+  { name: "Khan Academy", icon: "https://www.khanacademy.org/favicon.ico" },
+  { name: "YouTube", icon: "https://www.youtube.com/favicon.ico" }
+];
+function renderTabCloaksEditor(items) {
+  document.getElementById('ae-tabcloaks-list').innerHTML = items.map(p => `
+    <div class="admin-row-item">
+      <input class="admin-row-input" placeholder="Preset name" value="${escAttr(p.name)}" style="flex:1;" />
+      <input class="admin-row-input" placeholder="Icon URL" value="${escAttr(p.icon)}" style="flex:2;" />
+      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
+    </div>`).join('');
+}
+
+window.adminAddTabCloak = function() {
+  const div = document.createElement('div');
+  div.className = 'admin-row-item';
+  div.innerHTML = `
+    <input class="admin-row-input" placeholder="Preset name" style="flex:1;" />
+    <input class="admin-row-input" placeholder="Icon URL" style="flex:2;" />
+    <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>`;
+  document.getElementById('ae-tabcloaks-list').appendChild(div);
+};
+
 window.adminAddSite = function() {
   const div = document.createElement('div');
   div.className = 'admin-row-item';
@@ -2000,6 +2037,23 @@ window.adminSave = async function(section) {
           };
         }).filter(l => l.title)
       };
+    } else if (section === 'tabcloaks') {
+      const seen = new Set();
+      patch.tabCloaks = [...document.querySelectorAll('#ae-tabcloaks-list .admin-row-item')].map(row => {
+        const inputs = row.querySelectorAll('input');
+        return { name: inputs[0].value.trim(), icon: inputs[1].value.trim() };
+      }).filter(p => {
+        if (!p.name || !p.icon) return false;
+        const key = p.name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      if (patch.tabCloaks.length) {
+        renderTabCloaksEditor(patch.tabCloaks);
+      } else {
+        renderTabCloaksEditor(window._tabCloakDefaults || []);
+      }
     }
 
     await window._firestoreUpdate(patch);
