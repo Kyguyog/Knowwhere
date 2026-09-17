@@ -507,32 +507,17 @@
 <body>
 
 
-<div id="auth-wall">
-  <div class="auth-box">
-    <div class="auth-logo">
-      <img src="KnowWhere-Logo-Trans.png" alt="KnowWhere">
-      <div class="auth-logo-name">KNOW<span>WHERE</span></div>
-    </div>
-    <form class="auth-form" id="login-form-wrap" autocomplete="on" onsubmit="handleAuth();return false;">
-      <div class="auth-field">
-        <label>Email</label>
-        <input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" />
-      </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" />
-      </div>
-      <div class="auth-error" id="auth-error"></div>
-      <button class="auth-submit" id="auth-submit" type="submit">Login</button>
-    </form>
-  </div>
-</div>
+<div id="auth-wall"></div>
+<script>window.KW_AUTH_OPTS = { allowUsername: true, signup: true };</script>
+<script src="auth.js"></script>
 
 
 <div id="main-content">
 
 <script src="nav.js"></script>
 <script type="module" src="user-menu.js"></script>
+  <script type="module" src="notifications.js"></script>
+  <script type="module" src="auth-flows.js"></script>
 
 
 </div>

@@ -274,12 +274,27 @@
     /* Auth box */
     .auth-box {
       background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-      padding: 2rem; width: 100%; max-width: 380px;
-      box-shadow: 0 0 60px rgba(168,85,247,0.12); text-align: center;
+      padding: 2.5rem 2rem; width: 100%; max-width: 420px;
+      box-shadow: 0 0 60px rgba(168,85,247,0.12);
+      display: flex; flex-direction: column; align-items: center;
     }
-    .auth-box h2 { font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.75rem; }
-    .auth-box p { color: var(--muted); font-size: 0.875rem; }
-    .auth-box a { color: var(--primary); text-decoration: none; }
+    .auth-logo { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-bottom: 1.75rem; }
+    .auth-logo img { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 0 12px rgba(168,85,247,0.8)); }
+    .auth-logo-name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 900; letter-spacing: 0.05em; }
+    .auth-logo-name span { color: var(--primary); }
+    .auth-tabs { display: flex; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 1.75rem; }
+    .auth-tab { flex: 1; padding: 0.65rem; background: transparent; border: none; color: var(--muted); font-family: var(--font-display); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .auth-tab.active { background: var(--primary-dim); color: var(--primary); border-bottom: 2px solid var(--primary); }
+    .auth-form { width: 100%; display: flex; flex-direction: column; gap: 1rem; }
+    .auth-field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .auth-field label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .auth-field input { width: 100%; background: #0d0d14; border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem 1rem; color: var(--text); font-size: 0.95rem; font-family: var(--font-body); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .auth-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+    .auth-submit { width: 100%; margin-top: 0.5rem; padding: 0.85rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-family: var(--font-display); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+    .auth-submit:hover { transform: scale(1.02); box-shadow: 0 0 32px rgba(168,85,247,0.6); }
+    .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .auth-error { display: none; color: var(--danger); font-size: 0.8rem; text-align: center; }
+    .auth-error.show { display: block; }
 
     /* ── MOBILE ── */
     @media (max-width: 768px) {
@@ -302,17 +317,16 @@
 </head>
 <body>
 
-<div id="auth-wall">
-  <div class="auth-box">
-    <h2>KNOW<span style="color:var(--primary)">WHERE</span></h2>
-    <p>You need to be signed in to access bug reports.<br><br>
-    <a href="index.html">← Return to Home</a></p>
-  </div>
-</div>
+<div id="auth-wall"></div>
+<script>window.KW_AUTH_OPTS = { allowUsername: true, signup: true, subtitle: "Bug Reports" };</script>
+<script src="auth.js"></script>
 
 <div id="main-content">
+  <script src="tab-config.js"></script>
   <script src="nav.js"></script>
   <script type="module" src="user-menu.js"></script>
+  <script type="module" src="notifications.js"></script>
+  <script type="module" src="auth-flows.js"></script>
 
   <!-- Tab bar -->
   <div class="tab-bar">
