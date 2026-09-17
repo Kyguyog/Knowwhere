@@ -1,10 +1,12 @@
-/* KnowWhere monthly payment wall.
-   After sign-in, checks the user's Firestore record. If they haven't paid
-   for the current month (and aren't admin/editor), every page EXCEPT the
-   messages page (msg.html) is blocked behind a popup asking them to pay $3
-   via Venmo (shows the Venmo QR photo) or in cash (links to msg.html so they
-   can set up a meetup with staff). Unpaid users may still message staff only
-   from msg.html. */
+/* KnowWhere access wall.
+   After sign-in, checks the user's Firestore record.
+   - Banned (temporary or permanent): every page EXCEPT the messages page
+     (msg.html) is blocked behind a suspension popup. Temporary bans show the
+     exact date/time the user will be unblocked, plus a live countdown.
+   - Unpaid (and not admin/editor): every page EXCEPT msg.html is blocked
+     behind a popup asking them to pay $3 via Venmo (shows the Venmo QR photo)
+     or in cash (links to msg.html to set up a meetup with staff).
+   Banned and unpaid users may still message staff only from msg.html. */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
@@ -25,14 +27,34 @@ const db = getFirestore(app);
 
 const isMessagesPage = /\/msg(\.html)?$/.test(window.location.pathname);
 const VENMO_IMG = "/MyVenmoQRCode.png";
+const VENMO_LINK = "https://venmo.com/code?user_id=4304463569356602729&created=1789615061.810669";
 const MESSAGES_LINK = "/msg.html";
 
 let wallEl = null;
+let banTimer = null;
 
 function isPaidForMonth(userData) {
   if (!userData) return false;
   if (userData.admin === true || userData.editor === true) return true;
   return userData.paid === true;
+}
+
+function parseBanUntil(raw) {
+  let t = null;
+  if (typeof raw === "string") t = new Date(raw);
+  else if (raw && typeof raw.toDate === "function") t = raw.toDate();
+  else if (raw instanceof Date) t = raw;
+  return t && !isNaN(t.getTime()) ? t : null;
+}
+
+function getBanInfo(userData) {
+  if (!userData) return { banned: false, permanent: false, until: null };
+  if (userData.banType === "permanent") return { banned: true, permanent: true, until: null };
+  if (userData.banType === "temporary") {
+    const until = parseBanUntil(userData.banUntil);
+    if (until && until > new Date()) return { banned: true, permanent: false, until };
+  }
+  return { banned: false, permanent: false, until: null };
 }
 
 async function fetchUserData(email) {
@@ -51,6 +73,10 @@ async function fetchUserData(email) {
 }
 
 function hideWall() {
+  if (banTimer) {
+    clearInterval(banTimer);
+    banTimer = null;
+  }
   if (wallEl) {
     wallEl.remove();
     wallEl = null;
@@ -58,8 +84,34 @@ function hideWall() {
   document.body.style.overflow = "";
 }
 
+function formatBanUntil(d) {
+  try {
+    return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short", timeZoneName: "short" });
+  } catch (_) {
+    return d.toString();
+  }
+}
+
+function formatRemaining(ms) {
+  if (ms <= 0) return "any moment now";
+  const total = Math.floor(ms / 1000);
+  const d = Math.floor(total / 86400);
+  const h = Math.floor((total % 86400) / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const parts = [];
+  if (d) parts.push(d + "d");
+  if (d || h) parts.push(h + "h");
+  if (d || h || m) parts.push(m + "m");
+  parts.push(s + "s");
+  return parts.join(" ");
+}
+
 function buildWall() {
-  if (wallEl) return;
+  if (wallEl) {
+    if (wallEl.id === "payment-wall") return;
+    hideWall();
+  }
   const overlay = document.createElement("div");
   overlay.id = "payment-wall";
   overlay.style.cssText =
@@ -87,7 +139,7 @@ function buildWall() {
       '<a href="' + VENMO_IMG + '" target="_blank" rel="noopener" title="Open the Venmo QR code to scan" ' +
         'style="display:block;margin:0 auto 1rem;width:180px;height:180px;border-radius:12px;overflow:hidden;border:1px solid var(--border,#222230);background:#fff;">' +
         '<img src="' + VENMO_IMG + '" alt="Venmo QR code to pay $3" style="width:100%;height:100%;object-fit:contain;display:block;"></a>' +
-      '<a href="' + VENMO_IMG + '" target="_blank" rel="noopener" ' +
+      '<a href="' + VENMO_LINK + '" target="_blank" rel="noopener" ' +
         'style="display:block;width:100%;padding:0.8rem 1rem;background:var(--primary,#a855f7);color:#fff;' +
         'font-family:var(--font-display,Orbitron,sans-serif);font-size:0.72rem;font-weight:700;letter-spacing:0.15em;' +
         'text-transform:uppercase;text-decoration:none;border-radius:8px;box-sizing:border-box;margin-bottom:0.6rem;">' +
@@ -97,40 +149,108 @@ function buildWall() {
         'color:var(--secondary,#22d3ee);font-family:var(--font-display,Orbitron,sans-serif);font-size:0.72rem;font-weight:700;' +
         'letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;border-radius:8px;box-sizing:border-box;margin-bottom:0.6rem;">' +
         "Pay with Cash &mdash; Message Staff</a>" +
-      '<button type="button" id="payment-wall-recheck" ' +
-        'style="width:100%;padding:0.5rem;background:transparent;border:none;color:var(--muted,#64748b);font-size:0.7rem;cursor:pointer;text-decoration:underline;">' +
-        "I've paid &mdash; check again</button>" +
     "</div>";
-  overlay.querySelector("#payment-wall-recheck").addEventListener("click", async function () {
-    const btn = this;
-    btn.disabled = true;
-    btn.textContent = "Checking...";
-    const u = auth.currentUser;
-    if (u) {
-      const data = await fetchUserData(u.email);
-      if (isPaidForMonth(data)) {
-        hideWall();
-        return;
-      }
-    }
-    btn.disabled = false;
-    btn.textContent = "I've paid — check again";
-  });
   document.body.appendChild(overlay);
   wallEl = overlay;
   document.body.style.overflow = "hidden";
 }
 
-onAuthStateChanged(auth, async function (user) {
+function buildBanWall(ban) {
+  if (wallEl) {
+    if (wallEl.id === "ban-wall") return;
+    hideWall();
+  }
+  const overlay = document.createElement("div");
+  overlay.id = "ban-wall";
+  overlay.style.cssText =
+    "position:fixed;inset:0;z-index:2147483000;background:rgba(6,6,10,0.96);" +
+    "backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;";
+
+  const title = ban.permanent ? "You are permanently banned" : "You are temporarily banned";
+  const lede = ban.permanent
+    ? "Your account has been permanently suspended from KnowWhere. Until it is lifted, access is limited to messaging staff."
+    : "Your account has been temporarily suspended from KnowWhere. Until it is lifted, access is limited to messaging staff.";
+
+  let detail;
+  if (!ban.permanent && ban.until) {
+    detail =
+      '<div style="font-size:0.78rem;color:#fca5a5;line-height:1.55;text-align:left;border:1px solid rgba(239,68,68,0.4);' +
+        'background:rgba(239,68,68,0.1);border-radius:8px;padding:0.65rem 0.75rem;margin-bottom:1.25rem;">' +
+        '<strong style="font-family:var(--font-display,Orbitron,sans-serif);font-size:0.62rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;display:block;margin-bottom:0.3rem;">' +
+          "Ban expires</strong>" +
+        "You will be unblocked on <strong>" + formatBanUntil(ban.until) + "</strong>." +
+        '<span id="ban-countdown" style="display:block;margin-top:0.35rem;color:var(--muted,#64748b);font-size:0.72rem;"></span>' +
+      "</div>";
+  } else {
+    detail =
+      '<div style="font-size:0.78rem;color:#fca5a5;line-height:1.55;text-align:left;border:1px solid rgba(239,68,68,0.4);' +
+        'background:rgba(239,68,68,0.1);border-radius:8px;padding:0.65rem 0.75rem;margin-bottom:1.25rem;">' +
+        "This ban does not expire. If you think this was a mistake, message staff to appeal.</div>";
+  }
+
+  overlay.innerHTML =
+    '<div style="background:var(--card,#111118);border:1px solid var(--border,#222230);border-radius:14px;' +
+      "max-width:440px;width:100%;padding:2rem 1.75rem;text-align:center;" +
+      "box-shadow:0 20px 70px rgba(0,0,0,0.8),0 0 30px rgba(239,68,68,0.12);" +
+      'box-sizing:border-box;">' +
+      '<div style="font-family:var(--font-display,Orbitron,sans-serif);font-size:0.7rem;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;' +
+        "color:#fca5a5;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);border-radius:6px;" +
+        'padding:0.4rem 0.6rem;display:inline-block;margin-bottom:1.25rem;">Account suspended</div>' +
+      '<h2 style="font-family:var(--font-display,Orbitron,sans-serif);font-size:1.15rem;font-weight:800;color:var(--text,#f1f5f9);margin:0 0 0.6rem;">' +
+        title + "</h2>" +
+      '<p style="font-size:0.85rem;color:var(--muted,#64748b);line-height:1.6;margin:0 0 1.5rem;">' +
+        lede + "</p>" +
+      detail +
+      '<a href="' + MESSAGES_LINK + '" ' +
+        'style="display:block;width:100%;padding:0.8rem 1rem;background:transparent;border:1px solid var(--secondary,#22d3ee);' +
+        'color:var(--secondary,#22d3ee);font-family:var(--font-display,Orbitron,sans-serif);font-size:0.72rem;font-weight:700;' +
+        'letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;border-radius:8px;box-sizing:border-box;margin-bottom:0.6rem;">' +
+        "Message Staff to Appeal</a>" +
+    "</div>";
+
+  document.body.appendChild(overlay);
+  wallEl = overlay;
+  document.body.style.overflow = "hidden";
+
+  if (!ban.permanent && ban.until) {
+    const cd = overlay.querySelector("#ban-countdown");
+    const tick = function () {
+      const ms = ban.until.getTime() - Date.now();
+      if (ms <= 0) {
+        hideWall();
+        evaluateGate();
+        return;
+      }
+      if (cd) cd.textContent = "Time remaining: " + formatRemaining(ms);
+    };
+    tick();
+    banTimer = setInterval(tick, 1000);
+  }
+}
+
+async function evaluateGate() {
+  const user = auth.currentUser;
   if (!user) {
     hideWall();
     return;
   }
-  if (isMessagesPage) return;
+  if (isMessagesPage) {
+    hideWall();
+    return;
+  }
   const data = await fetchUserData(user.email);
+  const ban = getBanInfo(data);
+  if (ban.banned) {
+    buildBanWall(ban);
+    return;
+  }
   if (isPaidForMonth(data)) {
     hideWall();
   } else {
     buildWall();
   }
+}
+
+onAuthStateChanged(auth, function () {
+  evaluateGate();
 });
