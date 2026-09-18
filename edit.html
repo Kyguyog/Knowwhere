@@ -595,8 +595,16 @@ window.adminAddShopItem = function() {
   const db = getFirestore(app);
 
   
+  function withFirestoreTimeout(promise, ms) {
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Firestore is over its quota (RESOURCE_EXHAUSTED). The daily write limit is exhausted — try again later.')), ms || 25000);
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+  }
+
   window._firestoreUpdate = async function(patch) {
-    await updateDoc(doc(db, 'siteContent', 'main'), patch);
+    await withFirestoreTimeout(updateDoc(doc(db, 'siteContent', 'main'), patch));
   };
   window._firestoreGetSiteContent = async function() {
     const snap = await getDoc(doc(db, 'siteContent', 'main'));
@@ -806,6 +814,24 @@ window.adminAddShopItem = function() {
   }
 
   
+  window.__kwSignIn = async function(input, password) {
+    let loginEmail = input;
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+    if (!isEmail) {
+      let found = false;
+      try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const usernameLower = input.toLowerCase();
+        for (const d of usersSnap.docs) {
+          const uData = d.data();
+          if (uData.username && uData.username.toLowerCase() === usernameLower) { loginEmail = d.id; found = true; break; }
+        }
+      } catch(e) { throw new Error('Error looking up username. Try using your email instead.'); }
+      if (!found) throw new Error('No account found with that username.');
+    }
+    return signInWithEmailAndPassword(auth, loginEmail, password);
+  };
+
   window.handleAuth = async function() {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value;
@@ -1954,7 +1980,7 @@ window.adminAddCommandLink = function() {
 
 
 window.adminSave = async function(section) {
-  if (!window._isAdmin) return;
+  if (!window._isAdmin && !window._isEditor) return;
   const statusEl = document.getElementById('status-' + section);
   const btn = document.querySelector('#admin-' + section + ' .admin-save-btn');
   statusEl.textContent = 'Saving...';
