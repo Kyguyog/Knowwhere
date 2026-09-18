@@ -112,7 +112,7 @@
 
   <script>
     const buildUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Time%20Shooter%201-3/assets/ts2";
-    const loaderUrl = buildUrl + "/ts2.loader.js";
+    const loaderUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Time%20Shooter%201-3/assets/ts2/ts2.loader.js";
 
     const config = {
       dataUrl: buildUrl + "/ts2.data",
@@ -122,6 +122,26 @@
       companyName: "GoGoMan",
       productName: "Time Shooter 2",
       productVersion: "0.1",
+    };
+
+    window.kwLoadJs = function (url) {
+      return fetch(url).then(function (r) {
+        if (!r.ok) throw new Error("kw http " + r.status);
+        return r.arrayBuffer();
+      }).then(function (buf) {
+        return URL.createObjectURL(new Blob([buf], { type: "text/javascript" }));
+      });
+    };
+    window.kwEvalScript = function (url) {
+      return kwLoadJs(url).then(function (objUrl) {
+        return new Promise(function (res, rej) {
+          var s = document.createElement("script");
+          s.onload = res;
+          s.onerror = function () { rej(new Error("kw exec " + url)); };
+          s.src = objUrl;
+          document.head.appendChild(s);
+        });
+      });
     };
 
     const container = document.querySelector("#unity-container");
@@ -144,9 +164,7 @@
       status.innerHTML = "<span class='warn'>Offline is supported, but run from a local server (not file://). Example: <code>python3 -m http.server 8000</code></span>";
     }
 
-    const script = document.createElement("script");
-    script.src = loaderUrl;
-    script.onload = () => {
+    kwEvalScript(loaderUrl).then(() => {
       createUnityInstance(canvas, config, (progress) => {
         progressBarFull.style.width = `${100 * progress}%`;
       }).then((unityInstance) => {
@@ -156,12 +174,9 @@
       }).catch((message) => {
         status.innerHTML = "<span class='warn'>Failed to load: " + message + "</span>";
       });
-    };
-    script.onerror = () => {
+    }).catch((message) => {
       status.innerHTML = "<span class='warn'>Could not load local game files. Make sure <code>assets/ts2</code> exists and open through <code>http://localhost</code>.</span>";
-    };
-
-    document.body.appendChild(script);
+    });
   </script>
 </body>
 </html>

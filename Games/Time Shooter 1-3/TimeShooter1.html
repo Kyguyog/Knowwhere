@@ -180,6 +180,26 @@ body {
       const spinner = document.querySelector('.spinner');
       const logoImage = document.querySelector('#unity-logo-image');
 
+    window.kwLoadJs = function (url) {
+      return fetch(url).then(function (r) {
+        if (!r.ok) throw new Error("kw http " + r.status);
+        return r.arrayBuffer();
+      }).then(function (buf) {
+        return URL.createObjectURL(new Blob([buf], { type: "text/javascript" }));
+      });
+    };
+    window.kwEvalScript = function (url) {
+      return kwLoadJs(url).then(function (objUrl) {
+        return new Promise(function (res, rej) {
+          var s = document.createElement("script");
+          s.onload = res;
+          s.onerror = function () { rej(new Error("kw exec " + url)); };
+          s.src = objUrl;
+          document.head.appendChild(s);
+        });
+      });
+    };
+
       const canFullscreen = (function() {
         for (const key of [
             'exitFullscreen',
@@ -209,30 +229,26 @@ body {
       canvas.style.background = "url('" + ts1Base + "/background.jpg') center / cover";
       loadingCover.style.display = "";
 
-      function startUnity() {
-        const script = document.createElement("script");
-        script.src = ts1Base + "/loader.js";
-        script.onload = () => {
-          createUnityInstance(canvas, config, (progress) => {
-            spinner.style.display = "none";
-            progressBarEmpty.style.display = "";
-            progressBarFull.style.width = `${100 * progress}%`;
-          }).then((unityInstance) => {
-            loadingCover.style.display = "none";
-            if (canFullscreen) {
-              if (!hideFullScreenButton) {
-                fullscreenButton.style.display = "";
-              }
-              fullscreenButton.onclick = () => {
-                unityInstance.SetFullscreen(1);
-              };
+      const loaderUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Time%20Shooter%201-3/assets/ts1/loader.js";
+      kwEvalScript(loaderUrl).then(() => {
+        createUnityInstance(canvas, config, (progress) => {
+          spinner.style.display = "none";
+          progressBarEmpty.style.display = "";
+          progressBarFull.style.width = `${100 * progress}%`;
+        }).then((unityInstance) => {
+          loadingCover.style.display = "none";
+          if (canFullscreen) {
+            if (!hideFullScreenButton) {
+              fullscreenButton.style.display = "";
             }
-          }).catch((message) => {
-            alert(message);
-          });
-        };
-        document.body.appendChild(script);
-      }
+            fullscreenButton.onclick = () => {
+              unityInstance.SetFullscreen(1);
+            };
+          }
+        }).catch((message) => {
+          alert(message);
+        });
+      });
 
       startUnity();
 </script>

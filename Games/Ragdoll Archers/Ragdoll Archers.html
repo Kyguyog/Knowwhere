@@ -21,8 +21,27 @@
 </div>
 </div>
 <script>
+    window.kwLoadJs = function (url) {
+      return fetch(url).then(function (r) {
+        if (!r.ok) throw new Error("kw http " + r.status);
+        return r.arrayBuffer();
+      }).then(function (buf) {
+        return URL.createObjectURL(new Blob([buf], { type: "text/javascript" }));
+      });
+    };
+    window.kwEvalScript = function (url) {
+      return kwLoadJs(url).then(function (objUrl) {
+        return new Promise(function (res, rej) {
+          var s = document.createElement("script");
+          s.onload = res;
+          s.onerror = function () { rej(new Error("kw exec " + url)); };
+          s.src = objUrl;
+          document.head.appendChild(s);
+        });
+      });
+    };
     const buildUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Ragdoll%20Archers/Build";
-    const loaderUrl = buildUrl + "/v111.loader.js";
+    const loaderUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Ragdoll%20Archers/Build/v111.loader.js";
     const config = {
       dataUrl: buildUrl + "/6697b6deba8b617c67b69c55dcd07cb1.data.unityweb",
       frameworkUrl: buildUrl + "/0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb",
@@ -45,20 +64,17 @@
     
     loadingCover.style.display = "";
 
-    const unityLoader = document.createElement("script");
-    unityLoader.src = loaderUrl;
-    unityLoader.onload = () => {
-      createUnityInstance(canvas, config, (progress) => {
+    kwEvalScript(loaderUrl).then(() => {
+      return createUnityInstance(canvas, config, (progress) => {
         progressBarEmpty.style.display = "";
         progressBarFull.style.width = `${100 * progress}%`;
-      }).then((unityInstance) => {
-        window.unityInstance = unityInstance;
-        loadingCover.style.display = "none";
-      }).catch((message) => {
-        alert(message);
       });
-    };
-    document.body.appendChild(unityLoader);
+    }).then((unityInstance) => {
+      window.unityInstance = unityInstance;
+      loadingCover.style.display = "none";
+    }).catch((message) => {
+      alert(message);
+    });
 
     document.addEventListener("pointerdown", () => {
       container.focus();

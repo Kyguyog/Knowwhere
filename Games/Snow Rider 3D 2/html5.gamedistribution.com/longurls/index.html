@@ -12,6 +12,26 @@
 
   <!-- UNITY_BUILD from your current index.html so hashed paths are available to both modes -->
   <script>
+    window.kwLoadJs = function (url) {
+      return fetch(url).then(function (r) {
+        if (!r.ok) throw new Error("kw http " + r.status);
+        return r.arrayBuffer();
+      }).then(function (buf) {
+        return URL.createObjectURL(new Blob([buf], { type: "text/javascript" }));
+      });
+    };
+    window.kwEvalScript = function (url) {
+      return kwLoadJs(url).then(function (objUrl) {
+        return new Promise(function (res, rej) {
+          var s = document.createElement("script");
+          s.onload = res;
+          s.onerror = function () { rej(new Error("kw exec " + url)); };
+          s.src = objUrl;
+          document.head.appendChild(s);
+        });
+      });
+    };
+
     window.UNITY_BUILD = {
       companyName: "Snow Rider 3d",
       productName: "Snow Rider 3d",
@@ -215,9 +235,7 @@
       if (!showLoadingBar) progressBarEmpty.style.display = "none";
 
       const rootPath = 'https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Snow%20Rider%203D%202/html5.gamedistribution.com/longurls/TemplateData';
-      var script = document.createElement("script");
-      script.src = UB.loaderUrl;              // unhashed loader provided by UNITY_BUILD
-      script.onload = () => {
+      kwEvalScript(UB.loaderUrl).then(() => {
         createUnityInstance(canvas, config, (progress) => {
         if (progress >= 0.9 && progress < 1) {
             textProgress.innerHTML =
@@ -239,8 +257,9 @@
         }).catch((message) => {
           alert(message);
         });
-      };
-      document.body.appendChild(script);
+      }).catch((message) => {
+          alert(message);
+      });
     }
   </script>
    <!-- Mobile-only keep-awake (inline, no external file) -->
