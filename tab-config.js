@@ -66,6 +66,8 @@
   // Expose functions globally for UI interaction
   window.getTabConfig = getUserConfig;
   window.setTabConfig = saveUserConfig;
+  window.applyTabConfig = applyTabConfig;
+  window.getDefaultTabConfig = () => ({ ...DEFAULT_CONFIG });
   window.resetTabConfig = () => {
     localStorage.removeItem(STORAGE_KEY);
     applyTabConfig();

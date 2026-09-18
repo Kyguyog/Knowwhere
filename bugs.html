@@ -209,6 +209,46 @@
     .ua-display.expanded .ua-friendly { display: none; }
     .ua-display.expanded .ua-raw { display: inline; }
 
+    /* "Me too" + public comments */
+    .report-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .metoo-btn, .comments-toggle {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.32rem 0.75rem; border-radius: 999px; cursor: pointer;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      color: var(--muted); font-family: var(--font-display);
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; transition: all 0.15s;
+    }
+    .metoo-btn:hover, .comments-toggle:hover { color: var(--text); border-color: rgba(168,85,247,0.4); }
+    .metoo-btn.active { background: var(--primary-dim); border-color: rgba(168,85,247,0.5); color: var(--primary); }
+
+    .comments-panel {
+      display: flex; flex-direction: column; gap: 0.6rem;
+      border-top: 1px solid var(--border); padding-top: 0.85rem;
+    }
+    .comment {
+      background: rgba(255,255,255,0.025); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.55rem 0.75rem;
+    }
+    .comment-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.3rem; }
+    .comment-user { font-family: var(--font-display); font-size: 0.65rem; font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
+    .comment-date { font-size: 0.65rem; color: var(--muted); white-space: nowrap; }
+    .comment-body { font-size: 0.82rem; color: rgba(226,232,240,0.85); line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+    .comment-empty { font-size: 0.78rem; color: var(--muted); padding: 0.25rem 0; }
+    .comment-form { display: flex; flex-direction: column; gap: 0.5rem; }
+    .comment-form textarea {
+      width: 100%; min-height: 64px; resize: vertical; box-sizing: border-box;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: inherit; font-size: 0.82rem; padding: 0.6rem 0.75rem;
+    }
+    .comment-form textarea:focus { outline: none; border-color: var(--primary); }
+    .comment-form button {
+      align-self: flex-end; padding: 0.4rem 1.2rem; border-radius: 8px; border: none; cursor: pointer;
+      background: var(--primary); color: #fff; font-family: var(--font-display);
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .comment-form button:hover { filter: brightness(1.1); }
+
     .empty-state {
       text-align: center; padding: 4rem 2rem;
       color: var(--muted); font-size: 0.875rem;
@@ -327,6 +367,7 @@
   <script type="module" src="user-menu.js"></script>
   <script type="module" src="notifications.js"></script>
   <script type="module" src="auth-flows.js"></script>
+  <script type="module" src="payment-wall.js"></script>
 
   <!-- Tab bar -->
   <div class="tab-bar">
@@ -400,7 +441,7 @@
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
   import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
-  import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+  import { getFirestore, collection, collectionGroup, query, orderBy, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDoc, deleteDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyB_7DGpmrVotodTuPJDXoZrKrKbkzPhWDw",
@@ -418,8 +459,11 @@
   let currentUser = null;
   let isAdmin = false;
   let allReports = [];
+  let commentsByReport = {};
+  let expandedComments = new Set();
   let currentFilter = 'all';
   let unsubscribe = null;
+  let commentsUnsubscribe = null;
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -537,6 +581,11 @@
 
     container.innerHTML = filtered.map(r => {
       const resolved = r.status === 'resolved';
+      const meTooList = Array.isArray(r.meToo) ? r.meToo : [];
+      const meTooCount = meTooList.length;
+      const iMeToo = !!currentUser && meTooList.indexOf(currentUser.email) !== -1;
+      const commentList = commentsByReport[r.id] || [];
+      const expanded = expandedComments.has(r.id);
       return `
         <div class="report-card ${resolved ? 'resolved' : ''}">
           <div class="report-top">
@@ -570,11 +619,103 @@
 
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;">
             <span class="report-date">${formatDate(r.createdAt)}</span>
-            ${isAdmin && r.userAgent ? buildUAHtml(r.userAgent) : ''}
+            ${r.userAgent ? buildUAHtml(r.userAgent) : '<span class="report-date">No device info</span>'}
           </div>
+
+          <div class="report-actions">
+            <button class="metoo-btn ${iMeToo ? 'active' : ''}" onclick="toggleMeToo('${esc(r.id)}')">
+              👍 Me too${meTooCount ? ` · ${meTooCount}` : ''}
+            </button>
+            <button class="comments-toggle" onclick="toggleComments('${esc(r.id)}')">
+              💬 Comments${commentList.length ? ` · ${commentList.length}` : ''} ${expanded ? '▾' : '▸'}
+            </button>
+          </div>
+
+          ${expanded ? `
+          <div class="comments-panel">
+            ${commentList.length
+              ? commentList.map(c => `
+                <div class="comment">
+                  <div class="comment-head">
+                    <span class="comment-user">${esc(c.email)}</span>
+                    <span class="comment-date">${formatDate(c.createdAt)}</span>
+                  </div>
+                  <div class="comment-body">${esc(c.text)}</div>
+                </div>`).join('')
+              : '<div class="comment-empty">No comments yet. Be the first!</div>'}
+            <div class="comment-form">
+              <textarea id="comment-input-${esc(r.id)}" placeholder="Add a public comment…"></textarea>
+              <button onclick="postComment('${esc(r.id)}')">Post</button>
+            </div>
+          </div>` : ''}
         </div>`;
     }).join('');
   };
+
+  // ── "Me too" votes ───────────────────────────────────────────────────────────
+
+  window.toggleMeToo = async function(reportId) {
+    if (!currentUser) return;
+    const report = allReports.find(r => r.id === reportId);
+    if (!report) return;
+    const list = Array.isArray(report.meToo) ? report.meToo : [];
+    const already = list.indexOf(currentUser.email) !== -1;
+    try {
+      await updateDoc(doc(db, 'bugReports', reportId), {
+        meToo: already ? arrayRemove(currentUser.email) : arrayUnion(currentUser.email)
+      });
+    } catch (e) {
+      alert('Failed to save: ' + e.message);
+    }
+  };
+
+  // ── Comments (public) ────────────────────────────────────────────────────────
+
+  window.toggleComments = function(reportId) {
+    if (expandedComments.has(reportId)) expandedComments.delete(reportId);
+    else expandedComments.add(reportId);
+    renderReports();
+  };
+
+  window.postComment = async function(reportId) {
+    if (!currentUser) return;
+    const input = document.getElementById('comment-input-' + reportId);
+    const text = (input?.value || '').trim();
+    if (!text) { if (input) input.focus(); return; }
+    input.disabled = true;
+    try {
+      await addDoc(collection(db, 'bugReports', reportId, 'comments'), {
+        email: currentUser.email,
+        text,
+        createdAt: new Date().toISOString(),
+        createdAtServer: serverTimestamp()
+      });
+      input.value = '';
+    } catch (e) {
+      alert('Failed to post comment: ' + e.message);
+    } finally {
+      input.disabled = false;
+    }
+  };
+
+  function loadComments() {
+    if (commentsUnsubscribe) commentsUnsubscribe();
+    commentsUnsubscribe = onSnapshot(collectionGroup(db, 'comments'), snap => {
+      const grouped = {};
+      snap.docs.forEach(d => {
+        const reportId = d.ref.parent.parent ? d.ref.parent.parent.id : null;
+        if (!reportId) return;
+        (grouped[reportId] = grouped[reportId] || []).push({ id: d.id, ...d.data() });
+      });
+      Object.values(grouped).forEach(list =>
+        list.sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')))
+      );
+      commentsByReport = grouped;
+      renderReports();
+    }, err => {
+      console.error('Failed to load comments:', err);
+    });
+  }
 
   // ── Toggle status (admin only) ──────────────────────────────────────────────
 
@@ -687,6 +828,10 @@
 
   onAuthStateChanged(auth, async user => {
     if (!user) {
+      if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+      if (commentsUnsubscribe) { commentsUnsubscribe(); commentsUnsubscribe = null; }
+      allReports = [];
+      commentsByReport = {};
       document.getElementById('auth-wall').classList.remove('hidden');
       document.getElementById('main-content').classList.remove('visible');
       return;
@@ -696,6 +841,7 @@
     document.getElementById('auth-wall').classList.add('hidden');
     document.getElementById('main-content').classList.add('visible');
     loadReports();
+    loadComments();
   });
 </script>
 </body>
