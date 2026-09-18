@@ -4,9 +4,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Going Balls</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css" />
-    <base href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/Games/Going%20Balls/" />
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/Games/Going%20Balls/TemplateData/favicon.ico" />
     <script>
       function FitScreen() {
         // if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
@@ -44,17 +42,30 @@
 
       fullscreenButton.style.display = "none";
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/Build_Fullscreen_2.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/Build_Fullscreen_2.data",
-        frameworkUrl: buildUrl + "/Build_Fullscreen_2.framework.js",
-        codeUrl: buildUrl + "/Build_Fullscreen_2.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DEFU Games",
-        productName: "Going Balls",
-        productVersion: "0.1",
-      };
+      // Everything is pulled from raw.githubusercontent.com (no CDN).
+      // raw.githubusercontent.com serves .js as text/plain + nosniff, which
+      // browsers refuse to execute as a classic <script>. Fetching the file
+      // and re-injecting it as a Blob URL (with a proper JS MIME type) bypasses
+      // that while the bytes still download from GitHub.
+      var GH =
+        "https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/Games/Going%20Balls/";
+
+      // Stylesheet is served as text/plain + nosniff too -> refuse to apply,
+      // so load it the same way.
+      fetch(GH + "TemplateData/style.css")
+        .then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.blob();
+        })
+        .then(function (b) {
+          var link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = URL.createObjectURL(new Blob([b], { type: "text/css" }));
+          document.head.appendChild(link);
+        })
+        .catch(function (e) {
+          console.error("Failed to load stylesheet from GitHub:", e);
+        });
 
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         // Mobile device style: fill the whole browser client area with the game canvas:
@@ -88,51 +99,106 @@
         canvas.style.height = "99vh";
       }
 
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
+      // The loader has a bug in its OS detection: for "X11; Linux ..." user
+      // agents the OS regex captures an empty string, leaving the OS variable
+      // undefined and making `n.includes("iPhoneOS")` throw, which aborts the
+      // whole createUnityInstance call before anything is downloaded. Guard
+      // those two calls before executing the loader.
+      function patchLoaderSource(src) {
+        return src
+          .split('n.includes("iPhoneOS")')
+          .join('(n||"").includes("iPhoneOS")')
+          .split('n.includes("iPadOS")')
+          .join('(n||"").includes("iPadOS")');
+      }
+
+      // Download the loader (runner) and framework (unityFramework) as blobs.
+      // loader.js is what defines createUnityInstance; framework.js is loaded by
+      // the loader via its own <script> tag, so it needs blob treatment too.
+      var buildFiles = [
+        fetch(GH + "Build/Build_Fullscreen_2.loader.js").then(function (r) {
+          if (!r.ok)
+            throw new Error("Failed to download loader (HTTP " + r.status + ")");
+          return r.text();
+        }),
+        fetch(GH + "Build/Build_Fullscreen_2.framework.js").then(function (r) {
+          if (!r.ok)
+            throw new Error("Failed to download framework (HTTP " + r.status + ")");
+          return r.blob();
+        }),
+      ];
+
+      Promise.all(buildFiles)
+        .then(function (results) {
+          var loaderSource = patchLoaderSource(results[0]);
+          var frameworkBlob = results[1];
+
+          var config = {
+            dataUrl: GH + "Build/Build_Fullscreen_2.data",
+            frameworkUrl: URL.createObjectURL(
+              new Blob([frameworkBlob], { type: "application/javascript" })
+            ),
+            codeUrl: GH + "Build/Build_Fullscreen_2.wasm",
+            streamingAssetsUrl: GH + "StreamingAssets",
+            companyName: "DEFU Games",
+            productName: "Going Balls",
+            productVersion: "0.1",
+          };
+
+          var script = document.createElement("script");
+          script.src = URL.createObjectURL(
+            new Blob([loaderSource], { type: "application/javascript" })
+          );
+          script.onload = () => {
+            createUnityInstance(canvas, config, (progress) => {
+              progressBarFull.style.width = 100 * progress + "%";
+            })
+              .then((unityInstance) => {
+                loadingBar.style.display = "none";
+                fullscreenButton.style.display = "block";
+                fullscreenButton.onclick = () => {
+                  if (
+                    document.fullscreenElement ||
+                    document.webkitIsFullScreen ||
+                    document.mozFullScreen
+                  ) {
+                    if (document.exitFullscreen) {
+                      document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                      /* Safari */
+                      document.webkitExitFullscreen();
+                    } else if (document.webkitCancelFullScreen) {
+                      /* Safari? */
+                      document.webkitCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                      /* IE11 */
+                      document.msExitFullscreen();
+                    }
+                  } else {
+                    if (document.documentElement.requestFullscreen) {
+                      document.documentElement.requestFullscreen();
+                    } else if (document.documentElement.webkitRequestFullscreen) {
+                      /* Safari */
+                      document.documentElement.webkitRequestFullscreen();
+                    } else if (document.documentElement.msRequestFullscreen) {
+                      /* IE11 */
+                      document.documentElement.msRequestFullscreen();
+                    }
+                  }
+                };
+              })
+              .catch((message) => {
+                alert(message);
+              });
+          };
+          script.onerror = () => {
+            alert("Failed to run the game loader downloaded from GitHub.");
+          };
+          document.body.appendChild(script);
         })
-          .then((unityInstance) => {
-            loadingBar.style.display = "none";
-            fullscreenButton.style.display = "block";
-            fullscreenButton.onclick = () => {
-              if (
-                document.fullscreenElement ||
-                document.webkitIsFullScreen ||
-                document.mozFullScreen
-              ) {
-                if (document.exitFullscreen) {
-                  document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                  /* Safari */
-                  document.webkitExitFullscreen();
-                } else if (document.webkitCancelFullScreen) {
-                  /* Safari? */
-                  document.webkitCancelFullScreen();
-                } else if (document.msExitFullscreen) {
-                  /* IE11 */
-                  document.msExitFullscreen();
-                }
-              } else {
-                if (document.documentElement.requestFullscreen) {
-                  document.documentElement.requestFullscreen();
-                } else if (document.documentElement.webkitRequestFullscreen) {
-                  /* Safari */
-                  document.documentElement.webkitRequestFullscreen();
-                } else if (document.documentElement.msRequestFullscreen) {
-                  /* IE11 */
-                  document.documentElement.msRequestFullscreen();
-                }
-              }
-            };
-          })
-          .catch((message) => {
-            alert(message);
-          });
-      };
-      document.body.appendChild(script);
+        .catch(function (err) {
+          alert("Failed to download the game from GitHub: " + err.message);
+        });
     </script>
   <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"35e7457d0bde47a4814c708014fdf4f0","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
