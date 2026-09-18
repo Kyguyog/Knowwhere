@@ -51,3 +51,7 @@ Games/Eaglercraft/*/assets/
 Games/Going Balls/Build/
 Games/Going Balls/TemplateData/
 Games/Going Balls/StreamingAssets/
+
+# Drive Mad - engine data/wasm stream from GitHub raw (entry + small glue stay)
+Games/Drive Mad/webapp/index.data
+Games/Drive Mad/webapp/index.wasm
