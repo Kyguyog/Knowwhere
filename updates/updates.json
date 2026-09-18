@@ -1,5 +1,29 @@
 [
   {
+    "sha": "bb5caf630626543a61518e611db02bc21cf88bcc",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/bb5caf630626543a61518e611db02bc21cf88bcc",
+    "message": "Merge pull request #9 from Kyguyog/dev\n\nDev",
+    "date": "2026-09-18T01:46:07Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
+    "sha": "007b0647832637362058f24d90ed3f1cf04169bf",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/007b0647832637362058f24d90ed3f1cf04169bf",
+    "message": "Update README.md",
+    "date": "2026-09-17T14:50:32Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
+    "sha": "d81e9a6e5d790c86ba96697e9d67a54ab8241476",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/d81e9a6e5d790c86ba96697e9d67a54ab8241476",
+    "message": "Merge pull request #8 from Kyguyog/dev\n\nDev, Bug fixes, Notifications, Tab Cloak Presets, Updates, etc",
+    "date": "2026-09-17T05:44:34Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "e1d98614242bd73e74f3853e52e96fef9fb61322",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/e1d98614242bd73e74f3853e52e96fef9fb61322",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
@@ -1172,30 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/e90cb778a17bafe1bf3c3d7304c076c51845c60b",
     "message": "[bug][main page] Fix fullscreen bug\n\nFix bug where if u toggle fullscreen then keyboard control is lost",
     "date": "2026-04-29T03:49:59Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "c05f859ce3b7ffc3857eb0b50289adee67583d3f",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/c05f859ce3b7ffc3857eb0b50289adee67583d3f",
-    "message": "[bug]split eaglercraft 1.12\n\nIt was causing issues with AppEngine",
-    "date": "2026-04-29T03:26:51Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "6e8351fbd123c932a950c6d585cfa46192b219ee",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/6e8351fbd123c932a950c6d585cfa46192b219ee",
-    "message": "[dev][update] Update Updates\n\nallow custom commit tags and multiple tags",
-    "date": "2026-04-29T03:08:50Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "65545f71d7073c08db387277500e68a8021b662f",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/65545f71d7073c08db387277500e68a8021b662f",
-    "message": "[update] change msg at top of updates",
-    "date": "2026-04-29T02:57:51Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
