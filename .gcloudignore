@@ -25,11 +25,29 @@ push-2-app_engine.sh
 # PHP Composer dependencies:
 /vendor/
 
-# exclude game assets
-Games/Blackhole/assets/
-Games/Buckshot Roulette/assets/
-Games/FNAF/assets/
-Games/Bowmasters/assets/
+# exclude game assets served from raw.githubusercontent.com
+# (these exist in the repo for Git LFS / raw hosting but must NOT be
+#  deployed to App Engine, since the site streams them from GitHub instead)
 
-# eaglercraft assets
-Games/Blackhole/assets
+# Blackhole - assets stream from GitHub raw
+Games/Blackhole/assets/
+
+# Buckshot Roulette - assets stream from GitHub raw
+Games/Buckshot Roulette/assets/
+
+# FNAF - assets + extracted engine/images stream from GitHub raw
+Games/FNAF/assets/
+Games/FNAF/code/
+Games/FNAF/images/
+
+# Bowmasters - assets + extracted engine code stream from GitHub raw
+Games/Bowmasters/assets/
+Games/Bowmasters/code/
+
+# Eaglercraft - engine + assets stream from GitHub raw (entry .html stays)
+Games/Eaglercraft/*/assets/
+
+# Going Balls - Unity build streams from GitHub raw (entry .html stays)
+Games/Going Balls/Build/
+Games/Going Balls/TemplateData/
+Games/Going Balls/StreamingAssets/
