@@ -1,5 +1,13 @@
 [
   {
+    "sha": "136a1b34791a3d9f5daf9b05005c7a2c1d6474c4",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/136a1b34791a3d9f5daf9b05005c7a2c1d6474c4",
+    "message": "add warning to payment wall",
+    "date": "2026-09-19T04:17:01Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "65ed7775b3aa35d303150642f7d8f8b72da77830",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/65ed7775b3aa35d303150642f7d8f8b72da77830",
     "message": "add paid and unpaid filter to user.html",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/4f47ba8795ba574d27fd9a14d14eb3bb69d65604",
     "message": "[update] Make logo local (Unblocked)",
     "date": "2026-04-29T06:27:47Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "3836e7572804fa67e84fef920894116d7fd3d8cd",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/3836e7572804fa67e84fef920894116d7fd3d8cd",
-    "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
-    "date": "2026-04-29T06:08:31Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
