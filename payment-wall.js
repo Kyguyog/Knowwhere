@@ -130,6 +130,12 @@ function buildWall() {
       '<p style="font-size:0.85rem;color:var(--muted,#64748b);line-height:1.6;margin:0 0 1.5rem;">' +
         "KnowWhere is <strong style=\"color:var(--text,#f1f5f9);\">$3/month</strong>. Until this month's dues are covered, " +
         "access is limited to messaging staff to arrange payment.</p>" +
+      '<div style="font-size:0.72rem;color:#94a3b8;line-height:1.55;text-align:left;border:1px solid rgba(148,163,184,0.25);' +
+        'background:rgba(148,163,184,0.06);border-radius:8px;padding:0.55rem 0.7rem;margin-bottom:1rem;">' +
+        '<strong style="font-family:var(--font-display,Orbitron,sans-serif);font-size:0.58rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:0.25rem;color:#94a3b8;">' +
+          'Disclaimer</strong>' +
+        'If this site is ever banned, taken down, or made unavailable for any reason, KnowWhere and its staff are <strong>not responsible</strong>. ' +
+        'By using this site you agree that you will not hold us liable for any loss of access, data, or services.</div>' +
       '<div style="font-size:0.78rem;color:#fca5a5;line-height:1.55;text-align:left;border:1px solid rgba(239,68,68,0.4);' +
         'background:rgba(239,68,68,0.1);border-radius:8px;padding:0.65rem 0.75rem;margin-bottom:1.25rem;">' +
         '<strong style="font-family:var(--font-display,Orbitron,sans-serif);font-size:0.62rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;display:block;margin-bottom:0.3rem;">' +
