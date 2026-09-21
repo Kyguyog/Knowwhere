@@ -64,7 +64,6 @@
   <script>
 /* ================= GITHUB ASSET CONFIG ================= */
 var GITHUB_BASE = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Stickman%20Hook/code/";
-var blobMap = Object.create(null);
 
 function loadCode(name) {
   return fetch(GITHUB_BASE + name).then(function (r) {
@@ -86,10 +85,47 @@ function injectScript(code) {
   });
 }
 
+/* ================= POKI SDK STUB =================
+   The real PokiSDK.init() waits for a message from the Poki platform
+   (a parent frame) and never resolves when the game is self-hosted, which
+   stalls the game's boot before it ever creates its canvas. Provide a
+   local no-op SDK so the game runs (and drop Poki's ad/tracking calls). */
+function installPokiStub() {
+  var noop = function () {};
+  window.PokiSDK = {
+    init: function () { return Promise.resolve(); },
+    initWithVideoHB: function () { return Promise.resolve(); },
+    commercialBreak: function () { return Promise.resolve(); },
+    rewardedBreak: function () { return Promise.resolve(true); },
+    getLeaderboard: function () { return Promise.resolve({}); },
+    sendHighscore: function () { return Promise.resolve(); },
+    setDebug: noop,
+    customEvent: noop,
+    displayAd: noop,
+    destroyAd: noop,
+    disableProgrammatic: noop,
+    gameLoadingStart: noop,
+    gameLoadingFinished: noop,
+    gameInteractive: noop,
+    roundStart: noop,
+    roundEnd: noop,
+    muteAd: noop,
+    gameplayStart: noop,
+    gameplayStop: noop,
+    gameLoadingProgress: noop,
+    happyTime: noop,
+    setPlayerAge: noop,
+    togglePlayerAdvertisingConsent: noop,
+    toggleNonPersonalized: noop,
+    setConsentString: noop,
+    logError: noop,
+    setDebugTouchOverlayController: noop
+  };
+}
+
 function boot() {
-  loadCode("poki3.js")
-    .then(injectScript)
-    .then(function () { return loadCode("bundle.js"); })
+  installPokiStub();
+  loadCode("bundle.js")
     .then(injectScript)
     .catch(function (err) { console.error("[Stickman Hook]", err); });
 }
