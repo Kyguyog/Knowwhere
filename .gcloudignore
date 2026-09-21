@@ -79,3 +79,14 @@ Games/Time Shooter 1-3/assets/
 # (entry + loading-screen images stay)
 Games/geodashlite/Build/
 Games/geodashlite/StreamingAssets/
+
+# Hollow Knight Silksong - Unity build + 2GB WebGL.zip stream from GitHub raw
+Games/Hollow Knight/assets/
+Games/Hollow Knight/code/
+
+# Stickman Hook - engine + images/fonts stream from GitHub raw (entry stays)
+Games/Stickman Hook/assets/
+Games/Stickman Hook/code/
+
+# ULTRAKILL - Unity build parts stream from GitHub raw (entry stays)
+Games/UltraKill/assets/
