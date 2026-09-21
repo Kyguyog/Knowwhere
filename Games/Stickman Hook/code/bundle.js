@@ -42,7 +42,7 @@
         return n.d(e, "a", e), e
     }, n.o = function(t, e) {
         return Object.prototype.hasOwnProperty.call(t, e)
-    }, n.p = "", n(n.s = 125)
+    }, n.p = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Stickman%20Hook/assets/", n(n.s = 125)
 }([function(t, e) {
     function n(e) {
         return t.exports = n = Object.setPrototypeOf ? Object.getPrototypeOf : function(t) {
