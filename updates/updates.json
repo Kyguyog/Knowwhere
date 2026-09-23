@@ -1,5 +1,13 @@
 [
   {
+    "sha": "b7fb78deac59c7c085e4027872050d00ec0703d7",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/b7fb78deac59c7c085e4027872050d00ec0703d7",
+    "message": "Set white page background in Universal Paperclips",
+    "date": "2026-09-23T03:01:16Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "05e7d94db4e4d65b8b113b806c72c23ced9d7f42",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/05e7d94db4e4d65b8b113b806c72c23ced9d7f42",
     "message": "Convert Brotato to blob-injected chunked-zip loader (Godot 3.6)",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/393ac34bf0cf8a2f06a535e506a12813d00bfaf8",
     "message": "[feature] allow chsnging top grey area to image or color",
     "date": "2026-05-08T02:43:14Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "fc483ac8d91df043f1bf0e520ad4f30869c622c1",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/fc483ac8d91df043f1bf0e520ad4f30869c622c1",
-    "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
-    "date": "2026-05-08T02:32:55Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
