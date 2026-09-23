@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Admin Panel</title>
+  <link rel="icon" href="https://instructure-uploads.s3.amazonaws.com/account_29340000000000001/attachments/112692/Screen%20Shot%202018-08-20%20at%206.22.27%20PM.png" type="image/x-icon">
+  <script src="tab-config.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    @font-face{font-family:'Orbitron';font-style:normal;font-weight:400 900;font-display:swap;src:url('https://fonts.gstatic.com/s/orbitron/v35/yMJRMIlzdpvBhQQL_Qq7dy0.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --card: #111118;
+      --border: #222230;
+      --primary: #a855f7;
+      --primary-dim: rgba(168,85,247,0.15);
+      --secondary: #22d3ee;
+      --secondary-dim: rgba(34,211,238,0.15);
+      --danger: #ef4444;
+      --danger-dim: rgba(239,68,68,0.12);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --font-display: 'Orbitron', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #000;
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-top: 56px;
+    }
+
+    /* ── AUTH WALL ── */
+    #auth-wall {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    #auth-wall.hidden { display: none; }
+    #main-content { display: none; }
+    #main-content.visible { display: block; }
+
+    .auth-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 0 60px rgba(168,85,247,0.12);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .auth-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.75rem;
+    }
+    .auth-logo img { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 0 12px rgba(168,85,247,0.8)); }
+    .auth-logo-name {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+    }
+    .auth-logo-name span { color: var(--primary); }
+    .auth-tabs {
+      display: flex;
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 1.75rem;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 0.65rem;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .auth-tab.active { background: var(--primary-dim); color: var(--primary); border-bottom: 2px solid var(--primary); }
+    .auth-form { width: 100%; display: flex; flex-direction: column; gap: 1rem; }
+    .auth-field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .auth-field label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .auth-field input {
+      width: 100%;
+      background: #0d0d14;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .auth-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+    .auth-submit {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.85rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(168,85,247,0.35);
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+    .auth-submit:hover { transform: scale(1.02); box-shadow: 0 0 32px rgba(168,85,247,0.6); }
+    .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .auth-error {
+      width: 100%;
+      background: var(--danger-dim);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 6px;
+      padding: 0.65rem 1rem;
+      color: var(--danger);
+      font-size: 0.85rem;
+      display: none;
+      margin-top: 0.25rem;
+    }
+    .auth-error.show { display: block; }
+/* ── ADMIN PANEL ── */
+    #admin-panel {
+      display: none;
+      position: fixed;
+      top: 56px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9997;
+      background: #000;
+      overflow: hidden;
+      flex-direction: column;
+    }
+    #admin-panel.open { display: flex; }
+    .admin-tab {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .admin-tab:hover { color: var(--text); }
+    #admin-content {
+      overflow-y: auto;
+      flex: 1;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-content: flex-start;
+    }
+    .admin-section { display: none; width: 100%; }
+    .admin-section.active { display: block; }
+    .admin-field { margin-bottom: 1.1rem; }
+    .admin-field label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .admin-input {
+      width: 100%;
+      background: #111118;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.65rem 0.9rem;
+      color: var(--text);
+      font-size: 0.88rem;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .admin-input:focus { border-color: var(--primary); }
+    .admin-textarea {
+      width: 100%;
+      background: #111118;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.7rem 0.9rem;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-family: monospace;
+      outline: none;
+      resize: vertical;
+      min-height: 200px;
+      line-height: 1.65;
+      transition: border-color 0.2s;
+    }
+    .admin-textarea:focus { border-color: var(--primary); }
+    .admin-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      line-height: 1.5;
+    }
+    .admin-hint code {
+      background: #1a1a26;
+      border-radius: 3px;
+      padding: 0.1rem 0.3rem;
+      font-size: 0.7rem;
+      color: var(--secondary);
+    }
+    .admin-save-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+    .admin-save-btn {
+      padding: 0.7rem 1.75rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(168,85,247,0.3);
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .admin-save-btn:hover { opacity: 0.85; transform: scale(1.02); }
+    .admin-save-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .admin-status { font-size: 0.8rem; font-weight: 600; }
+    .admin-status.ok { color: #22c55e; }
+    .admin-status.err { color: var(--danger); }
+    .admin-row-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .admin-row-item { display: flex; gap: 0.5rem; align-items: flex-start; }
+    .admin-card-item {
+      background: #111118;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .admin-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.25rem;
+    }
+    .admin-card-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .admin-row-input {
+      flex: 1;
+      background: #111118;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.52rem 0.75rem;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+    .admin-row-input:focus { border-color: var(--primary); }
+    .admin-row-input::placeholder { color: var(--muted); }
+
+    /* ── Toggle Switch ── */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      height: 32px; /* match input height */
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-track { background: rgba(34,197,94,0.25); border-color: rgba(34,197,94,0.5); }
+    .toggle-switch input:checked + .toggle-track::after { transform: translateX(16px); background: #22c55e; }
+    .toggle-switch.admin-toggle input:checked + .toggle-track { background: var(--primary-dim); border-color: rgba(168,85,247,0.5); }
+    .toggle-switch.admin-toggle input:checked + .toggle-track::after { background: var(--primary); }
+    .toggle-switch.editor-toggle input:checked + .toggle-track { background: rgba(34,211,238,0.2); border-color: rgba(34,211,238,0.5); }
+    .toggle-switch.editor-toggle input:checked + .toggle-track::after { background: var(--secondary); }
+    .toggle-switch.orders-toggle input:checked + .toggle-track { background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.5); }
+    .toggle-switch.orders-toggle input:checked + .toggle-track::after { background: #22c55e; }
+    .toggle-switch input:disabled + .toggle-track { cursor: not-allowed; }
+    .toggle-switch input:disabled:checked + .toggle-track { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); }
+    .toggle-switch input:disabled:checked + .toggle-track::after { background: #22c55e; opacity: 0.6; }
+    .toggle-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      transition: color 0.2s;
+      min-width: 48px;
+    }
+    .toggle-switch input:checked ~ .toggle-label { color: var(--text); }
+    .admin-card-input {
+      width: 100%;
+      background: #0d0d14;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .admin-card-input:focus { border-color: var(--primary); }
+    .admin-card-input::placeholder { color: var(--muted); }
+    .admin-row-remove {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.45rem 0.6rem;
+      font-size: 0.8rem;
+      line-height: 1;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .admin-row-remove:hover { border-color: var(--danger); color: var(--danger); }
+    .admin-add-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px dashed rgba(168,85,247,0.4);
+      border-radius: 6px;
+      color: var(--primary);
+      cursor: pointer;
+      padding: 0.55rem 1rem;
+      font-size: 0.7rem;
+      font-family: var(--font-display);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: border-color 0.2s, background 0.2s;
+      margin-top: 0.25rem;
+    }
+    .admin-add-btn:hover { border-color: var(--primary); background: var(--primary-dim); }
+    .admin-sublabel {
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      margin: 1.25rem 0 0.6rem;
+    }
+    .admin-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      .auth-box { padding: 2rem 1.25rem; }
+      .admin-tab { padding: 0.7rem 1rem; }
+      #admin-content { padding: 0.75rem 1rem; }
+      .admin-save-row { flex-wrap: wrap; gap: 0.75rem; }
+      .admin-save-btn { padding: 0.6rem 1.25rem; }
+      .admin-textarea { min-height: 160px; }
+      .admin-row-item { flex-wrap: wrap; }
+      .admin-row-item > * { flex: 1 1 100% !important; min-width: 0 !important; }
+      .admin-row-item > button.admin-row-remove { flex: 0 0 auto !important; margin-left: 0; }
+    }
+    @media (max-width: 480px) {
+      .admin-hint { font-size: 0.68rem; }
+      .admin-tab { padding: 0.65rem 0.8rem; font-size: 0.55rem; }
+    }
+
+        
+    #main-content.visible { display: block; }
+  </style>
+</head>
+<body>
+
+
+<div id="auth-wall"></div>
+<script>window.KW_AUTH_OPTS = { allowUsername: true, subtitle: "Admin Panel" };</script>
+<script src="auth.js"></script>
+
+
+<div id="main-content">
+
+<script src="nav.js"></script>
+<script type="module" src="user-menu.js"></script>
+  <script type="module" src="notifications.js"></script>
+  <script type="module" src="auth-flows.js"></script>
+  <script type="module" src="payment-wall.js"></script>
+
+
+</div>
+
+<div id="admin-panels-mount"></div>
+
+<script>
+window.populatePage = function() {};
+</script>
+
+<script>
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function escAttr(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+window.adminRemoveRow = function(btn) {
+  const row = btn ? btn.closest('.admin-row-item, .admin-card-item') : null;
+  if (!row) return;
+  row.remove();
+};
+
+
+// ── Admin: render shop editor ──
+function renderShopEditor(items) {
+  const list = document.getElementById('ae-shop-list');
+  if (!list) return;
+  list.innerHTML = (items || []).map((item, i) => shopEditorCard(item, i + 1)).join('');
+}
+
+function shopEditorCard(item, n) {
+  const safeImg   = escAttr(item.img   || '');
+  const safeImgVC = escHtml(item.img   || '');
+  const safeName  = escHtml(item.name  || '');
+  const safePrice = escHtml(item.price || '');
+  return `
+  <div class="admin-card-item">
+    <div class="admin-card-header">
+      <span class="admin-card-label">Item ${n}</span>
+      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
+    </div>
+    <input class="shop-item-name admin-card-input" placeholder="Name (e.g. Monster Zero)" value="${safeName}" />
+    <input class="shop-item-price admin-card-input" placeholder="Price (e.g. 3.99)" value="${safePrice}" type="number" min="0" step="0.01" />
+    <input class="shop-item-img admin-card-input" placeholder="Image URL (transparent PNG recommended)" value="${safeImg}" />
+    ${safeImgVC ? `<img src="${safeImg}" alt="preview" style="height:60px;object-fit:contain;margin-top:0.25rem;opacity:0.85;filter:drop-shadow(0 2px 6px rgba(168,85,247,0.3));" onerror="this.style.display='none'" />` : ''}
+  </div>`;
+}
+
+window.adminAddShopItem = function() {
+  const list = document.getElementById('ae-shop-list');
+  const n = list.querySelectorAll('.admin-card-item').length + 1;
+  const div = document.createElement('div');
+  div.innerHTML = shopEditorCard({}, n);
+  list.appendChild(div.firstElementChild);
+  list.lastElementChild.querySelector('.shop-item-name').focus();
+};
+
+
+// ── Admin: render banned editor ──
+function renderBannedEditor(items) {
+  const list = document.getElementById('ae-banned-list');
+  if (!list) return;
+  list.innerHTML = items.map(name => `
+    <div class="admin-row-item">
+      <input class="admin-row-input" placeholder="Name" value="${escAttr(name)}" />
+      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
+    </div>`).join('');
+}
+
+window.adminAddBanned = function() {
+  const div = document.createElement('div');
+  div.className = 'admin-row-item';
+  div.innerHTML = `
+    <input class="admin-row-input" placeholder="Name" />
+    <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>`;
+  document.getElementById('ae-banned-list').appendChild(div);
+};
+
+
+// ── Admin: render command editor ──
+function renderCommandLinksEditor(items) {
+  const list = document.getElementById('ae-command-links-list');
+  if (!list) return;
+  list.innerHTML = items.map((link, i) => `
+    <div class="admin-card-item">
+      <div class="admin-card-header">
+        <span class="admin-card-label">Link ${i+1}</span>
+        <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
+      </div>
+      <input class="cl-title admin-card-input" placeholder="Title" value="${escAttr(link.title)}" />
+      <input class="cl-desc admin-card-input" placeholder="Description" value="${escAttr(link.description||'')}" />
+      <input class="cl-url admin-card-input" placeholder="URL (leave blank = 'coming soon')" value="${escAttr(link.url||'')}" />
+    </div>`).join('');
+}
+
+window.adminAddCommandLink = function() {
+  const div = document.createElement('div');
+  div.className = 'admin-card-item';
+  document.getElementById('ae-command-links-list').appendChild(div);
+  div.innerHTML = `
+    <div class="admin-card-header">
+      <span class="admin-card-label">New Link</span>
+      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
+    </div>
+    <input class="cl-title admin-card-input" placeholder="Title" />
+    <input class="cl-desc admin-card-input" placeholder="Description" />
+    <input class="cl-url admin-card-input" placeholder="URL (leave blank = 'coming soon')" />`;
+};
+
+
+// ── Admin: render paywall editor ──
+function renderPaywallEditor(pw) {
+  pw = pw || {};
+  const input = document.getElementById('ae-paywall-enabled');
+  if (input) input.checked = pw.disabled !== true;
+  const until = pw.disableUntil ? new Date(pw.disableUntil) : null;
+  const untilEl = document.getElementById('ae-paywall-until');
+  if (untilEl) {
+    if (until && !isNaN(until.getTime())) {
+      const pad = n => String(n).padStart(2, '0');
+      untilEl.value = `${until.getFullYear()}-${pad(until.getMonth()+1)}-${pad(until.getDate())}T${pad(until.getHours())}:${pad(until.getMinutes())}`;
+    } else {
+      untilEl.value = '';
+    }
+  }
+  updatePaywallLabel();
+}
+
+window.updatePaywallLabel = function() {
+  const input = document.getElementById('ae-paywall-enabled');
+  const lbl = document.getElementById('ae-paywall-lbl');
+  if (!input || !lbl) return;
+  const on = input.checked;
+  lbl.textContent = on ? 'Enabled' : 'Disabled';
+  lbl.style.color = on ? '#22c55e' : 'var(--muted)';
+};
+
+
+// ── Admin: save ──
+window.adminSave = async function(section) {
+  if (!window._isAdmin) return;
+  const statusEl = document.getElementById('status-' + section);
+  const btn = document.querySelector('#admin-' + section + ' .admin-save-btn');
+  statusEl.textContent = 'Saving...';
+  statusEl.className = 'admin-status';
+  if (btn) btn.disabled = true;
+
+  try {
+    let patch = {};
+
+    if (section === 'shop') {
+      patch.shop = [...document.querySelectorAll('#ae-shop-list .admin-card-item')].map(card => ({
+        name:  card.querySelector('.shop-item-name').value.trim(),
+        price: card.querySelector('.shop-item-price').value.trim(),
+        img:   card.querySelector('.shop-item-img').value.trim()
+      })).filter(s => s.name);
+
+      renderShopEditor(patch.shop);
+    } else if (section === 'banned') {
+      patch.banned = [...document.querySelectorAll('#ae-banned-list .admin-row-item')]
+        .map(row => row.querySelector('input').value.trim()).filter(Boolean);
+    } else if (section === 'command') {
+      patch.command = {
+        hiring: {
+          active:      document.getElementById('ae-hiring-active').value === 'true',
+          badge:       document.getElementById('ae-hiring-badge').value.trim(),
+          title:       document.getElementById('ae-hiring-title').value.trim(),
+          description: document.getElementById('ae-hiring-desc').value.trim(),
+          url:         document.getElementById('ae-hiring-url').value.trim()
+        },
+        links: [...document.querySelectorAll('#ae-command-links-list .admin-card-item')].map(card => {
+          const url = card.querySelector('.cl-url').value.trim();
+          return {
+            title:       card.querySelector('.cl-title').value.trim(),
+            description: card.querySelector('.cl-desc').value.trim(),
+            status:      url ? 'Active' : 'soon',
+            url
+          };
+        }).filter(l => l.title)
+      };
+    } else if (section === 'paywall') {
+      const disabled = !document.getElementById('ae-paywall-enabled').checked;
+      const untilRaw = document.getElementById('ae-paywall-until').value;
+      const until = untilRaw ? new Date(untilRaw) : null;
+      patch.paywall = {
+        disabled,
+        disableUntil: (until && !isNaN(until.getTime())) ? until.toISOString() : null
+      };
+      renderPaywallEditor(patch.paywall);
+    }
+
+    await window._firestoreUpdate(patch);
+
+    window._siteData = Object.assign({}, window._siteData, patch);
+    if (window._adminOriginalData) {
+      window._adminOriginalData = Object.assign({}, window._adminOriginalData, JSON.parse(JSON.stringify(patch)));
+    }
+
+    statusEl.textContent = '✓ Saved';
+    statusEl.className = 'admin-status ok';
+    setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'admin-status'; }, 3000);
+  } catch(e) {
+    console.error('Admin save error:', e);
+    statusEl.textContent = '✗ ' + (e.message || 'Save failed');
+    statusEl.className = 'admin-status err';
+  }
+
+  if (btn) btn.disabled = false;
+};
+
+window.switchAdminTab = function(tab) {
+  document.querySelectorAll('.admin-tab').forEach(t => {
+    const isActive = t.getAttribute('data-tab') === tab;
+    t.style.color = isActive ? 'var(--primary)' : 'var(--muted)';
+    t.style.borderBottomColor = isActive ? 'var(--primary)' : 'transparent';
+  });
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  const section = document.getElementById('admin-' + tab);
+  if (section) section.classList.add('active');
+};
+
+window.openAdminPanel = function() {
+  if (!window._isAdmin) return;
+  const data = window._siteData;
+  if (!data) { alert('Site data not loaded yet. Try again in a moment.'); return; }
+  window._adminOriginalData = JSON.parse(JSON.stringify(data));
+
+  renderShopEditor(data.shop || []);
+  renderBannedEditor(data.banned || []);
+  const h = data.command?.hiring || {};
+  document.getElementById('ae-hiring-active').value = h.active ? 'true' : 'false';
+  document.getElementById('ae-hiring-badge').value = h.badge || '';
+  document.getElementById('ae-hiring-title').value = h.title || '';
+  document.getElementById('ae-hiring-desc').value = h.description || '';
+  document.getElementById('ae-hiring-url').value = h.url || '';
+  renderCommandLinksEditor(data.command?.links || []);
+  renderPaywallEditor(data.paywall);
+
+  document.querySelectorAll('.admin-status').forEach(el => { el.textContent=''; el.className='admin-status'; });
+
+  switchAdminTab('shop');
+  document.getElementById('admin-panel').classList.add('open');
+};
+
+window.closeAdminPanel = function() {
+  window.location.href = '/';
+};
+
+</script>
+
+
+<script type="module">
+  import { initializeApp, getApps, deleteApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, updatePassword, createUserWithEmailAndPassword }
+    from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, arrayUnion, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+  const FIREBASE_API_KEY = "AIzaSyB_7DGpmrVotodTuPJDXoZrKrKbkzPhWDw";
+
+  const firebaseConfig = {
+    apiKey: FIREBASE_API_KEY,
+    authDomain: "knowwhere-firebase.firebaseapp.com",
+    projectId: "knowwhere-firebase",
+    storageBucket: "knowwhere-firebase.firebasestorage.app",
+    messagingSenderId: "389831660515",
+    appId: "1:389831660515:web:0bcd3292610b1be0af86d6",
+    measurementId: "G-9LMCC5TS1J"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  function withFirestoreTimeout(promise, ms) {
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Firestore is over its quota (RESOURCE_EXHAUSTED). The daily write limit is exhausted — try again later.')), ms || 25000);
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+  }
+
+  window._firestoreUpdate = async function(patch) {
+    await withFirestoreTimeout(updateDoc(doc(db, 'siteContent', 'main'), patch));
+  };
+  window._firestoreGetSiteContent = async function() {
+    const snap = await getDoc(doc(db, 'siteContent', 'main'));
+    return snap.exists() ? snap.data() : {};
+  };
+
+  function friendlyError(code) {
+    const map = {
+      'auth/invalid-email': 'That email address doesn\'t look right.',
+      'auth/user-not-found': 'No account found with that email.',
+      'auth/wrong-password': 'Incorrect password. Try again.',
+      'auth/email-already-in-use': 'An account with that email already exists.',
+      'auth/weak-password': 'Password must be at least 6 characters.',
+      'auth/too-many-requests': 'Too many attempts. Try again later.',
+      'auth/invalid-credential': 'Email or password is incorrect.',
+      'auth/user-disabled': 'This account has been disabled.',
+    };
+    return map[code] || 'Something went wrong. Please try again.';
+  }
+
+  window.__kwSignIn = async function(input, password) {
+    let loginEmail = input;
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+    if (!isEmail) {
+      let found = false;
+      try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const usernameLower = input.toLowerCase();
+        for (const d of usersSnap.docs) {
+          const uData = d.data();
+          if (uData.username && uData.username.toLowerCase() === usernameLower) { loginEmail = d.id; found = true; break; }
+        }
+      } catch(e) { throw new Error('Error looking up username. Try using your email instead.'); }
+      if (!found) throw new Error('No account found with that username.');
+    }
+    return signInWithEmailAndPassword(auth, loginEmail, password);
+  };
+
+  window.handleAuth = async function() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const errEl = document.getElementById('auth-error');
+    const btn = document.getElementById('auth-submit');
+    if (!email || !password) {
+      if (errEl) { errEl.textContent = 'Please fill in all fields.'; errEl.classList.add('show'); }
+      return;
+    }
+    errEl.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = 'Logging in...';
+    try {
+      await window.__kwSignIn(email, password);
+    } catch (err) {
+      errEl.textContent = friendlyError(err.code) || (err && err.message) || 'Login failed.';
+      errEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Login';
+    }
+  };
+
+  window._isAdmin = false;
+  window._siteData = null;
+  window._adminOriginalData = null;
+
+  window.injectAdminPanels = function() {
+    if (document.getElementById('admin-panel')) return;
+    const mount = document.getElementById('admin-panels-mount');
+    mount.innerHTML = `
+<div id="admin-panel">
+  <div style="background:#000;width:100%;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+    <div style="display:flex;border-bottom:1px solid var(--border);background:rgba(168,85,247,0.03);">
+      <button class="admin-tab" data-tab="shop" onclick="switchAdminTab('shop')" style="color:var(--primary);border-bottom:2px solid var(--primary);">🛒 Shop</button>
+      <button class="admin-tab" data-tab="banned" onclick="switchAdminTab('banned')" style="color:var(--muted);border-bottom:2px solid transparent;">🚫 Banned</button>
+      <button class="admin-tab" data-tab="command" onclick="switchAdminTab('command')" style="color:var(--muted);border-bottom:2px solid transparent;">⚙️ Command</button>
+      <button class="admin-tab" data-tab="paywall" onclick="switchAdminTab('paywall')" style="color:var(--muted);border-bottom:2px solid transparent;">🚪 Paywall</button>
+    </div>
+    <div id="admin-content">
+      <div class="admin-section active" id="admin-shop">
+        <p class="admin-hint" style="margin-bottom:1rem;">Add Item to the shop shelf. Paste a transparent PNG image URL, set the name and price.</p>
+        <div id="ae-shop-list" class="admin-row-list"></div>
+        <button class="admin-add-btn" onclick="adminAddShopItem()">+ Add Item</button>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('shop')">Save Shop</button><span class="admin-status" id="status-shop"></span></div>
+      </div>
+      <div class="admin-section" id="admin-banned">
+        <p class="admin-hint" style="margin-bottom:1rem;">Names shown here are barred from the site. Ban/unban individual accounts from <a href="/user.html" style="color:var(--secondary);">User Management</a>.</p>
+        <div id="ae-banned-list" class="admin-row-list"></div>
+        <button class="admin-add-btn" onclick="adminAddBanned()">+ Add Person</button>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('banned')">Save Banned</button><span class="admin-status" id="status-banned"></span></div>
+      </div>
+      <div class="admin-section" id="admin-command">
+        <div class="admin-sublabel" style="margin-top:0;">Hiring Banner</div>
+        <div class="admin-field">
+          <label>Active?</label>
+          <select class="admin-input" id="ae-hiring-active" style="cursor:pointer;">
+            <option value="true">Yes — show banner</option>
+            <option value="false">No — hide banner</option>
+          </select>
+        </div>
+        <div class="admin-field"><label>Badge Label</label><input class="admin-input" id="ae-hiring-badge" /></div>
+        <div class="admin-field"><label>Title</label><input class="admin-input" id="ae-hiring-title" /></div>
+        <div class="admin-field"><label>Description</label><input class="admin-input" id="ae-hiring-desc" /></div>
+        <div class="admin-field"><label>Form URL</label><input class="admin-input" id="ae-hiring-url" /></div>
+        <hr class="admin-divider">
+        <div class="admin-sublabel">Links</div>
+        <div id="ae-command-links-list"></div>
+        <button class="admin-add-btn" onclick="adminAddCommandLink()">+ Add Link</button>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('command')">Save Command</button><span class="admin-status" id="status-command"></span></div>
+      </div>
+      <div class="admin-section" id="admin-paywall">
+        <p class="admin-hint" style="margin-bottom:1rem;">Completely disable the <strong style="color:var(--text);">$3/month payment wall</strong> site-wide. Banned users are <strong style="color:var(--text);">still blocked</strong> — this only bypasses the payment gate. Leave "re-enable on" blank to keep it disabled until you change it.</p>
+        <div class="admin-card-item">
+          <div class="admin-field" style="margin-bottom:0;">
+            <label>Paywall</label>
+            <label class="toggle-wrap" style="display:flex;align-items:center;gap:0.55rem;height:32px;margin:0;">
+              <span class="toggle-switch admin-toggle">
+                <input type="checkbox" id="ae-paywall-enabled" onchange="updatePaywallLabel()" />
+                <span class="toggle-track"></span>
+              </span>
+              <span class="toggle-label" id="ae-paywall-lbl">Enabled</span>
+            </label>
+          </div>
+        </div>
+        <div class="admin-field">
+          <label>Re-enable automatically on (optional)</label>
+          <input type="datetime-local" class="admin-input" id="ae-paywall-until" />
+        </div>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('paywall')">Save Paywall</button><span class="admin-status" id="status-paywall"></span></div>
+      </div>
+    </div>
+  </div>
+</div>`;
+  };
+
+  let accountStatusUnsubscribe = null;
+  let _forcedSignout = false;
+
+  onAuthStateChanged(auth, async (user) => {
+    const wall = document.getElementById('auth-wall');
+    const main = document.getElementById('main-content');
+    const badge = document.getElementById('nav-user-badge');
+
+    if (!user && _forcedSignout) {
+      _forcedSignout = false;
+      wall.classList.remove('hidden');
+      main.classList.remove('visible');
+      if (badge) badge.innerHTML = '';
+      const errEl = document.getElementById('auth-error');
+      if (errEl) {
+        errEl.textContent = 'Your account has been disabled. Contact an admin for help.';
+        errEl.classList.add('show');
+      }
+      return;
+    }
+
+    if (!user) {
+      wall.classList.remove('hidden');
+      main.classList.remove('visible');
+      return;
+    }
+
+    try {
+      const activeSnap = await getDoc(doc(db, 'users', user.email));
+      const activeSnapLower = !activeSnap.exists() && user.email && user.email.toLowerCase() !== user.email
+        ? await getDoc(doc(db, 'users', user.email.toLowerCase()))
+        : activeSnap;
+      if (activeSnapLower.exists()) {
+        const d = activeSnapLower.data();
+        if (d.active === false) {
+          _forcedSignout = true;
+          await signOut(auth);
+          return;
+        }
+      }
+      if (accountStatusUnsubscribe) accountStatusUnsubscribe();
+      const accountDocId = activeSnap.exists() ? user.email : user.email.toLowerCase();
+      accountStatusUnsubscribe = onSnapshot(doc(db, 'users', accountDocId), async (snap) => {
+        const data = snap.exists() ? snap.data() : null;
+        if (data && data.active === false && auth.currentUser) {
+          _forcedSignout = true;
+          if (accountStatusUnsubscribe) {
+            accountStatusUnsubscribe();
+            accountStatusUnsubscribe = null;
+          }
+          await signOut(auth);
+        }
+      });
+    } catch(e) {
+      console.warn('Could not verify account status — signing out for safety:', e);
+      _forcedSignout = true;
+      await signOut(auth);
+      return;
+    }
+
+    wall.classList.add('hidden');
+    main.classList.add('visible');
+
+    let username = user.email;
+    let fullName = '';
+    try {
+      const snap = await getDoc(doc(db, 'users', user.email));
+      if (snap.exists()) {
+        const snapData = snap.data();
+        if (snapData.username) {
+          username = snapData.username;
+          if (user.displayName !== username) {
+            await updateProfile(user, { displayName: username });
+          }
+        } else {
+          username = user.displayName || user.email;
+        }
+        fullName = snapData.fullName || '';
+      } else {
+        username = user.displayName || user.email;
+      }
+    } catch(e) {
+      username = user.displayName || user.email;
+    }
+
+    try {
+      const contentSnap = await getDoc(doc(db, 'siteContent', 'main'));
+      if (contentSnap.exists()) window._siteData = contentSnap.data();
+    } catch (e) {}
+
+    try {
+      const userSnap = await getDoc(doc(db, 'users', user.email));
+      const userSnapLower = !userSnap.exists() && user.email && user.email.toLowerCase() !== user.email
+        ? await getDoc(doc(db, 'users', user.email.toLowerCase()))
+        : userSnap;
+      const userData = userSnapLower.exists() ? userSnapLower.data() : {};
+      const isAdmin = userData.admin === true;
+
+      if (isAdmin) {
+        window._isAdmin = true;
+        window._isEditor = false;
+        injectAdminPanels();
+        setTimeout(() => openAdminPanel(), 100);
+      } else {
+        window.location.href = '/';
+      }
+    } catch(e) {
+      console.warn('Could not check admin status:', e);
+      window.location.href = '/';
+    }
+  });
+</script>
+
+</body>
+</html>

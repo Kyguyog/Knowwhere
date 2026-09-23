@@ -35,8 +35,22 @@ let banTimer = null;
 
 function isPaidForMonth(userData) {
   if (!userData) return false;
-  if (userData.admin === true || userData.editor === true) return true;
+  if (userData.admin === true) return true;
+  if (userData.editor === true) {
+    /* editors are paid by default, but can be manually marked unpaid */
+    return userData.paid !== false;
+  }
   return userData.paid === true;
+}
+
+function isPaywallDisabled(content) {
+  const pw = (content && content.paywall) || {};
+  if (pw.disabled !== true) return false;
+  if (pw.disableUntil) {
+    const until = parseBanUntil(pw.disableUntil);
+    if (until && until <= new Date()) return false;
+  }
+  return true;
 }
 
 function parseBanUntil(raw) {
@@ -70,6 +84,15 @@ async function fetchUserData(email) {
     } catch (_) {}
   }
   return null;
+}
+
+async function fetchSiteContent() {
+  try {
+    const snap = await getDoc(doc(db, "siteContent", "main"));
+    return snap.exists() ? snap.data() : {};
+  } catch (_) {
+    return {};
+  }
 }
 
 function hideWall() {
@@ -244,13 +267,13 @@ async function evaluateGate() {
     hideWall();
     return;
   }
-  const data = await fetchUserData(user.email);
+  const [data, content] = await Promise.all([fetchUserData(user.email), fetchSiteContent()]);
   const ban = getBanInfo(data);
   if (ban.banned) {
     buildBanWall(ban);
     return;
   }
-  if (isPaidForMonth(data)) {
+  if (isPaidForMonth(data) || isPaywallDisabled(content)) {
     hideWall();
   } else {
     buildWall();

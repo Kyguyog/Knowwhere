@@ -535,39 +535,6 @@ function escHtml(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-
-// ── Admin: render shop editor ──
-function renderShopEditor(items) {
-  const list = document.getElementById('ae-shop-list');
-  if (!list) return;
-  list.innerHTML = (items || []).map((item, i) => shopEditorCard(item, i + 1)).join('');
-}
-
-function shopEditorCard(item, n) {
-  const safeImg   = escHtml(item.img   || '');
-  const safeName  = escHtml(item.name  || '');
-  const safePrice = escHtml(item.price || '');
-  return `
-  <div class="admin-card-item">
-    <div class="admin-card-header">
-      <span class="admin-card-label">Item ${n}</span>
-      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
-    </div>
-    <input class="shop-item-name admin-card-input" placeholder="Name (e.g. Monster Zero)" value="${safeName}" />
-    <input class="shop-item-price admin-card-input" placeholder="Price (e.g. 3.99)" value="${safePrice}" type="number" min="0" step="0.01" />
-    <input class="shop-item-img admin-card-input" placeholder="Image URL (transparent PNG recommended)" value="${safeImg}" />
-    ${safeImg ? `<img src="${safeImg}" alt="preview" style="height:60px;object-fit:contain;margin-top:0.25rem;opacity:0.85;filter:drop-shadow(0 2px 6px rgba(168,85,247,0.3));" onerror="this.style.display='none'" />` : ''}
-  </div>`;
-}
-
-window.adminAddShopItem = function() {
-  const list = document.getElementById('ae-shop-list');
-  const n = list.querySelectorAll('.admin-card-item').length + 1;
-  const div = document.createElement('div');
-  div.innerHTML = shopEditorCard({}, n);
-  list.appendChild(div.firstElementChild);
-  list.lastElementChild.querySelector('.shop-item-name').focus();
-};
 </script>
 
 <script type="module">
@@ -1023,9 +990,6 @@ window.injectAdminPanels = function() {
       <button class="admin-tab" onclick="switchAdminTab('game-requests')">📥 Game Requests</button>
       <button class="admin-tab" onclick="switchAdminTab('sites')">Sites</button>
       <button class="admin-tab" onclick="switchAdminTab('tabcloaks')">🕶️ Tab Cloaks</button>
-      <button class="admin-tab" onclick="switchAdminTab('shop')">🛒 Shop</button>
-      <button class="admin-tab" onclick="switchAdminTab('banned')">🚫 Banned</button>
-      <button class="admin-tab" onclick="switchAdminTab('command')">Command</button>
     </div>
     <div class="admin-body">
       <div class="admin-section" id="admin-games">
@@ -1053,36 +1017,6 @@ window.injectAdminPanels = function() {
         <button class="admin-add-btn" onclick="adminAddTabCloak()">+ Add Preset</button>
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('tabcloaks')">Save Tab Cloaks</button><span class="admin-status" id="status-tabcloaks"></span></div>
       </div>
-      <div class="admin-section" id="admin-shop">
-        <p class="admin-hint" style="margin-bottom:1rem;">Add Item to the shop shelf. Paste a transparent PNG image URL, set the name and price.</p>
-        <div id="ae-shop-list" class="admin-row-list"></div>
-        <button class="admin-add-btn" onclick="adminAddShopItem()">+ Add Item</button>
-        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('shop')">Save Shop</button><span class="admin-status" id="status-shop"></span></div>
-      </div>
-      <div class="admin-section" id="admin-banned">
-        <div id="ae-banned-list" class="admin-row-list"></div>
-        <button class="admin-add-btn" onclick="adminAddBanned()">+ Add Person</button>
-        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('banned')">Save Banned</button><span class="admin-status" id="status-banned"></span></div>
-      </div>
-      <div class="admin-section" id="admin-command">
-        <div class="admin-sublabel" style="margin-top:0;">Hiring Banner</div>
-        <div class="admin-field">
-          <label>Active?</label>
-          <select class="admin-input" id="ae-hiring-active" style="cursor:pointer;">
-            <option value="true">Yes — show banner</option>
-            <option value="false">No — hide banner</option>
-          </select>
-        </div>
-        <div class="admin-field"><label>Badge Label</label><input class="admin-input" id="ae-hiring-badge" /></div>
-        <div class="admin-field"><label>Title</label><input class="admin-input" id="ae-hiring-title" /></div>
-        <div class="admin-field"><label>Description</label><input class="admin-input" id="ae-hiring-desc" /></div>
-        <div class="admin-field"><label>Form URL</label><input class="admin-input" id="ae-hiring-url" /></div>
-        <hr class="admin-divider">
-        <div class="admin-sublabel">Links</div>
-        <div id="ae-command-links-list"></div>
-        <button class="admin-add-btn" onclick="adminAddCommandLink()">+ Add Link</button>
-        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('command')">Save Command</button><span class="admin-status" id="status-command"></span></div>
-      </div>
     </div>
   </div>
 </div>
@@ -1091,15 +1025,6 @@ window.injectAdminPanels = function() {
 
 
   
-  if (window._isEditor) {
-    ['command'].forEach(tab => {
-      document.querySelectorAll('.admin-tab').forEach(t => {
-        if (t.getAttribute('onclick') === "switchAdminTab('" + tab + "')") {
-          t.style.display = 'none';
-        }
-      });
-    });
-  }
 };
 
 
@@ -1484,21 +1409,6 @@ window.openAdminPanel = function() {
   renderTabCloaksEditor((data.tabCloaks && data.tabCloaks.length) ? data.tabCloaks : (window._tabCloakDefaults || []));
 
   
-  renderShopEditor(data.shop || []);
-
-  
-  renderBannedEditor(data.banned || []);
-
-  
-  const h = data.command?.hiring || {};
-  document.getElementById('ae-hiring-active').value = h.active ? 'true' : 'false';
-  document.getElementById('ae-hiring-badge').value = h.badge || '';
-  document.getElementById('ae-hiring-title').value = h.title || '';
-  document.getElementById('ae-hiring-desc').value = h.description || '';
-  document.getElementById('ae-hiring-url').value = h.url || '';
-  renderCommandLinksEditor(data.command?.links || []);
-
-  
   document.querySelectorAll('.admin-status').forEach(el => { el.textContent=''; el.className='admin-status'; });
 
   
@@ -1577,14 +1487,10 @@ window.deleteGameRequestEditor = async function(requestId) {
 };
 
 window.switchAdminTab = function(tab) {
-  
-  const editorRestricted = ['command', 'ai'];
-  if (window._isEditor && editorRestricted.includes(tab)) return;
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('admin-' + tab).classList.add('active');
-  event && event.target && event.target.classList && event.target.classList.add('active');
-  
+  const section = document.getElementById('admin-' + tab);
+  if (section) section.classList.add('active');
   document.querySelectorAll('.admin-tab').forEach(t => {
     if (t.getAttribute('onclick') === "switchAdminTab('" + tab + "')") t.classList.add('active');
   });
@@ -1933,52 +1839,6 @@ window.adminAddSite = function() {
 };
 
 
-function renderBannedEditor(items) {
-  document.getElementById('ae-banned-list').innerHTML = items.map(name => `
-    <div class="admin-row-item">
-      <input class="admin-row-input" placeholder="Name" value="${escAttr(name)}" />
-      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
-    </div>`).join('');
-}
-
-window.adminAddBanned = function() {
-  const div = document.createElement('div');
-  div.className = 'admin-row-item';
-  div.innerHTML = `
-    <input class="admin-row-input" placeholder="Name" />
-    <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>`;
-  document.getElementById('ae-banned-list').appendChild(div);
-};
-
-
-function renderCommandLinksEditor(items) {
-  document.getElementById('ae-command-links-list').innerHTML = items.map((link, i) => `
-    <div class="admin-card-item">
-      <div class="admin-card-header">
-        <span class="admin-card-label">Link ${i+1}</span>
-        <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
-      </div>
-      <input class="cl-title admin-card-input" placeholder="Title" value="${escAttr(link.title)}" />
-      <input class="cl-desc admin-card-input" placeholder="Description" value="${escAttr(link.description||'')}" />
-      <input class="cl-url admin-card-input" placeholder="URL (leave blank = 'coming soon')" value="${escAttr(link.url||'')}" />
-    </div>`).join('');
-}
-
-window.adminAddCommandLink = function() {
-  const div = document.createElement('div');
-  div.className = 'admin-card-item';
-  div.innerHTML = `
-    <div class="admin-card-header">
-      <span class="admin-card-label">New Link</span>
-      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
-    </div>
-    <input class="cl-title admin-card-input" placeholder="Title" />
-    <input class="cl-desc admin-card-input" placeholder="Description" />
-    <input class="cl-url admin-card-input" placeholder="URL (leave blank = 'coming soon')" />`;
-  document.getElementById('ae-command-links-list').appendChild(div);
-};
-
-
 window.adminSave = async function(section) {
   if (!window._isAdmin && !window._isEditor) return;
   const statusEl = document.getElementById('status-' + section);
@@ -2007,36 +1867,6 @@ window.adminSave = async function(section) {
         const [n, u] = row.querySelectorAll('input');
         return { name: n.value.trim(), url: u.value.trim(), openInPopup: !!row.querySelector('.site-popup-input')?.checked };
       }).filter(s => s.name);
-    } else if (section === 'shop') {
-      patch.shop = [...document.querySelectorAll('#ae-shop-list .admin-card-item')].map(card => ({
-        name:  card.querySelector('.shop-item-name').value.trim(),
-        price: card.querySelector('.shop-item-price').value.trim(),
-        img:   card.querySelector('.shop-item-img').value.trim()
-      })).filter(s => s.name);
-      
-      renderShopEditor(patch.shop);
-    } else if (section === 'banned') {
-      patch.banned = [...document.querySelectorAll('#ae-banned-list .admin-row-item')]
-        .map(row => row.querySelector('input').value.trim()).filter(Boolean);
-    } else if (section === 'command') {
-      patch.command = {
-        hiring: {
-          active:      document.getElementById('ae-hiring-active').value === 'true',
-          badge:       document.getElementById('ae-hiring-badge').value.trim(),
-          title:       document.getElementById('ae-hiring-title').value.trim(),
-          description: document.getElementById('ae-hiring-desc').value.trim(),
-          url:         document.getElementById('ae-hiring-url').value.trim()
-        },
-        links: [...document.querySelectorAll('#ae-command-links-list .admin-card-item')].map(card => {
-          const url = card.querySelector('.cl-url').value.trim();
-          return {
-            title:       card.querySelector('.cl-title').value.trim(),
-            description: card.querySelector('.cl-desc').value.trim(),
-            status:      url ? 'Active' : 'soon',
-            url
-          };
-        }).filter(l => l.title)
-      };
     } else if (section === 'tabcloaks') {
       const seen = new Set();
       patch.tabCloaks = [...document.querySelectorAll('#ae-tabcloaks-list .admin-row-item')].map(row => {
