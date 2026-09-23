@@ -1,5 +1,13 @@
 [
   {
+    "sha": "05e7d94db4e4d65b8b113b806c72c23ced9d7f42",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/05e7d94db4e4d65b8b113b806c72c23ced9d7f42",
+    "message": "Convert Brotato to blob-injected chunked-zip loader (Godot 3.6)",
+    "date": "2026-09-23T02:43:26Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "c8f3ec5ccaf347c92ca33e68e430d9482d398885",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/c8f3ec5ccaf347c92ca33e68e430d9482d398885",
     "message": "add just shapes and beats: chunked zip assets + identity-decompressed merged build files",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/fc483ac8d91df043f1bf0e520ad4f30869c622c1",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
     "date": "2026-05-08T02:32:55Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "11990b8347fb7ca5f702b218c3492d409a2c6ad5",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/11990b8347fb7ca5f702b218c3492d409a2c6ad5",
-    "message": "Add Profile Page",
-    "date": "2026-05-08T02:25:01Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
