@@ -1,5 +1,13 @@
 [
   {
+    "sha": "0129038e9c3e5ae89f84b771d616e926199a569c",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/0129038e9c3e5ae89f84b771d616e926199a569c",
+    "message": "fix apes vs helium: store brotli-decompressed part bytes in assets.zip, strip debug instrumentation",
+    "date": "2026-09-23T01:37:41Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "ef2a855213c8945ee2063cfe7173baa6218e5e35",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/ef2a855213c8945ee2063cfe7173baa6218e5e35",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/5577fff36a73725406be784a6932f837b9e7719d",
     "message": "Update index.html",
     "date": "2026-05-02T02:46:24Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "e1be1caf971d4f59272003eca33f2ca5dec8b137",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/e1be1caf971d4f59272003eca33f2ca5dec8b137",
-    "message": "[fix] fix stuff",
-    "date": "2026-05-02T02:41:47Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
