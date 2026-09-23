@@ -12,7 +12,6 @@
 
   <script>
     (function () {
-      window.addEventListener('error', function (e) { console.log('[Apes] GLOBAL ERR:', e.message, 'AT', e.filename, e.lineno + ':' + e.colno, '\n', (e.error && e.error.stack) || ''); });
       var GITHUB_BASE = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Apes%20vs%20Helium/";
       var ZIP_NAME = "assets.zip";
 
@@ -24,14 +23,12 @@
 
       function log(msg) {
         loadingText.textContent = msg;
-        console.log('[Apes] ' + msg);
       }
 
       function loadText(name) {
         if (zipStore && zipStore[name]) {
           return Promise.resolve(new TextDecoder('utf-8').decode(zipStore[name]));
         }
-        console.log('[Apes] fetch ' + name);
         return fetch(GITHUB_BASE + name).then(function (r) {
           if (!r.ok) throw new Error('Missing: ' + name + ' (HTTP ' + r.status + ')');
           return r.text();
@@ -135,11 +132,7 @@
         };
 
         var origOpen = XMLHttpRequest.prototype.open;
-        var instSeq = 0;
         XMLHttpRequest.prototype.open = function (method, url, async, user, pass) {
-          if (!this._kwInst) { this._kwInst = ++instSeq; this._kwRtSet = false; this._kwOpened = false; }
-          console.log('[Apes] XHR#' + this._kwInst + ' ' + method + ' ' + String(url).slice(0, 70) + ' async=' + async + ' prevRT=' + String(this.responseType));
-          this._kwOpened = true;
           if (url) {
             var blob = zipLookup(url);
             if (blob) {
@@ -155,7 +148,6 @@
         };
         var origSend2 = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.send = function () {
-          console.log('[Apes] SEND#' + this._kwInst + ' rt=' + String(this.responseType) + ' state=' + this.readyState);
           return origSend2.apply(this, arguments);
         };
         var rtDesc = Object.getOwnPropertyDescriptor(XMLHttpRequest.prototype, 'responseType');
@@ -164,8 +156,7 @@
           Object.defineProperty(XMLHttpRequest.prototype, 'responseType', {
             get: function () { return rtDesc.get.call(this); },
             set: function (v) {
-              console.log('[Apes] RTset#' + this._kwInst + ' ' + JSON.stringify(v) + ' prevRT=' + String(this.responseType) + ' state=' + this.readyState);
-              try { origRtSet.call(this, v); } catch (e) { console.log('[Apes] RT THREW#' + this._kwInst + ' ' + e.name + ' state=' + this.readyState); throw e; }
+              origRtSet.call(this, v);
             },
             configurable: true
           });
