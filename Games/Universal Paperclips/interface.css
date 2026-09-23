@@ -581,6 +581,10 @@ p.clean2 {
     
 }
 
+body {
+    background-color: white;
+}
+
 p.clean3 {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 11;
