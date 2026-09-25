@@ -1,5 +1,13 @@
 [
   {
+    "sha": "a5e907fcc012e0b3741e2f4e097bf47d6ba3a353",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/a5e907fcc012e0b3741e2f4e097bf47d6ba3a353",
+    "message": "fix(Drive Mad): run domContentLoaded if DOMContentLoaded already fired under blob loading",
+    "date": "2026-09-25T04:49:36Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "ae342dec6c73399348aebebc440dd57ac561c8d1",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/ae342dec6c73399348aebebc440dd57ac561c8d1",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/b6482b1cd8410b2a61f676134716c47641d04033",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
     "date": "2026-05-08T05:14:42Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "6f61b54764dc260b85d54f32fe47d239d4dca274",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/6f61b54764dc260b85d54f32fe47d239d4dca274",
-    "message": "Experimental Ads\n\nBefore u complain these ads will not get in ur way and we kinda need them to keep the site running",
-    "date": "2026-05-08T05:05:32Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
