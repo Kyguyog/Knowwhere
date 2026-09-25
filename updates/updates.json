@@ -1,5 +1,13 @@
 [
   {
+    "sha": "daeb56ceedd212f551c26ab388065061fc984e18",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/daeb56ceedd212f551c26ab388065061fc984e18",
+    "message": "fix: cut pre-login resource spike that blanks Chromebooks\n\nThe login screen loads while the whole site (archive, shop, sites) renders\nhidden behind the auth wall, and the site-wide 'block check' feature fired\n12 concurrent double-probes per game/site for up to 30s on every page load.\nDoubled by the cloak popup class, that spike blows past a Chromebook's\nshared memory/GPU budget and ChromeOS blanks the tab.\n\n- Only run block checks once a user is signed in (no storm behind auth).\n- Re-trigger block checks right after login.\n- Throttle checks to 4 concurrent, 6s probe, 12s per-URL cap.\n- Cloak: location.replace for the decoy redirect so the old heavy page\n  unloads immediately instead of lingering on the back-stack.",
+    "date": "2026-09-25T15:01:02Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "172e2402dfa817b4b68b86baab939d54f6db0bde",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/172e2402dfa817b4b68b86baab939d54f6db0bde",
     "message": "fix(Ragdoll Hit): boot under blob loading; robust progress/reveal\n\nunity-2020.js relied on window.onload which already fired before the\nblob-injected script executed, so the boot (PokiSDK init, loader fetch,\ncreateUnityInstance) never ran. Boot immediately when the page is already\ncomplete, pass a minimal config to createUnityInstance (full w.a config\nsilently stalled the loader), and make the progress/reveal callbacks\nnull-safe so the loader download never aborts.",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/5416cdc1f533efb0a954807efcb69e26273ac87f",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
     "date": "2026-05-08T16:11:34Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "fcaf75ce43a51ea4d8e99087ff3ee987cca7ec07",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/fcaf75ce43a51ea4d8e99087ff3ee987cca7ec07",
-    "message": "[remove] Remove redundant profile pic editor",
-    "date": "2026-05-08T16:05:37Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
