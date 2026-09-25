@@ -829,54 +829,6 @@
     }
     .game-card:hover svg { color: var(--primary); }
 
-    /* ── BLOCK STATUS INDICATOR ── */
-    .block-dot {
-      flex-shrink: 0;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-left: auto;
-      margin-top: 4px;
-      transition: background 0.3s, box-shadow 0.3s;
-    }
-    .block-dot[data-status="checking"] {
-      background: rgba(100,116,139,0.4);
-      border: 1.5px solid var(--muted);
-      animation: dot-pulse 1.2s ease-in-out infinite;
-    }
-    .block-dot[data-status="ok"] {
-      background: #22c55e;
-      box-shadow: 0 0 6px rgba(34,197,94,0.6);
-    }
-    .block-dot[data-status="blocked"] {
-      background: var(--danger);
-      box-shadow: 0 0 6px rgba(239,68,68,0.6);
-    }
-    @keyframes dot-pulse {
-      0%, 100% { opacity: 0.4; }
-      50% { opacity: 1; }
-    }
-    .block-dot-tooltip {
-      position: relative;
-    }
-    .block-dot-tooltip:hover::after {
-      content: attr(data-label);
-      position: absolute;
-      bottom: calc(100% + 6px);
-      right: 0;
-      background: #1a1a2e;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      padding: 0.25rem 0.55rem;
-      font-size: 0.65rem;
-      font-weight: 600;
-      white-space: nowrap;
-      color: var(--text);
-      pointer-events: none;
-      z-index: 200;
-      letter-spacing: 0.04em;
-    }
-
     /* ── GAME PREVIEW TOOLTIP ── */
     .game-preview-tooltip {
       --preview-width: 240px;
@@ -983,17 +935,7 @@
       box-shadow: 0 0 16px rgba(34,211,238,0.15);
     }
     .site-pill:hover svg { opacity: 1; }
-    .site-block-dot {
-      margin-left: 0.35rem;
-      margin-top: 0;
-      flex-shrink: 0;
-    }
-    .site-pill .block-dot-tooltip:hover::after {
-      bottom: calc(100% + 6px);
-      right: auto;
-      left: 50%;
-      transform: translateX(-50%);
-    }
+
 
     /* ── STATS ── */
     .stats-grid {
@@ -1821,7 +1763,7 @@ function userBanUntil(u){if(!u||!u.banUntil)return null;const raw=u.banUntil;let
 wall.classList.add('hidden');main.classList.add('visible');let username=user.email;try{const snap=await getDoc(doc(db,'users',user.email));if(snap.exists()){const snapData=snap.data();if(snapData.username){username=snapData.username;if(user.displayName!==username){await updateProfile(user,{displayName:username});}}else{username=user.displayName||user.email;}}else{username=user.displayName||user.email;}}catch(e){username=user.displayName||user.email;}
 const adminBtn=document.getElementById('admin-popup-btn');const adminSection=document.getElementById('admin-popup-section');const approvalsBtn=document.getElementById('approvals-popup-btn');const ordersSection=document.getElementById('orders-popup-section');if(adminBtn)adminBtn.style.display='none';if(adminSection)adminSection.style.display='none';if(approvalsBtn)approvalsBtn.style.display='none';try{const contentSnap=await getDoc(doc(db,'siteContent','main'));if(contentSnap.exists()){window._siteData=contentSnap.data();populatePage(window._siteData);}if(ordersSection)ordersSection.style.display=(window._siteData&&(window._siteData.shop||[]).length)?'block':'none';}catch(e){console.error('Failed to load site content:',e);}
 try{const userSnap=await getDoc(doc(db,'users',user.email));const userSnapLower=!userSnap.exists()&&user.email&&user.email.toLowerCase()!==user.email?await getDoc(doc(db,'users',user.email.toLowerCase())):userSnap;const userData=userSnapLower.exists()?userSnapLower.data():{};const isAdmin=userData.admin===true;const isEditor=userData.editor===true;if(isAdmin||isEditor){if(adminBtn)adminBtn.style.display='flex';if(adminSection)adminSection.style.display='block';if(isAdmin){if(approvalsBtn)approvalsBtn.style.display='flex';}}
-window._canSeeAllOrders=(userData.orders===true||userData.admin===true);}catch(e){console.warn('Could not check order permissions:',e);}try{window._loadFavorites();}catch(e){}if(window.scheduleBlockChecks)window.scheduleBlockChecks();if(window._favUnsub){window._favUnsub();}try{const userDocId2=user.email?user.email.toLowerCase():'';if(userDocId2){window._favUnsub=onSnapshot(doc(db,'users',userDocId2),(snap)=>{if(snap.exists()){const d=snap.data()||{};FAVORITES=new Set(d.favorites||[]);if(window.paintFavHearts)window.paintFavHearts();if(SHOW_FAVORITES)buildArchive(document.getElementById('search-input')?.value||'');}});}}catch(e){}}else{window._kwHasUser=false;wall.classList.remove('hidden');main.classList.remove('visible');if(badge)badge.innerHTML='';if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}if(window._favUnsub){window._favUnsub();window._favUnsub=null;}const popup=document.getElementById('user-popup');if(popup)popup.classList.remove('open');document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';document.getElementById('auth-error').classList.remove('show');document.getElementById('signup-fullname').value='';document.getElementById('signup-username').value='';document.getElementById('signup-email').value='';document.getElementById('signup-password').value='';document.getElementById('signup-confirm').value='';document.getElementById('signup-error').classList.remove('show');document.getElementById('signup-success').style.display='none';document.getElementById('signup-submit').style.display='block';document.getElementById('signup-submit').disabled=false;document.getElementById('signup-submit').textContent='Request Access';switchTab('login');}});window.__kwSignup=window.handleSignupRequest;</script>
+window._canSeeAllOrders=(userData.orders===true||userData.admin===true);}catch(e){console.warn('Could not check order permissions:',e);}try{window._loadFavorites();}catch(e){}if(window._favUnsub){window._favUnsub();}try{const userDocId2=user.email?user.email.toLowerCase():'';if(userDocId2){window._favUnsub=onSnapshot(doc(db,'users',userDocId2),(snap)=>{if(snap.exists()){const d=snap.data()||{};FAVORITES=new Set(d.favorites||[]);if(window.paintFavHearts)window.paintFavHearts();if(SHOW_FAVORITES)buildArchive(document.getElementById('search-input')?.value||'');}});}}catch(e){}}else{window._kwHasUser=false;wall.classList.remove('hidden');main.classList.remove('visible');if(badge)badge.innerHTML='';if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}if(window._favUnsub){window._favUnsub();window._favUnsub=null;}const popup=document.getElementById('user-popup');if(popup)popup.classList.remove('open');document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';document.getElementById('auth-error').classList.remove('show');document.getElementById('signup-fullname').value='';document.getElementById('signup-username').value='';document.getElementById('signup-email').value='';document.getElementById('signup-password').value='';document.getElementById('signup-confirm').value='';document.getElementById('signup-error').classList.remove('show');document.getElementById('signup-success').style.display='none';document.getElementById('signup-submit').style.display='block';document.getElementById('signup-submit').disabled=false;document.getElementById('signup-submit').textContent='Request Access';switchTab('login');}});window.__kwSignup=window.handleSignupRequest;</script>
 
 <script>const GAMEPAD_SVG=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 9v2"/><path d="M6 10h2"/></svg>`;const EXT_SVG=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;const STAR_SVG=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>`;const ARROW_SVG=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`;const HEART_OUTLINE_SVG=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;const HEART_FILLED_SVG=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;let GAMES={};let FAVORITES=new Set();let SHOW_FAVORITES=false;function isNewGame(game){if(!game||!game.addedAt)return false;const added=new Date(game.addedAt).getTime();if(!Number.isFinite(added))return false;return(Date.now()-added)<=3*24*60*60*1000;}function maybeNewBadge(game){return isNewGame(game)?'<span class="new-game-badge">NEW</span>':'';}window._toggleFavorite=async function(gameName){if(!window.auth||!window.auth.currentUser)return;const user=window.auth.currentUser;const favs=FAVORITES;if(favs.has(gameName)){favs.delete(gameName);}else{favs.add(gameName);}try{await window._setDoc(window._doc(window.db,'users',user.email),{favorites:Array.from(favs)},{merge:true});}catch(e){console.warn('Could not save favorites:',e);}const safeName=gameName.replace(/"/g,'&quot;');const btn=document.querySelector(`.fav-btn[data-name="${safeName}"]`);if(btn)btn.innerHTML=favs.has(gameName)?HEART_FILLED_SVG:HEART_OUTLINE_SVG;if(SHOW_FAVORITES)buildArchive(document.getElementById('search-input').value);};window._loadFavorites=async function(){if(!window.auth||!window.auth.currentUser)return;try{const snap=await window._getDoc(window._doc(window.db,'users',window.auth.currentUser.email));if(snap.exists()){const d=snap.data();FAVORITES=new Set(d.favorites||[]);}window.paintFavHearts();}catch(e){console.warn('Could not load favorites:',e);}};
 function paintFavHearts(){document.querySelectorAll('.fav-btn').forEach(function(btn){const name=btn.dataset.name;const isFav=FAVORITES.has(name);btn.style.color=isFav?'var(--primary)':'var(--muted)';btn.title=isFav?'Remove from favorites':'Add to favorites';btn.innerHTML=isFav?HEART_FILLED_SVG:HEART_OUTLINE_SVG;});}window.paintFavHearts=paintFavHearts;
@@ -1841,7 +1783,7 @@ const nt=data.notice||{};document.getElementById('notice-title').textContent=nt.
           <span class="hover-btn">Open Game →</span>
         </div>
         <div class="game-feature-border"></div>
-      </a>`;}).join('');GAMES=data.games||{};buildArchive('');scheduleBlockChecks();const sitesList=document.getElementById('sites-list');const sl=data.sites||[];sitesList.innerHTML=sl.map(s=>{const safeUrl=(s.url||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const popup=s.openInPopup===true;return`<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="site-pill" data-url="${safeUrl}" ${popup?`data-popup-launch="1" data-track-playtime="1" data-launch-url="${safeUrl}" data-name="${(s.name||'Site').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`:''}>${s.name}${EXT_SVG}<span class="block-dot block-dot-tooltip site-block-dot" data-status="checking" data-url="${safeUrl}" data-label="Checking…"></span></a>`;}).join('');scheduleBlockChecks();renderShop(data.shop||[]);syncShopVisibility(data.shop||[]);const gv=Object.values(GAMES);const totalGames=gv.reduce((sum,arr)=>sum+(arr||[]).length,0);const totalSites=sl.length;const banned=data.banned||[];const totalBanned=banned.length;const statsGrid=document.getElementById('stats-grid');statsGrid.innerHTML=[{value:totalGames,label:'Total Games'},{value:totalSites,label:'Unblocked Sites'},{value:totalBanned,label:'Banned Users'}].map(s=>`<div class="stat-item">
+      </a>`;}).join('');GAMES=data.games||{};buildArchive('');const sitesList=document.getElementById('sites-list');const sl=data.sites||[];sitesList.innerHTML=sl.map(s=>{const safeUrl=(s.url||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const popup=s.openInPopup===true;return`<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="site-pill" data-url="${safeUrl}" ${popup?`data-popup-launch="1" data-track-playtime="1" data-launch-url="${safeUrl}" data-name="${(s.name||'Site').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`:''}>${s.name}${EXT_SVG}</a>`;}).join('');renderShop(data.shop||[]);syncShopVisibility(data.shop||[]);const gv=Object.values(GAMES);const totalGames=gv.reduce((sum,arr)=>sum+(arr||[]).length,0);const totalSites=sl.length;const banned=data.banned||[];const totalBanned=banned.length;const statsGrid=document.getElementById('stats-grid');statsGrid.innerHTML=[{value:totalGames,label:'Total Games'},{value:totalSites,label:'Unblocked Sites'},{value:totalBanned,label:'Banned Users'}].map(s=>`<div class="stat-item">
         <span class="stat-num" data-target="${s.value}">0</span>
         <span class="stat-label">${s.label}</span>
       </div>`).join('');const cmd=data.command||{};const commandLinks=document.getElementById('command-links');const hiring=cmd.hiring;let hiringHTML='';if(hiring&&hiring.active){hiringHTML=`<a href="${hiring.url}" target="_blank" rel="noopener noreferrer" class="command-link reveal">
@@ -2482,7 +2424,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
         const dotState = cachedStatus ? cachedStatus.state : 'checking';
         const dotLabel = cachedStatus ? cachedStatus.label : 'Checking…';
         const isFav = FAVORITES.has(g.name);
-        return `<a href="${safeLaunchUrl || safeUrl}" target="_blank" rel="noopener noreferrer" class="game-card" data-popup="${popup ? '1' : '0'}" data-launch-url="${safeLaunchUrl}" data-name="${escAttr(g.name || '')}" data-screenshot="${safeScreenshot}" data-url="${dotUrl}" data-description="${escAttr(g.description||'')}">${GAMEPAD_SVG}<span>${g.name}${g.version?` <small style="opacity:0.7;">v${escAttr(g.version)}</small>`:''}</span><div class="game-card-actions"><div class="game-card-actions-row"><button class="fav-btn" data-name="${escAttr(g.name)}" style="background:none;border:none;cursor:pointer;padding:2px;color:${isFav?'var(--primary)':'var(--muted)'};display:flex;align-items:center;flex-shrink:0;" title="${isFav?'Remove from favorites':'Add to favorites'}">${isFav?HEART_FILLED_SVG:HEART_OUTLINE_SVG}</button><span class="block-dot block-dot-tooltip" data-status="${dotState}" data-url="${dotUrl}" data-label="${escAttr(dotLabel)}"></span></div>${maybeNewBadge(g)}</div></a>`;
+        return `<a href="${safeLaunchUrl || safeUrl}" target="_blank" rel="noopener noreferrer" class="game-card" data-popup="${popup ? '1' : '0'}" data-launch-url="${safeLaunchUrl}" data-name="${escAttr(g.name || '')}" data-screenshot="${safeScreenshot}" data-url="${dotUrl}" data-description="${escAttr(g.description||'')}">${GAMEPAD_SVG}<span>${g.name}${g.version?` <small style="opacity:0.7;">v${escAttr(g.version)}</small>`:''}</span><div class="game-card-actions"><div class="game-card-actions-row"><button class="fav-btn" data-name="${escAttr(g.name)}" style="background:none;border:none;cursor:pointer;padding:2px;color:${isFav?'var(--primary)':'var(--muted)'};display:flex;align-items:center;flex-shrink:0;" title="${isFav?'Remove from favorites':'Add to favorites'}">${isFav?HEART_FILLED_SVG:HEART_OUTLINE_SVG}</button></div>${maybeNewBadge(g)}</div></a>`;
       }).join('');
       html += `<div class="letter-group"><div class="letter-bg">${letter}</div><div class="letter-heading">${letter}</div><div class="games-grid">${cards}</div></div>`;
     }
