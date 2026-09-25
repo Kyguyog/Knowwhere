@@ -1,5 +1,13 @@
 [
   {
+    "sha": "37ab7befd91b6e66d101ce00b80e2843d570bcfd",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/37ab7befd91b6e66d101ce00b80e2843d570bcfd",
+    "message": "revert: remove Copy Disguise Link feature\n\nRemoves the ghost 'Copy Disguise Link' button, its CSS, and the\n__kwWrapDoc/__kwPickDecoy/__kwDataUrl/__kwCloakCopy helpers, restoring\n__kwCloakNow to its inline about:blank + decoy form. Chromebook branch\n(load directly) unchanged.",
+    "date": "2026-09-25T22:57:49Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "1c0fb311c6acb736a53d713a9ec6a9a8d250deec",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/1c0fb311c6acb736a53d713a9ec6a9a8d250deec",
     "message": "feat: load normally on Chromebook, force about:blank cloak elsewhere\n\nDetect ChromeOS via navigator.userAgentData.platform==='ChromeOS' with a\n/CrOS/ UA fallback. On Chromebooks the cloak overlay is suppressed and the\nsite loads directly in the current tab (branded 'My Apps' title/favicon,\nreal origin visible, playable) - the about:blank popup was dying on the\nfriend's network anyway. Non-Chromebooks keep the forced about:blank\npopup + decoy + 10s countdown + Copy Disguise Link flow unchanged.",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/5bfd112110b1fce2f1c6fec6d0b266828258c7fe",
     "message": "Add native ruffle support!",
     "date": "2026-05-09T05:42:22Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "8bc39ccd21b85c093279464c968c6cdd64e4f617",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/8bc39ccd21b85c093279464c968c6cdd64e4f617",
-    "message": "idk, just stuff",
-    "date": "2026-05-09T00:21:23Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
