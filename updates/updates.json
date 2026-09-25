@@ -1,5 +1,13 @@
 [
   {
+    "sha": "efa6249907f6f1ecee527ff03b7f6484a882740f",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/efa6249907f6f1ecee527ff03b7f6484a882740f",
+    "message": "fix: run cloak popup as a real tab instead of about:blank+document.write\n\nThe cloak opened a fresh about:blank window and document.write'd an iframe\nhost, so the site ran twice (opener + popup) and the popup tab was an\nopaque, history-less about:blank shell. On Chromebooks ChromeOS treats such\nbackground popups as discardable under memory pressure and silently\nwhitescreens them - no crash record, matches the reported blank.\n\nOpen the popup directly at the site URL: one real tab, real origin, single\ncopy of the page, and it skips the cloak overlay once opened (sets the\nexisting 1h kw_cloak_skip). The original tab still redirects to the decoy.",
+    "date": "2026-09-25T15:25:47Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "801a21fa7c228e0a1aa666535155585f91b91670",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/801a21fa7c228e0a1aa666535155585f91b91670",
     "message": "perf: remove block-status indicators and their page-load probes\n\nEvery page load fired 30+ network probes (image + fetch per game/site) to\nclassify school hosts as blocked/unblocked, including behind the auth wall\nand on the home screen. Chromebooks (especially with content-filter SSO\nproxies) choke on the burst and ChromeOS blanks the tab.\n\nRemove the block-dot indicators from game cards and site pills, drop all\nscheduleBlockChecks() call sites, and delete the associated CSS. The probe\nroutine is now unreachable dead code and performs zero requests.",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/bdbf6baa2c03ea046a53687784d187a111ad43cd",
     "message": "fix disabling accounts",
     "date": "2026-05-08T22:46:44Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "30e2b05d98ce9e87afe05bed2a1936073fe313b8",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/30e2b05d98ce9e87afe05bed2a1936073fe313b8",
-    "message": "remove thing",
-    "date": "2026-05-08T19:04:07Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
