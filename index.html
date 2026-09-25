@@ -1515,6 +1515,15 @@ function __kwApplySkippedTab() {
   }
   if (skipTs) { try { localStorage.removeItem('kw_cloak_skip'); } catch (e) {} }
   __kwApplySkippedTab();
+  var isChromebook = false;
+  try {
+    if (navigator.userAgentData && navigator.userAgentData.platform) isChromebook = navigator.userAgentData.platform === 'ChromeOS';
+  } catch (e) {}
+  if (!isChromebook && /CrOS/.test(navigator.userAgent)) isChromebook = true;
+  if (isChromebook) {
+    if (overlayEl) overlayEl.classList.add('hidden');
+    return;
+  }
   var seconds = 10;
   var counter = document.getElementById('kw-cloak-count');
   window._kwCloakTimer = setInterval(function () {
