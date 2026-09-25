@@ -1,5 +1,13 @@
 [
   {
+    "sha": "801a21fa7c228e0a1aa666535155585f91b91670",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/801a21fa7c228e0a1aa666535155585f91b91670",
+    "message": "perf: remove block-status indicators and their page-load probes\n\nEvery page load fired 30+ network probes (image + fetch per game/site) to\nclassify school hosts as blocked/unblocked, including behind the auth wall\nand on the home screen. Chromebooks (especially with content-filter SSO\nproxies) choke on the burst and ChromeOS blanks the tab.\n\nRemove the block-dot indicators from game cards and site pills, drop all\nscheduleBlockChecks() call sites, and delete the associated CSS. The probe\nroutine is now unreachable dead code and performs zero requests.",
+    "date": "2026-09-25T15:16:13Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "daeb56ceedd212f551c26ab388065061fc984e18",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/daeb56ceedd212f551c26ab388065061fc984e18",
     "message": "fix: cut pre-login resource spike that blanks Chromebooks\n\nThe login screen loads while the whole site (archive, shop, sites) renders\nhidden behind the auth wall, and the site-wide 'block check' feature fired\n12 concurrent double-probes per game/site for up to 30s on every page load.\nDoubled by the cloak popup class, that spike blows past a Chromebook's\nshared memory/GPU budget and ChromeOS blanks the tab.\n\n- Only run block checks once a user is signed in (no storm behind auth).\n- Re-trigger block checks right after login.\n- Throttle checks to 4 concurrent, 6s probe, 12s per-URL cap.\n- Cloak: location.replace for the decoy redirect so the old heavy page\n  unloads immediately instead of lingering on the back-stack.",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/30e2b05d98ce9e87afe05bed2a1936073fe313b8",
     "message": "remove thing",
     "date": "2026-05-08T19:04:07Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "5416cdc1f533efb0a954807efcb69e26273ac87f",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/5416cdc1f533efb0a954807efcb69e26273ac87f",
-    "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
-    "date": "2026-05-08T16:11:34Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
