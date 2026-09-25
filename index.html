@@ -1531,25 +1531,32 @@ window.__kwCloakNow = function () {
   var statusEl = document.getElementById('kw-cloak-status');
   if (statusEl) statusEl.textContent = '';
   var w = null;
+  var kwIf = null;
+  var wrapUrl = null;
   try {
-    w = window.open('about:blank', '_blank');
+    var src = window.location.href;
+    var safeTitle = String(document.title || '');
+    var safeSrc = String(src).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    var docStr = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + safeTitle + '</title><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{position:fixed;top:0;left:0;width:100vw;height:100vh;border:0;display:block;background:#000;}</style></head><body><iframe id="kw-game" src="' + safeSrc + '" allowfullscreen referrerpolicy="no-referrer"></iframe></body></html>';
+    try { wrapUrl = URL.createObjectURL(new Blob([docStr], { type: 'text/html' })); } catch (e) { wrapUrl = null; }
+    try {
+      w = window.open(wrapUrl ? wrapUrl : 'about:blank', '_blank');
+    } catch (e) { w = null; }
+    if (w) {
+      if (!wrapUrl) {
+        try {
+          w.document.write(docStr);
+          w.document.close();
+        } catch (e) {}
+      }
+    }
   } catch (e) { w = null; }
   if (!w) {
     if (statusEl) statusEl.textContent = 'Popup blocked — click the button again to continue.';
     return false;
   }
   try { w.focus(); } catch (e) {}
-  var kwIf = null;
-  try {
-    var src = window.location.href;
-    var safeTitle = String(document.title || '');
-    var safeSrc = String(src).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + safeTitle + '</title><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{position:fixed;top:0;left:0;width:100vw;height:100vh;border:0;display:block;background:#000;}</style></head><body><iframe id="kw-game" src="' + safeSrc + '" allowfullscreen referrerpolicy="no-referrer"></iframe></body></html>');
-    w.document.close();
-    try { kwIf = w.document.getElementById('kw-game'); } catch (e2) { kwIf = null; }
-  } catch (e) {}
-  try { w.focus(); } catch (e) {}
-  try { if (kwIf) kwIf.focus(); } catch (e) {}
+  try { kwIf = w.document.getElementById('kw-game'); } catch (e) { kwIf = null; }
   var redirectUrl = 'https://google.com';
   try {
     var _kwPresets = null;
