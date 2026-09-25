@@ -2918,5 +2918,81 @@ window.closeProfile = function() {
 <script type="module" src="notifications.js"></script>
 <script type="module" src="auth-flows.js"></script>
 <script type="module" src="payment-wall.js"></script>
+<script>
+(function () {
+  var AKEY = '_kw_cloakAudit';
+  window.__kwAuditBoot = 1;
+  function read() { try { return JSON.parse(localStorage.getItem(AKEY) || 'null'); } catch (e) { return null; } }
+  function write(o) { try { localStorage.setItem(AKEY, JSON.stringify(o)); } catch (e) {} }
+  var framed = window.self !== window.top;
+
+  if (framed) {
+    var t0 = Date.now();
+    var a0 = read() || {};
+    a0.session = 'cloak';
+    a0.t0 = t0;
+    a0.hb = t0;
+    a0.ev = a0.ev || {};
+    write(a0);
+    setInterval(function () {
+      var x = read();
+      if (!x) return;
+      x.hb = Date.now();
+      write(x);
+    }, 1000);
+    function mark(name, e) {
+      var x = read();
+      if (!x) return;
+      var o = { t: Date.now(), sinceOpen: Date.now() - t0 };
+      if (e && typeof e.persisted === 'boolean') o.persisted = e.persisted;
+      x.ev[name] = o;
+      write(x);
+    }
+    window.addEventListener('pagehide', function (e) { mark('pagehide', e); }, true);
+    window.addEventListener('freeze', function () { mark('freeze'); });
+    window.addEventListener('visibilitychange', function () { if (document.hidden) mark('visHidden'); });
+    window.addEventListener('resume', function () {
+      var x = read();
+      if (x && !x.resumed) x.resumed = Date.now();
+      write(x);
+    });
+    return;
+  }
+
+  var a = read();
+  if (!a || a.session !== 'cloak') return;
+  var now = Date.now();
+  var ev = a.ev || {};
+  var ph = ev.pagehide;
+  var disp = (a.displays || 0);
+  if (a.closed) return;
+  var msg = null;
+  if (ph && ph.sinceOpen < 30000) {
+    msg = 'Cloak popup was closed or blanked externally at ~' + Math.round(ph.sinceOpen / 100) / 10 + 's after opening, then the tab was closed. No crash record - filter signature.';
+  } else if (!ph && (a.hb ? now - a.hb > 5000 : true) && now - a.t0 < 300000) {
+    msg = 'Cloak popup stopped without a pagehide event (~' + Math.round((now - a.t0) / 100) / 10 + 's in). Hard kill / OOM, not an external close.';
+  } else if (!ph && now - a.t0 < 300000) {
+    msg = 'Cloak popup ended quietly (age ' + Math.round((now - a.t0) / 100) / 10 + 's).';
+  }
+  if (msg && disp < 3) {
+    var d = document.createElement('div');
+    d.id = 'kw-death-audit';
+    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483000;background:#b45309;color:#fff;font:13px/1.5 system-ui,sans-serif;padding:6px 34px 6px 10px;text-align:left;';
+    d.textContent = 'AUDIT: ' + msg;
+    var cx = document.createElement('span');
+    cx.textContent = 'x';
+    cx.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;';
+    cx.onclick = function () {
+      d.remove();
+      var r = read();
+      if (r) { r.closed = 1; write(r); }
+    };
+    d.appendChild(cx);
+    (document.body || document.documentElement).appendChild(d);
+  }
+  a.displays = disp + 1;
+  write(a);
+})();
+</script>
 </body>
 </html>
