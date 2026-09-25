@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Dashboard</title>
   <link rel="icon" href="https://instructure-uploads.s3.amazonaws.com/account_29340000000000001/attachments/112692/Screen%20Shot%202018-08-20%20at%206.22.27%20PM.png" type="image/x-icon">
-  <script src="tab-config.js" defer></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -989,7 +988,7 @@ window.injectAdminPanels = function() {
       <button class="admin-tab active" onclick="switchAdminTab('games')">🎮 Games</button>
       <button class="admin-tab" onclick="switchAdminTab('game-requests')">📥 Game Requests</button>
       <button class="admin-tab" onclick="switchAdminTab('sites')">Sites</button>
-      <button class="admin-tab" onclick="switchAdminTab('tabcloaks')">🕶️ Tab Cloaks</button>
+      <button class="admin-tab" onclick="switchAdminTab('redirects')">↪ Redirect Presets</button>
     </div>
     <div class="admin-body">
       <div class="admin-section" id="admin-games">
@@ -1011,11 +1010,11 @@ window.injectAdminPanels = function() {
         <button class="admin-add-btn" onclick="adminAddSite()">+ Add Site</button>
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('sites')">Save Sites</button><span class="admin-status" id="status-sites"></span></div>
       </div>
-      <div class="admin-section" id="admin-tabcloaks">
-        <p class="admin-hint" style="margin-bottom:0.75rem;">These are the tab cloak presets shown in the Tab settings. Users still have the custom name/icon option. Each preset needs a name and an icon URL (e.g. a favicon).</p>
-        <div id="ae-tabcloaks-list" class="admin-row-list"></div>
-        <button class="admin-add-btn" onclick="adminAddTabCloak()">+ Add Preset</button>
-        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('tabcloaks')">Save Tab Cloaks</button><span class="admin-status" id="status-tabcloaks"></span></div>
+      <div class="admin-section" id="admin-redirects">
+        <p class="admin-hint" style="margin-bottom:0.75rem;">These are the redirect presets. Each time a user opens the site, the original tab is sent to a randomly-chosen preset after about:blank opens. Users can still set a custom URL that overrides the shuffle. Each preset needs a URL.</p>
+        <div id="ae-redirects-list" class="admin-row-list"></div>
+        <button class="admin-add-btn" onclick="adminAddRedirectPreset()">+ Add Redirect Preset</button>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('redirects')">Save Redirect Presets</button><span class="admin-status" id="status-redirects"></span></div>
       </div>
     </div>
   </div>
@@ -1406,7 +1405,7 @@ window.openAdminPanel = function() {
   renderSitesEditor(data.sites || []);
 
   
-  renderTabCloaksEditor((data.tabCloaks && data.tabCloaks.length) ? data.tabCloaks : (window._tabCloakDefaults || []));
+  renderRedirectPresetsEditor((data.redirectPresets && data.redirectPresets.length) ? data.redirectPresets : (window._redirectPresetDefaults || []));
 
   
   document.querySelectorAll('.admin-status').forEach(el => { el.textContent=''; el.className='admin-status'; });
@@ -1792,31 +1791,35 @@ function renderSitesEditor(items) {
   }).join('');
 }
 
-window._tabCloakDefaults = [
-  { name: "Google", icon: "https://www.google.com/favicon.ico" },
-  { name: "Google Classroom", icon: "https://classroom.google.com/favicon.ico" },
-  { name: "Canvas", icon: "https://canvas.instructure.com/favicon.ico" },
-  { name: "Desmos", icon: "https://www.desmos.com/favicon.ico" },
-  { name: "Khan Academy", icon: "https://www.khanacademy.org/favicon.ico" },
-  { name: "YouTube", icon: "https://www.youtube.com/favicon.ico" }
+window._redirectPresetDefaults = [
+  { name: "Google", url: "https://google.com" },
+  { name: "Google Classroom", url: "https://classroom.google.com" },
+  { name: "Canvas", url: "https://canvas.instructure.com" },
+  { name: "Desmos", url: "https://www.desmos.com" },
+  { name: "Khan Academy", url: "https://www.khanacademy.org" },
+  { name: "YouTube", url: "https://www.youtube.com" }
 ];
-function renderTabCloaksEditor(items) {
-  document.getElementById('ae-tabcloaks-list').innerHTML = items.map(p => `
+function renderRedirectPresetsEditor(items) {
+  document.getElementById('ae-redirects-list').innerHTML = items.map(p => {
+    const url = typeof p === 'string' ? p : (p.url || '');
+    const name = (typeof p === 'string' || !p) ? '' : (p.name || '');
+    return `
     <div class="admin-row-item">
-      <input class="admin-row-input" placeholder="Preset name" value="${escAttr(p.name)}" style="flex:1;" />
-      <input class="admin-row-input" placeholder="Icon URL" value="${escAttr(p.icon)}" style="flex:2;" />
+      <input class="admin-row-input" placeholder="Label (optional)" value="${escAttr(name)}" style="flex:1;" />
+      <input class="admin-row-input" placeholder="https://..." value="${escAttr(url)}" style="flex:2;" />
       <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-window.adminAddTabCloak = function() {
+window.adminAddRedirectPreset = function() {
   const div = document.createElement('div');
   div.className = 'admin-row-item';
   div.innerHTML = `
-    <input class="admin-row-input" placeholder="Preset name" style="flex:1;" />
-    <input class="admin-row-input" placeholder="Icon URL" style="flex:2;" />
+    <input class="admin-row-input" placeholder="Label (optional)" style="flex:1;" />
+    <input class="admin-row-input" placeholder="https://..." style="flex:2;" />
     <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>`;
-  document.getElementById('ae-tabcloaks-list').appendChild(div);
+  document.getElementById('ae-redirects-list').appendChild(div);
 };
 
 window.adminAddSite = function() {
@@ -1867,22 +1870,23 @@ window.adminSave = async function(section) {
         const [n, u] = row.querySelectorAll('input');
         return { name: n.value.trim(), url: u.value.trim(), openInPopup: !!row.querySelector('.site-popup-input')?.checked };
       }).filter(s => s.name);
-    } else if (section === 'tabcloaks') {
+    } else if (section === 'redirects') {
       const seen = new Set();
-      patch.tabCloaks = [...document.querySelectorAll('#ae-tabcloaks-list .admin-row-item')].map(row => {
+      patch.redirectPresets = [...document.querySelectorAll('#ae-redirects-list .admin-row-item')].map(row => {
         const inputs = row.querySelectorAll('input');
-        return { name: inputs[0].value.trim(), icon: inputs[1].value.trim() };
-      }).filter(p => {
-        if (!p.name || !p.icon) return false;
-        const key = p.name.toLowerCase();
+        const u = inputs[1]?.value.trim() || inputs[0].value.trim();
+        return u;
+      }).filter(u => {
+        if (!u || !/^https?:\/\//i.test(u)) return false;
+        const key = u.toLowerCase();
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
       });
-      if (patch.tabCloaks.length) {
-        renderTabCloaksEditor(patch.tabCloaks);
+      if (patch.redirectPresets.length) {
+        renderRedirectPresetsEditor(patch.redirectPresets);
       } else {
-        renderTabCloaksEditor(window._tabCloakDefaults || []);
+        renderRedirectPresetsEditor(window._redirectPresetDefaults || []);
       }
     }
 
