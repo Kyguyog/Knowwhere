@@ -1,5 +1,13 @@
 [
   {
+    "sha": "34880098565f628dcdef329d4981af26e138e26d",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/34880098565f628dcdef329d4981af26e138e26d",
+    "message": "feat: Clipboard Disguise link - paste data: URL to hide the site's URL\n\nAdds a 'Copy Disguise Link' button to the cloak overlay. It base64-encodes\nthe existing wrapper doc into a data:text/html URL, puts it on the\nclipboard (Clipboard API with execCommand fallback, plus a selectable\ntextarea if both are blocked), cancels the 10s auto-open countdown, and\nshows paste instructions. Pasting into the omnibox is user-initiated\nnavigation (allowed, unlike web-initiated data: top-level nav) so the bar\nshows the data: blob instead of the site origin. Toast reveals the built\nURL on window.__kwDataUrl. Extract shared __kwWrapDoc/__kwPickDecoy\nhelpers reused by both cloak paths.",
+    "date": "2026-09-25T16:13:45Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "afc571df90982f59a67f43f97fc15dc3ca875408",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/afc571df90982f59a67f43f97fc15dc3ca875408",
     "message": "revert(cloak): host popup in about:blank again; blob: leaked the origin\n\nblob: URLs are blob:<opener-origin>/<uuid> so the address bar exposed the\nsite origin - rejecting the reason the cloak exists. about:blank hides the\norigin completely. Top-level data: URLs are blocked by Chrome, blob: leaks\nthe origin, about:blank is the only fully-hiding permitted host. Keeping\nthe death audit to keep measuring whether the filter kills it.",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/4a2118437bcab4413169add0181aecd55943143a",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
     "date": "2026-05-09T00:00:34Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "50a69168ddfc28e93a2b0ed7db6ca8d7fe295ca0",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/50a69168ddfc28e93a2b0ed7db6ca8d7fe295ca0",
-    "message": "[idk]",
-    "date": "2026-05-08T23:48:33Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
