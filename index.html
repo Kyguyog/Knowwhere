@@ -1532,24 +1532,14 @@ window.__kwCloakNow = function () {
   if (statusEl) statusEl.textContent = '';
   var w = null;
   try {
-    w = window.open('about:blank', '_blank');
+    w = window.open(window.location.href, '_blank');
   } catch (e) { w = null; }
   if (!w) {
     if (statusEl) statusEl.textContent = 'Popup blocked — click the button again to continue.';
     return false;
   }
   try { w.focus(); } catch (e) {}
-  var kwIf = null;
-  try {
-    var src = window.location.href;
-    var safeTitle = String(document.title || '');
-    var safeSrc = String(src).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + safeTitle + '</title><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{position:fixed;top:0;left:0;width:100vw;height:100vh;border:0;display:block;background:#000;}</style></head><body><iframe id="kw-game" src="' + safeSrc + '" allowfullscreen referrerpolicy="no-referrer"></iframe></body></html>');
-    w.document.close();
-    try { kwIf = w.document.getElementById('kw-game'); } catch (e2) { kwIf = null; }
-  } catch (e) {}
-  try { w.focus(); } catch (e) {}
-  try { if (kwIf) kwIf.focus(); } catch (e) {}
+  try { localStorage.setItem('kw_cloak_skip', String(Date.now())); } catch (e) {}
   var redirectUrl = 'https://google.com';
   try {
     var _kwPresets = null;
@@ -1561,7 +1551,7 @@ window.__kwCloakNow = function () {
     redirectUrl = _kwPresets[Math.floor(Math.random() * _kwPresets.length)];
   } catch (e) {}
   window.location.replace(redirectUrl);
-  setTimeout(function () { try { w.focus(); if (kwIf) kwIf.focus(); } catch (e) {} }, 350);
+  setTimeout(function () { try { w.focus(); } catch (e) {} }, 350);
   return true;
 };
 window.__kwCloakSkip = function () {
