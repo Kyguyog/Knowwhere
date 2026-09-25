@@ -159,7 +159,7 @@ body {
     <div id="unity-fullscreen-button" style="display: none;"></div>
     <script>
       const hideFullScreenButton = "1";
-      const ts1Base = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Time%20Shooter%201-3/assets/ts1";
+      const ts1Base = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Time%20Shooter%201-3/assets/ts1";
 
       const config = {
         dataUrl: ts1Base + "/data.bin.unityweb",
@@ -229,7 +229,7 @@ body {
       canvas.style.background = "url('" + ts1Base + "/background.jpg') center / cover";
       loadingCover.style.display = "";
 
-      const loaderUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Time%20Shooter%201-3/assets/ts1/loader.js";
+      const loaderUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Time%20Shooter%201-3/assets/ts1/loader.js";
       kwEvalScript(loaderUrl).then(() => {
         createUnityInstance(canvas, config, (progress) => {
           spinner.style.display = "none";

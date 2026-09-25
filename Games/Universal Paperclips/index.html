@@ -1,6 +1,10 @@
 <html>
     <head>
-    <link rel="stylesheet" type="text/css" href="titlescreen.css" />
+    <script>
+        fetch("https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Universal%20Paperclips/titlescreen.css").then(function (r) { return r.text(); }).then(function (t) {
+            var s = document.createElement("style"); s.textContent = t; document.head.appendChild(s);
+        }).catch(function (e) { console.error("kw css", e); });
+    </script>
         <!-- Global Site Tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=UA-107491380-1"></script>
         <script>
@@ -18,7 +22,7 @@
     
 <a href=index2.html>    
     
-<img src="title.png" alt="Universal Paperclips" height="355" width="453">
+<img src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Universal%20Paperclips/title.png" alt="Universal Paperclips" height="355" width="453">
 
 
 </a>

@@ -1,6 +1,10 @@
 <html>
     <head>
-        <link rel="stylesheet" type="text/css" href="interface.css" />
+        <script>
+        fetch("https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Universal%20Paperclips/interface.css").then(function (r) { return r.text(); }).then(function (t) {
+            var s = document.createElement("style"); s.textContent = t; document.head.appendChild(s);
+        }).catch(function (e) { console.error("kw css", e); });
+        </script>
     </head>
     
     <body>
@@ -898,10 +902,37 @@
             
             
         </div>
-        <script type="text/javascript" src="combat.js?v2"></script>     
-        <script type="text/javascript" src="globals.js?v2"></script>      
-        <script type="text/javascript" src="projects.js?v2"></script>   
-        <script type="text/javascript" src="main.js?v2"></script>
+        <script>
+        function kwLoadJs(url) {
+            return fetch(url).then(function (r) {
+                if (!r.ok) throw new Error("kw http " + r.status);
+                return r.arrayBuffer();
+            }).then(function (b) {
+                return URL.createObjectURL(new Blob([b], { type: "text/javascript" }));
+            });
+        }
+        function kwEvalScript(url) {
+            return kwLoadJs(url).then(function (obj) {
+                return new Promise(function (res, rej) {
+                    var s = document.createElement("script");
+                    s.onload = res;
+                    s.onerror = function () { rej(new Error("kw exec " + url)); };
+                    s.src = obj;
+                    document.head.appendChild(s);
+                });
+            });
+        }
+        var G = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Universal%20Paperclips/";
+        kwEvalScript(G + "combat.js").then(function () {
+            return kwEvalScript(G + "globals.js");
+        }).then(function () {
+            return kwEvalScript(G + "projects.js");
+        }).then(function () {
+            return kwEvalScript(G + "main.js");
+        }).catch(function (e) {
+            console.error("kw", e);
+        });
+        </script>
         
     </body>
 </html>

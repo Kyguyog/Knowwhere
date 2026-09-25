@@ -3,20 +3,24 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Ragdoll Archers</title>
-<link rel="stylesheet" href="style.css">
+<script>
+    fetch("https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Ragdoll%20Archers/style.css").then(function (r) { return r.text(); }).then(function (t) {
+      var s = document.createElement("style"); s.textContent = t; document.head.appendChild(s);
+    }).catch(function (e) { console.error("kw css", e); });
+</script>
 <body>
 <div id="unity-container" class="unity-desktop">
 <canvas id="unity-canvas"></canvas>
 </div>
 <div id="loading-cover">
 <div id="unity-loading-bar">
-<div id="unity-logo"><img src="logo.jpeg"></div>
+<div id="unity-logo"><img src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Ragdoll%20Archers/logo.jpeg"></div>
 <div class="progress-spinner-container">
-<div class="spinner-left"><img src="spinner.png"></div>
+<div class="spinner-left"><img src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Ragdoll%20Archers/spinner.png"></div>
 <div id="unity-progress-bar-empty">
 <div id="unity-progress-bar-full"></div>
 </div>
-<div class="spinner-right"><img src="spinner.png"></div>
+<div class="spinner-right"><img src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Ragdoll%20Archers/spinner.png"></div>
 </div>
 </div>
 </div>
@@ -40,8 +44,8 @@
         });
       });
     };
-    const buildUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Ragdoll%20Archers/Build";
-    const loaderUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Ragdoll%20Archers/Build/v111.loader.js";
+    const buildUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Ragdoll%20Archers/Build";
+    const loaderUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Ragdoll%20Archers/Build/v111.loader.js";
     const config = {
       dataUrl: buildUrl + "/6697b6deba8b617c67b69c55dcd07cb1.data.unityweb",
       frameworkUrl: buildUrl + "/0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb",

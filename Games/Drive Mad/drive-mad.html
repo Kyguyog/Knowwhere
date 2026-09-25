@@ -5,14 +5,38 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title class="cloak">Drive Mad | MacVG</title>
     <span id="macvgmacvg" name="game75"></span>
-    <link class="favicon" rel="shortcut icon" href="/logo.png" />
+    <link class="favicon" rel="shortcut icon" href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Drive%20Mad/webapp/cover.jpg" />
     <script src="/macvg/cloaker.js"></script>
-    <script type="text/javascript" src="Jump_Gamemonetize.js"></script>
+    <script>
+      window.G = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Drive%20Mad/";
+      window.kwLoadJs = function (url) {
+        return fetch(url).then(function (r) {
+          if (!r.ok) throw new Error("kw http " + r.status);
+          return r.arrayBuffer();
+        }).then(function (b) {
+          return URL.createObjectURL(new Blob([b], { type: "text/javascript" }));
+        });
+      };
+      window.kwEvalScript = function (url) {
+        return kwLoadJs(url).then(function (obj) {
+          return new Promise(function (res, rej) {
+            var s = document.createElement("script");
+            s.onload = res;
+            s.onerror = function () { rej(new Error("kw exec " + url)); };
+            s.src = obj;
+            document.head.appendChild(s);
+          });
+        });
+      };
+      fetch(window.G + "webapp/fancade.css").then(function (r) { return r.text(); }).then(function (t) {
+        var s = document.createElement("style"); s.textContent = t; document.head.appendChild(s);
+      }).catch(function (e) { console.error("kw css", e); });
+      window.kwEvalScript(window.G + "Jump_Gamemonetize.js");
+    </script>
     <script src="/js/main.js"></script>
     <meta name="description" content="" />
     <meta name="google" content="notranslate" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <link rel="stylesheet" href="webapp/fancade.css" />
   </head>
   <body id="body">
     <div id="modal_parent">
@@ -27,7 +51,7 @@
         <div class="edge">
           <div class="box">
             <div class="black">
-              <img src="webapp/cover.jpg" class="cover" />
+              <img src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Drive%20Mad/webapp/cover.jpg" class="cover" />
               <p class="title">Drive Mad</p>
               <p class="author">Martin Magni</p>
             </div>
@@ -40,14 +64,17 @@
       <div id="gradient"></div>
       <div id="webview_content"></div>
     </div>
-    <script type="text/javascript" src="webapp/source_min.js"></script>
     <script>
         var Module = Module || {};
         Module.locateFile = function (path, scriptDirectory) {
-            return "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/Drive%20Mad/webapp/" + path;
+            return "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Drive%20Mad/webapp/" + path;
         };
+        window.kwEvalScript(window.G + "webapp/source_min.js").then(function () {
+            return window.kwEvalScript(window.G + "webapp/index.js");
+        }).catch(function (e) {
+            console.error("kw", e);
+        });
     </script>
-    <script type="text/javascript" src="webapp/index.js"></script>
   <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"25fd471fbb6544449b3ca1f8c1e28143","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>

@@ -78,8 +78,10 @@
 		window.PokiSDK[e] = t.oneArgument(e)
 	}));
 	var o, i = ((o = window.pokiSDKVersion) || (o = e("ab") || "v2.263.0"), "poki-sdk-" + (n ? "kids" : "core") + "-" + o + ".js"),
-		r = document.createElement("script");
-	r.setAttribute("src", i), r.setAttribute("type", "text/javascript"), r.setAttribute("crossOrigin", "anonymous"), r.onload = function() {
+		base = window.KW_GA || "";
+	(window.kwEvalScript ? window.kwEvalScript(base + i) : Promise.reject(new Error("kwEvalScript missing"))).then(function() {
 		return t.dequeue()
-	}, document.head.appendChild(r)
+	}).catch(function(err) {
+		console.error("poki-sdk-core load:", err)
+	})
 })();

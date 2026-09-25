@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Five Nights at Freddy's 1</title>
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/FNAF/images/img_0.png" />
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAF/images/img_0.png" />
     <style>
         html {
             display: block;
@@ -19,7 +19,7 @@
         body {
             position: relative;
             background-color: black;
-            background-image: url(https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/FNAF/images/img_1.png);
+            background-image: url(https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAF/images/img_1.png);
             background-position: center;
             background-size: cover;
             display: flex;
@@ -60,7 +60,7 @@
 
         .glitch {
             position: absolute;
-            background-image: url(https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/FNAF/images/img_6.gif);
+            background-image: url(https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAF/images/img_6.gif);
             background-position: center;
             background-size: 50vw;
             top: 0;
@@ -129,8 +129,8 @@
 <body>
     <canvas id="MMFCanvas" width="1280" height="720"> Your browser does not support Canvas, Please try again.</canvas>
     <div class="selection" id="selection">
-        <img id="title" src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/FNAF/images/img_2.png">
-        <img id="animatronic" src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/FNAF/images/img_3.png">
+        <img id="title" src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAF/images/img_2.png">
+        <img id="animatronic" src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAF/images/img_3.png">
         <div class="loader">
             <h1 id="percentage">0%</h1>
             <hr id="bar">
@@ -138,15 +138,15 @@
             <h3 id="load-warning" style="color: #999; font-weight: lighter; font-size: 1.2vw;">This game may take up to 5 minutes to load. It is most likely not frozen.</h3>
         </div>
         <a href="https://discord.gg/xuu8TnSY4b">
-            <div class="launcher-text"><img src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/FNAF/images/img_4.png" style="width: 45vw;"></div>
+            <div class="launcher-text"><img src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAF/images/img_4.png" style="width: 45vw;"></div>
         </a>
     </div>
     <div class="glitch"></div>
-    <img src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/FNAF/images/img_5.png" class="vignette">
+    <img src="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAF/images/img_5.png" class="vignette">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </body>
 <script>
-var FNAF_CODE_BASE = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/FNAF/code/";
+var FNAF_CODE_BASE = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAF/code/";
 window.__runtimeReady = fetch(FNAF_CODE_BASE + 'runtime.js')
     .then(function (r) {
         if (!r.ok) throw new Error('runtime.js HTTP ' + r.status);
@@ -168,7 +168,7 @@ window.__runtimeReady.catch(function (e) {
 </script>
 <!--Made by irv77-->
 <script>
-    const GITHUB_BASE = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/Games/FNAF/assets/";
+    const GITHUB_BASE = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAF/assets/";
     const parts = 2;
     let gametitle, runtimecanvas
     gametitle = document.title;
