@@ -1,5 +1,13 @@
 [
   {
+    "sha": "172e2402dfa817b4b68b86baab939d54f6db0bde",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/172e2402dfa817b4b68b86baab939d54f6db0bde",
+    "message": "fix(Ragdoll Hit): boot under blob loading; robust progress/reveal\n\nunity-2020.js relied on window.onload which already fired before the\nblob-injected script executed, so the boot (PokiSDK init, loader fetch,\ncreateUnityInstance) never ran. Boot immediately when the page is already\ncomplete, pass a minimal config to createUnityInstance (full w.a config\nsilently stalled the loader), and make the progress/reveal callbacks\nnull-safe so the loader download never aborts.",
+    "date": "2026-09-25T05:36:39Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "a5e907fcc012e0b3741e2f4e097bf47d6ba3a353",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/a5e907fcc012e0b3741e2f4e097bf47d6ba3a353",
     "message": "fix(Drive Mad): run domContentLoaded if DOMContentLoaded already fired under blob loading",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/fcaf75ce43a51ea4d8e99087ff3ee987cca7ec07",
     "message": "[remove] Remove redundant profile pic editor",
     "date": "2026-05-08T16:05:37Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "b6482b1cd8410b2a61f676134716c47641d04033",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/b6482b1cd8410b2a61f676134716c47641d04033",
-    "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
-    "date": "2026-05-08T05:14:42Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
