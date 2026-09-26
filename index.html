@@ -1487,16 +1487,27 @@
 </div>
 </div>
 <script>
+function __kwGetTabConfig() {
+  var cfg = null;
+  try {
+    var raw = localStorage.getItem('kw_tab_config');
+    if (raw) { var p = JSON.parse(raw); if (p && p.name) cfg = p; }
+  } catch (e) {}
+  return cfg;
+}
 function __kwApplySkippedTab() {
   if (window.self !== window.top) return;
   var orig = document.getElementById('kw-orig-title');
   if (!orig) { orig = document.createElement('meta'); orig.id = 'kw-orig-title'; document.head.appendChild(orig); }
   if (!orig.getAttribute('content')) orig.setAttribute('content', document.title || '');
-  document.title = 'My Apps';
+  var cfg = __kwGetTabConfig();
+  var tabName = (cfg && cfg.name) ? String(cfg.name) : 'My Apps';
+  var tabIcon = (cfg && cfg.icon) ? String(cfg.icon) : 'https://myapps.classlink.com/favicon.ico';
+  document.title = tabName;
   var fv = document.querySelector('link[rel="icon"]');
   if (!fv) { fv = document.createElement('link'); fv.rel = 'icon'; document.head.appendChild(fv); }
   if (!fv.getAttribute('data-kw-og')) fv.setAttribute('data-kw-og', fv.getAttribute('href') || '');
-  fv.href = 'https://myapps.classlink.com/favicon.ico';
+  fv.href = tabIcon;
 }
 (function () {
   var inFrame = false;
@@ -1552,6 +1563,8 @@ window.__kwCloakNow = function () {
   try {
     var src = window.location.href;
     var safeTitle = String(document.title || '');
+    var _kwCfg = __kwGetTabConfig();
+    if (_kwCfg && _kwCfg.name) safeTitle = String(_kwCfg.name);
     var safeSrc = String(src).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
     w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + safeTitle + '</title><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{position:fixed;top:0;left:0;width:100vw;height:100vh;border:0;display:block;background:#000;}</style></head><body><iframe id="kw-game" src="' + safeSrc + '" allowfullscreen referrerpolicy="no-referrer"></iframe></body></html>');
     w.document.close();
