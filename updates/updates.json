@@ -1,5 +1,13 @@
 [
   {
+    "sha": "3d9d2d8e4f587de49e8b5bf99e1c141e73fefb72",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/3d9d2d8e4f587de49e8b5bf99e1c141e73fefb72",
+    "message": "feat: restore old tab cloaking on real domains\n\nRe-include tab-config.js (the pre-cloak-rework tab cloak, restored\nverbatim) at end of body. It rewrites tab title + favicon from the saved\nkw_tab_config (default: 'Dashboard' + Canvas SIS icon), overriding the\nhard-coded 'My Apps' in the skip/Chromebook paths so direct top-level\nloads (bypassed cloak or Chromebook) get the old tab cloak back. Gate\napplication to http/https origins only so non-domain hosts (about:blank\npopup wrapper, blob/data) stay untouched.",
+    "date": "2026-09-26T03:49:51Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "37ab7befd91b6e66d101ce00b80e2843d570bcfd",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/37ab7befd91b6e66d101ce00b80e2843d570bcfd",
     "message": "revert: remove Copy Disguise Link feature\n\nRemoves the ghost 'Copy Disguise Link' button, its CSS, and the\n__kwWrapDoc/__kwPickDecoy/__kwDataUrl/__kwCloakCopy helpers, restoring\n__kwCloakNow to its inline about:blank + decoy form. Chromebook branch\n(load directly) unchanged.",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/847545a666a56508b632ff90193dc3ee0fc7f693",
     "message": "[Games] Add and move some games",
     "date": "2026-05-09T07:48:39Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "5bfd112110b1fce2f1c6fec6d0b266828258c7fe",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/5bfd112110b1fce2f1c6fec6d0b266828258c7fe",
-    "message": "Add native ruffle support!",
-    "date": "2026-05-09T05:42:22Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
