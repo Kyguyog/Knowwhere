@@ -1,5 +1,13 @@
 [
   {
+    "sha": "5cca9b7119bef05a6afe14d1bdc615544bf4c9c8",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/5cca9b7119bef05a6afe14d1bdc615544bf4c9c8",
+    "message": "Delete push-2-app_engine.sh",
+    "date": "2026-09-26T04:38:21Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "784e30d25ee59e641ac02f8fb90f402c93f172a7",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/784e30d25ee59e641ac02f8fb90f402c93f172a7",
     "message": "fix: tab preset applied at parse time, not DOMContentLoaded\n\n__kwApplySkippedTab unconditionally set title to 'My Apps' + classlink\nfavicon at parse, and the real preset only landed at DOMContentLoaded via\ntab-config.js (line 3006). With blocking scripts (init.js:2930) between\nthem, a slow load left the wrong title showing for the whole window, and\n__kwCloakNow copied it into the about:blank popup on a fast 'Open Now'.\n\n- __kwApplySkippedTab now reads kw_tab_config synchronously and applies\n  the user's preset (title+favicon) immediately; falls back to My Apps/\n  classlink when no config set.\n- __kwCloakNow derives the popup tab title from kw_tab_config so an\n  instant click can't capture KnowWhere/My Apps.\n- shared __kwGetTabConfig() helper (localStorage, no deps).",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/b50e72749a2e2bd0d5df0b9c04a44d9947374544",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
     "date": "2026-05-09T08:25:33Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "195719d562cfe776f4ba80fc7265d4115dfa4414",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/195719d562cfe776f4ba80fc7265d4115dfa4414",
-    "message": "update another name",
-    "date": "2026-05-09T08:05:50Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
