@@ -40,6 +40,9 @@
 
   // Apply tab configuration
   const applyTabConfig = () => {
+    const proto = window.location.protocol;
+    if (proto !== 'http:' && proto !== 'https:') return;
+
     const userConfig = getUserConfig();
     
     // Use user's custom config if available, otherwise use defaults
