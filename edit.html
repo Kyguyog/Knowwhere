@@ -989,6 +989,7 @@ window.injectAdminPanels = function() {
       <button class="admin-tab" onclick="switchAdminTab('game-requests')">📥 Game Requests</button>
       <button class="admin-tab" onclick="switchAdminTab('sites')">Sites</button>
       <button class="admin-tab" onclick="switchAdminTab('redirects')">↪ Redirect Presets</button>
+      <button class="admin-tab" onclick="switchAdminTab('tabcloaks')">🕶️ Tab Cloaks</button>
     </div>
     <div class="admin-body">
       <div class="admin-section" id="admin-games">
@@ -1015,6 +1016,12 @@ window.injectAdminPanels = function() {
         <div id="ae-redirects-list" class="admin-row-list"></div>
         <button class="admin-add-btn" onclick="adminAddRedirectPreset()">+ Add Redirect Preset</button>
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('redirects')">Save Redirect Presets</button><span class="admin-status" id="status-redirects"></span></div>
+      </div>
+      <div class="admin-section" id="admin-tabcloaks">
+        <p class="admin-hint" style="margin-bottom:0.75rem;">These are the tab cloak presets shown in the Tab settings. Users still have the custom name/icon option. Each preset needs a name and an icon URL (e.g. a favicon).</p>
+        <div id="ae-tabcloaks-list" class="admin-row-list"></div>
+        <button class="admin-add-btn" onclick="adminAddTabCloak()">+ Add Preset</button>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('tabcloaks')">Save Tab Cloaks</button><span class="admin-status" id="status-tabcloaks"></span></div>
       </div>
     </div>
   </div>
@@ -1406,6 +1413,9 @@ window.openAdminPanel = function() {
 
   
   renderRedirectPresetsEditor((data.redirectPresets && data.redirectPresets.length) ? data.redirectPresets : (window._redirectPresetDefaults || []));
+
+  
+  renderTabCloaksEditor((data.tabCloaks && data.tabCloaks.length) ? data.tabCloaks : (window._tabCloakDefaults || []));
 
   
   document.querySelectorAll('.admin-status').forEach(el => { el.textContent=''; el.className='admin-status'; });
@@ -1822,6 +1832,33 @@ window.adminAddRedirectPreset = function() {
   document.getElementById('ae-redirects-list').appendChild(div);
 };
 
+window._tabCloakDefaults = [
+  { name: "Google", icon: "https://www.google.com/favicon.ico" },
+  { name: "Google Classroom", icon: "https://classroom.google.com/favicon.ico" },
+  { name: "Canvas", icon: "https://canvas.instructure.com/favicon.ico" },
+  { name: "Desmos", icon: "https://www.desmos.com/favicon.ico" },
+  { name: "Khan Academy", icon: "https://www.khanacademy.org/favicon.ico" },
+  { name: "YouTube", icon: "https://www.youtube.com/favicon.ico" }
+];
+function renderTabCloaksEditor(items) {
+  document.getElementById('ae-tabcloaks-list').innerHTML = items.map(p => `
+    <div class="admin-row-item">
+      <input class="admin-row-input" placeholder="Preset name" value="${escAttr(p.name)}" style="flex:1;" />
+      <input class="admin-row-input" placeholder="Icon URL" value="${escAttr(p.icon)}" style="flex:2;" />
+      <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
+    </div>`).join('');
+}
+
+window.adminAddTabCloak = function() {
+  const div = document.createElement('div');
+  div.className = 'admin-row-item';
+  div.innerHTML = `
+    <input class="admin-row-input" placeholder="Preset name" style="flex:1;" />
+    <input class="admin-row-input" placeholder="Icon URL" style="flex:2;" />
+    <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>`;
+  document.getElementById('ae-tabcloaks-list').appendChild(div);
+};
+
 window.adminAddSite = function() {
   const div = document.createElement('div');
   div.className = 'admin-row-item';
@@ -1887,6 +1924,23 @@ window.adminSave = async function(section) {
         renderRedirectPresetsEditor(patch.redirectPresets);
       } else {
         renderRedirectPresetsEditor(window._redirectPresetDefaults || []);
+      }
+    } else if (section === 'tabcloaks') {
+      const seen = new Set();
+      patch.tabCloaks = [...document.querySelectorAll('#ae-tabcloaks-list .admin-row-item')].map(row => {
+        const inputs = row.querySelectorAll('input');
+        return { name: inputs[0].value.trim(), icon: inputs[1].value.trim() };
+      }).filter(p => {
+        if (!p.name || !p.icon) return false;
+        const key = p.name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      if (patch.tabCloaks.length) {
+        renderTabCloaksEditor(patch.tabCloaks);
+      } else {
+        renderTabCloaksEditor(window._tabCloakDefaults || []);
       }
     }
 
