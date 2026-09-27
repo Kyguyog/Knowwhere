@@ -430,6 +430,61 @@
     }
     .admin-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
+    /* ── STAFF FORM ── */
+    .staff-q-type-row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+    .staff-q-type-row select { flex: 1; min-width: 160px; cursor: pointer; }
+    .staff-q-tools { display: flex; gap: 0.35rem; }
+    .staff-opt-row { display: flex; gap: 0.4rem; align-items: center; }
+    .staff-opt-row .admin-card-input { flex: 1; min-width: 0; }
+    .staff-q-choice-foot { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .staff-q-choice-foot .admin-add-btn { width: auto; margin-top: 0.15rem; padding: 0.4rem 0.9rem; }
+    .staff-opt-limit { font-size: 0.68rem; color: var(--muted); }
+    .staff-q-error { font-size: 0.7rem; font-weight: 600; color: var(--danger); }
+    .staff-q-card.has-error { border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.04); }
+    .staff-problems {
+      background: var(--danger-dim);
+      border: 1px solid rgba(239,68,68,0.35);
+      border-radius: 8px;
+      padding: 0.7rem 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+    .staff-problems-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--danger); }
+    .staff-problems ul { margin: 0.4rem 0 0 1.1rem; }
+    .staff-problems li { font-size: 0.75rem; color: #fca5a5; line-height: 1.5; margin-bottom: 0.15rem; }
+    .staff-q-card.has-warning { border-color: rgba(245,158,11,0.45); background: rgba(245,158,11,0.04); }
+    .staff-q-card.has-warning .staff-q-error { color: #fbbf24; }
+    .staff-problems.warn { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.35); }
+    .staff-problems.warn .staff-problems-title { color: #fbbf24; }
+    .staff-problems.warn li { color: #fcd34d; }
+    .staff-dirty { font-size: 0.7rem; color: var(--muted); }
+    .staff-dirty.on { color: #fbbf24; }
+    .sq-req-badge {
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.02em;
+      color: var(--primary); background: var(--primary-dim);
+      border: 1px solid rgba(168,85,247,0.3); border-radius: 999px;
+      padding: 0.1rem 0.5rem; white-space: nowrap;
+    }
+    .sq-req-badge.off { color: var(--muted); background: transparent; border-color: var(--border); }
+    .sq-options-btn {
+      font-size: 0.65rem; font-weight: 600; color: var(--muted);
+      background: transparent; border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.15rem 0.5rem; cursor: pointer; white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .sq-options-btn:hover { color: var(--text); border-color: var(--secondary); }
+    .sq-options-btn.on { color: var(--primary); border-color: rgba(168,85,247,0.5); background: var(--primary-dim); }
+    .sq-opts-panel {
+      display: flex; flex-direction: column; gap: 0.6rem;
+      margin-top: 0.55rem; padding: 0.7rem 0.8rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border); border-left: 2px solid rgba(168,85,247,0.45);
+      border-radius: 8px;
+    }
+    .sq-maxlen-wrap { display: flex; flex-direction: column; gap: 0.3rem; }
+    .sq-opt-label { font-size: 0.7rem; font-weight: 600; color: var(--muted); }
+    .sq-maxlen { max-width: 9rem; }
+    .sq-maxlen-hint { font-size: 0.65rem; color: var(--muted); line-height: 1.4; }
+
     /* ── MOBILE ── */
     @media (max-width: 768px) {
       .auth-box { padding: 2rem 1.25rem; }
@@ -580,6 +635,392 @@ window.adminAddCommandLink = function() {
 };
 
 
+// ── Admin: staff form editor ──
+const MAX_STAFF_CHOICES = 4;
+const MIN_STAFF_CHOICES = 2;
+const MAX_STAFF_CHARS = 5000;
+const DEFAULT_STAFF_QUESTIONS = [
+  { id: 'q_why', label: 'Why do you want to join the KnowWhere staff?', type: 'text', required: true, placeholder: 'Tell us why you want to help run the site.' },
+  { id: 'q_skills', label: 'What would you help with?', type: 'choice', required: true, options: ['Game requests', 'Moderation', 'Editing / site content', 'Something else'] },
+  { id: 'q_extra', label: 'Anything else we should know?', type: 'text', required: false, placeholder: 'Availability, experience, links…' }
+];
+
+let _staffEditorBound = false;
+let _staffDirty = false;
+
+function staffNewQuestionId() {
+  return 'q' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+}
+
+function staffType(value) {
+  return value === 'choice' || value === 'multi' ? value : 'text';
+}
+
+function staffOptionRow(value, n) {
+  return `
+    <div class="staff-opt-row">
+      <input class="sq-option admin-card-input" placeholder="Choice ${n}" value="${escAttr(value == null ? '' : value)}" />
+      <button class="admin-row-remove sq-opt-remove" onclick="staffRemoveOption(this)" title="Remove this choice">✕</button>
+    </div>`;
+}
+
+function staffQuestionCard(q, n) {
+  q = q || {};
+  const type = staffType(q.type);
+  const saved = (q.options || []).map(o => String(o == null ? '' : o)).slice(0, MAX_STAFF_CHOICES);
+  // keep the saved choices and pad with blank rows so there is always somewhere to type
+  while (type !== 'text' && saved.length < MIN_STAFF_CHOICES) saved.push('');
+  const rows = (type === 'text' ? [] : saved).map((o, i) => staffOptionRow(o, i + 1)).join('');
+  return `
+  <div class="admin-card-item staff-q-card" data-qid="${escAttr(q.id || staffNewQuestionId())}">
+    <div class="admin-card-header">
+      <span class="admin-card-label">Question ${n}</span>
+      <span class="sq-req-badge"></span>
+      <div class="staff-q-tools">
+        <button class="admin-row-remove" onclick="staffMoveQuestion(this,-1)" title="Move up">↑</button>
+        <button class="admin-row-remove" onclick="staffMoveQuestion(this,1)" title="Move down">↓</button>
+        <button class="sq-options-btn" onclick="staffToggleOptions(this)" aria-expanded="false" aria-controls="sq-opts-${n}">Options</button>
+        <button class="admin-row-remove" onclick="staffRemoveQuestion(this)" title="Delete this question">✕</button>
+      </div>
+    </div>
+    <input class="sq-label admin-card-input" placeholder="Question (e.g. Why do you want to join the staff?)" value="${escAttr(q.label||'')}" />
+    <div class="staff-q-type-row">
+      <select class="sq-type admin-card-input" onchange="staffTypeChanged(this)">
+        <option value="text"${type==='text'?' selected':''}>✏️ Text — they type an answer</option>
+        <option value="choice"${type==='choice'?' selected':''}>◉ Multiple choice — pick one</option>
+        <option value="multi"${type==='multi'?' selected':''}>☑ Multiple answer — pick any</option>
+      </select>
+    </div>
+    <div class="sq-text-wrap">
+      <input class="sq-placeholder admin-card-input" placeholder="Placeholder — text questions only" value="${escAttr(q.placeholder||'')}" />
+    </div>
+    <div class="sq-choice-wrap" style="display:flex;flex-direction:column;gap:0.4rem;">
+      <div class="sq-options" style="display:flex;flex-direction:column;gap:0.4rem;">${rows}</div>
+      <div class="staff-q-choice-foot">
+        <button class="admin-add-btn sq-add-opt" onclick="staffAddOption(this)">+ Add Choice</button>
+        <span class="sq-opt-limit"></span>
+      </div>
+    </div>
+    <div class="sq-opts-panel" id="sq-opts-${n}" style="display:none;">
+      <label class="toggle-wrap" style="margin:0;">
+        <span class="toggle-switch admin-toggle">
+          <input type="checkbox" class="sq-required"${q.required===false?'':' checked'} />
+          <span class="toggle-track"></span>
+        </span>
+        <span class="toggle-label">Required</span>
+      </label>
+      <div class="sq-maxlen-wrap">
+        <span class="sq-opt-label">Character limit</span>
+        <input type="number" class="sq-maxlen admin-card-input" min="0" max="${MAX_STAFF_CHARS}" step="1" inputmode="numeric" placeholder="No limit" value="${q.maxLength ? escAttr(String(q.maxLength)) : ''}" />
+        <span class="sq-maxlen-hint">Text answers only. Leave blank (or 0) for no limit, up to ${MAX_STAFF_CHARS}.</span>
+      </div>
+    </div>
+    <div class="staff-q-error" style="display:none;"></div>
+  </div>`;
+}
+
+// Character limit for a text answer. 0 / blank means "no limit".
+function staffMaxLength(card) {
+  const input = card.querySelector('.sq-maxlen');
+  if (!input) return 0;
+  const n = parseInt(input.value, 10);
+  if (!isFinite(n) || n <= 0) return 0;
+  return Math.min(n, MAX_STAFF_CHARS);
+}
+
+window.staffToggleOptions = function(btn) {
+  const card = btn ? btn.closest('.staff-q-card') : null;
+  if (!card) return;
+  const panel = card.querySelector('.sq-opts-panel');
+  if (!panel) return;
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? '' : 'none';
+  btn.classList.toggle('on', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+};
+
+// Shows/hides the parts of a card that belong to the selected type and keeps
+// the choice list within the 2–4 limits.
+function staffSyncCard(card) {
+  const type = staffType(card.querySelector('.sq-type').value);
+  const textWrap = card.querySelector('.sq-text-wrap');
+  const choiceWrap = card.querySelector('.sq-choice-wrap');
+  const opts = card.querySelector('.sq-options');
+  const addBtn = card.querySelector('.sq-add-opt');
+  const limit = card.querySelector('.sq-opt-limit');
+  if (textWrap) textWrap.style.display = type === 'text' ? '' : 'none';
+  if (choiceWrap) choiceWrap.style.display = type === 'text' ? 'none' : '';
+
+  // A character limit only means anything for a typed answer.
+  const maxWrap = card.querySelector('.sq-maxlen-wrap');
+  if (maxWrap) maxWrap.style.display = type === 'text' ? '' : 'none';
+
+  // Required + limit live in the Options panel, so surface them on the card.
+  const badge = card.querySelector('.sq-req-badge');
+  if (badge) {
+    const required = card.querySelector('.sq-required').checked;
+    const max = staffMaxLength(card);
+    const bits = [required ? 'Required' : 'Optional'];
+    if (type === 'text' && max) bits.push('max ' + max + ' chars');
+    badge.textContent = bits.join(' · ');
+    badge.classList.toggle('off', !required);
+    badge.title = required ? 'Applicants must answer this one' : 'Applicants can skip this one';
+  }
+
+  if (type !== 'text') {
+    while (opts.querySelectorAll('.staff-opt-row').length < MIN_STAFF_CHOICES) {
+      const div = document.createElement('div');
+      div.innerHTML = staffOptionRow('', opts.querySelectorAll('.staff-opt-row').length + 1);
+      opts.appendChild(div.firstElementChild);
+    }
+  }
+  const rows = [...opts.querySelectorAll('.staff-opt-row')];
+  rows.forEach((row, i) => {
+    row.querySelector('.sq-option').placeholder = 'Choice ' + (i + 1);
+    row.querySelector('.sq-opt-remove').style.visibility = rows.length > MIN_STAFF_CHOICES ? 'visible' : 'hidden';
+  });
+  const atMax = rows.length >= MAX_STAFF_CHOICES;
+  if (addBtn) addBtn.style.display = atMax ? 'none' : '';
+  if (limit) limit.textContent = atMax ? MAX_STAFF_CHOICES + ' choices is the max' : rows.length + ' of ' + MAX_STAFF_CHOICES + ' choices';
+}
+
+function staffRenumberQuestions() {
+  const list = document.getElementById('ae-sf-questions');
+  if (!list) return;
+  [...list.querySelectorAll('.staff-q-card')].forEach((card, i) => {
+    const label = card.querySelector('.admin-card-label');
+    if (label) label.textContent = 'Question ' + (i + 1);
+    staffSyncCard(card);
+  });
+}
+
+// Called as staffTypeChanged(this) from the card markup, so the select arrives
+// as the first argument — `this` is only a fallback for direct .call() usage.
+window.staffTypeChanged = function(select) {
+  const input = select || (this && this.closest ? this.closest('.sq-type') : null);
+  const card = input ? input.closest('.staff-q-card') : null;
+  if (!card) return;
+  staffSyncCard(card);
+  staffClearError(card);
+  staffSetDirty(true);
+};
+window.staffQuestionTypeChanged = window.staffTypeChanged;
+
+window.staffAddOption = function(btn) {
+  const card = btn ? btn.closest('.staff-q-card') : null;
+  if (!card) return;
+  const opts = card.querySelector('.sq-options');
+  if (!opts || opts.querySelectorAll('.staff-opt-row').length >= MAX_STAFF_CHOICES) return;
+  const div = document.createElement('div');
+  div.innerHTML = staffOptionRow('', opts.querySelectorAll('.staff-opt-row').length + 1);
+  opts.appendChild(div.firstElementChild);
+  staffSyncCard(card);
+  staffSetDirty(true);
+  opts.lastElementChild.querySelector('.sq-option').focus();
+};
+
+window.staffRemoveOption = function(btn) {
+  const card = btn ? btn.closest('.staff-q-card') : null;
+  if (!card) return;
+  const opts = card.querySelector('.sq-options');
+  if (!opts || opts.querySelectorAll('.staff-opt-row').length <= MIN_STAFF_CHOICES) return;
+  btn.closest('.staff-opt-row').remove();
+  staffSyncCard(card);
+  staffSetDirty(true);
+};
+
+window.staffRemoveQuestion = function(btn) {
+  if (!btn) return;
+  btn.closest('.staff-q-card').remove();
+  staffClearProblems();
+  staffRenumberQuestions();
+  staffSetDirty(true);
+};
+
+window.staffMoveQuestion = function(btn, dir) {
+  const card = btn.closest('.staff-q-card');
+  const list = card.parentElement;
+  let moved = false;
+  if (dir < 0 && card.previousElementSibling) { list.insertBefore(card, card.previousElementSibling); moved = true; }
+  else if (dir > 0 && card.nextElementSibling) { list.insertBefore(card.nextElementSibling, card); moved = true; }
+  if (!moved) return; // a no-op nudge shouldn't look like an edit
+  staffRenumberQuestions();
+  staffSetDirty(true);
+};
+
+window.adminAddStaffQuestion = function() {
+  const list = document.getElementById('ae-sf-questions');
+  const div = document.createElement('div');
+  div.innerHTML = staffQuestionCard({ type: 'text' }, list.querySelectorAll('.staff-q-card').length + 1);
+  list.appendChild(div.firstElementChild);
+  const card = list.lastElementChild;
+  staffRenumberQuestions();
+  card.querySelector('.sq-label').focus();
+  staffSetDirty(true);
+};
+
+function renderStaffFormEditor(form) {
+  form = form || {};
+  document.getElementById('ae-sf-enabled').checked = form.enabled !== false;
+  updateStaffFormLabel();
+  document.getElementById('ae-sf-title').value = form.title || '';
+  document.getElementById('ae-sf-intro').value = form.intro || '';
+  document.getElementById('ae-sf-submit-label').value = form.submitLabel || '';
+  document.getElementById('ae-sf-success').value = form.successMessage || '';
+
+  const list = document.getElementById('ae-sf-questions');
+  const questions = Array.isArray(form.questions)
+    ? form.questions.filter(q => q && String(q.label || '').trim())
+    : DEFAULT_STAFF_QUESTIONS;
+  list.innerHTML = questions.map((q, i) => staffQuestionCard(q, i + 1)).join('');
+  [...list.querySelectorAll('.staff-q-card')].forEach(card => staffSyncCard(card));
+  staffClearProblems();
+  staffSetDirty(false);
+
+  if (!_staffEditorBound) {
+    const section = document.getElementById('admin-staffform');
+    if (section) {
+      // Editing a flagged question clears its flag straight away, so the admin
+      // never stares at a stale "needs fixing" warning they already resolved.
+      const onEdit = e => {
+        staffSetDirty(true);
+        const card = e.target && e.target.closest ? e.target.closest('.staff-q-card') : null;
+        if (!card) return;
+        staffClearError(card);
+        // The badge previews the Options panel, so keep it in step with it.
+        if (e.target.matches('.sq-required, .sq-maxlen')) staffSyncCard(card);
+      };
+      section.addEventListener('input', onEdit);
+      section.addEventListener('change', onEdit);
+      _staffEditorBound = true;
+    }
+  }
+}
+
+window.updateStaffFormLabel = function() {
+  const input = document.getElementById('ae-sf-enabled');
+  const lbl = document.getElementById('ae-sf-enabled-lbl');
+  if (!input || !lbl) return;
+  const on = input.checked;
+  lbl.textContent = on ? 'Enabled' : 'Disabled';
+  lbl.style.color = on ? '#22c55e' : 'var(--muted)';
+};
+
+function staffSetDirty(on) {
+  _staffDirty = on !== false;
+  const el = document.getElementById('ae-sf-dirty');
+  if (!el) return;
+  el.textContent = _staffDirty ? '• unsaved changes' : '';
+  el.classList.toggle('on', _staffDirty);
+}
+
+function staffClearError(card) {
+  if (!card) return;
+  card.classList.remove('has-error', 'has-warning');
+  const err = card.querySelector('.staff-q-error');
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+  // The summary is only worth showing while something is still wrong.
+  const box = document.getElementById('ae-sf-problems');
+  if (box && !document.querySelector('#ae-sf-questions .staff-q-card.has-error')) {
+    box.style.display = 'none';
+    box.innerHTML = '';
+    box.classList.remove('warn');
+  }
+}
+
+function staffClearProblems() {
+  document.querySelectorAll('#ae-sf-questions .staff-q-card').forEach(card => staffClearError(card));
+  const box = document.getElementById('ae-sf-problems');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; box.classList.remove('warn'); }
+}
+
+function staffShowProblems(errors) {
+  document.querySelectorAll('#ae-sf-questions .staff-q-card').forEach(card => staffClearError(card));
+  errors.forEach(e => {
+    if (!e.card) return; // form-level problem (e.g. "add at least one question")
+    e.card.classList.add('has-error');
+    const err = e.card.querySelector('.staff-q-error');
+    if (err) { err.style.display = ''; err.textContent = e.msg; }
+  });
+  const box = document.getElementById('ae-sf-problems');
+  if (!box) return;
+  box.classList.remove('warn');
+  box.innerHTML = `<div class="staff-problems-title">Fix ${errors.length} question${errors.length === 1 ? '' : 's'} before saving</div>
+    <ul>${errors.map(e => `<li><strong>${escHtml(e.title)}</strong> — ${escHtml(e.msg)}</li>`).join('')}</ul>`;
+  box.style.display = 'block';
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Non-blocking notes shown after a successful save (e.g. duplicate labels).
+function staffShowWarnings(warnings) {
+  staffClearProblems();
+  const box = document.getElementById('ae-sf-problems');
+  if (!box || !warnings.length) return;
+  warnings.forEach(w => {
+    if (!w.card) return;
+    w.card.classList.add('has-warning');
+    const err = w.card.querySelector('.staff-q-error');
+    if (err) { err.style.display = ''; err.textContent = w.msg; }
+  });
+  box.innerHTML = `<div class="staff-problems-title">Saved with ${warnings.length} note${warnings.length === 1 ? '' : 's'}</div>
+    <ul>${warnings.map(w => `<li><strong>${escHtml(w.title)}</strong> — ${escHtml(w.msg)}</li>`).join('')}</ul>`;
+  box.classList.add('warn');
+  box.style.display = 'block';
+}
+
+// Reads the editor. Nothing is ever dropped silently: an unfinished question
+// comes back as an error so the admin can finish (or delete) it.
+function collectStaffForm() {
+  const cards = [...document.querySelectorAll('#ae-sf-questions .staff-q-card')];
+  const errors = [];
+  const warnings = [];
+  const questions = [];
+
+  cards.forEach((card, i) => {
+    const title = 'Question ' + (i + 1);
+    const type = staffType(card.querySelector('.sq-type').value);
+    const label = card.querySelector('.sq-label').value.trim();
+    const options = type === 'text'
+      ? []
+      : [...card.querySelectorAll('.sq-option')].map(o => o.value.trim()).filter(Boolean);
+    const dup = label && questions.some(q => q.label.toLowerCase() === label.toLowerCase());
+
+    if (!label) { errors.push({ card, title, msg: 'Add the question text.' }); return; }
+    if (type !== 'text' && options.length < MIN_STAFF_CHOICES) {
+      errors.push({ card, title, msg: 'This question needs at least ' + MIN_STAFF_CHOICES + ' choices (' + options.length + ' filled in).' });
+      return;
+    }
+    // A repeated label is odd but not broken, so it only warns.
+    if (dup) warnings.push({ card, title, msg: 'Another question already says "' + label + '".' });
+
+    questions.push({
+      id:         card.dataset.qid || staffNewQuestionId(),
+      label,
+      type,
+      required:   card.querySelector('.sq-required').checked,
+      placeholder: type === 'text' ? card.querySelector('.sq-placeholder').value.trim() : '',
+      maxLength:  type === 'text' ? staffMaxLength(card) : 0,
+      options:    options.slice(0, MAX_STAFF_CHOICES)
+    });
+  });
+
+  if (!questions.length && !errors.length) errors.push({ card: null, title: 'Form', msg: 'Add at least one question.' });
+
+  return {
+    errors,
+    warnings,
+    form: {
+      enabled: document.getElementById('ae-sf-enabled').checked,
+      title: document.getElementById('ae-sf-title').value.trim(),
+      intro: document.getElementById('ae-sf-intro').value.trim(),
+      submitLabel: document.getElementById('ae-sf-submit-label').value.trim(),
+      successMessage: document.getElementById('ae-sf-success').value.trim(),
+      questions
+    }
+  };
+}
+
+
 // ── Admin: render paywall editor ──
 function renderPaywallEditor(pw) {
   pw = pw || {};
@@ -612,6 +1053,23 @@ window.updatePaywallLabel = function() {
 window.adminSave = async function(section) {
   if (!window._isAdmin) return;
   const statusEl = document.getElementById('status-' + section);
+
+  // Validate the form builder BEFORE locking the UI, so a half-finished
+  // question can never be silently dropped and the Save button can't stick.
+  let staffForm = null;
+  let staffWarnings = [];
+  if (section === 'staffform') {
+    const check = collectStaffForm();
+    if (check.errors.length) {
+      staffShowProblems(check.errors);
+      statusEl.textContent = '✗ ' + check.errors.length + ' question' + (check.errors.length === 1 ? '' : 's') + ' need' + (check.errors.length === 1 ? 's' : '') + ' fixing';
+      statusEl.className = 'admin-status err';
+      return;
+    }
+    staffForm = check.form;
+    staffWarnings = check.warnings || [];
+  }
+
   const btn = document.querySelector('#admin-' + section + ' .admin-save-btn');
   statusEl.textContent = 'Saving...';
   statusEl.className = 'admin-status';
@@ -632,7 +1090,7 @@ window.adminSave = async function(section) {
       patch.banned = [...document.querySelectorAll('#ae-banned-list .admin-row-item')]
         .map(row => row.querySelector('input').value.trim()).filter(Boolean);
     } else if (section === 'command') {
-      patch.command = {
+      patch.command = Object.assign({}, window._siteData?.command || {}, {
         hiring: {
           active:      document.getElementById('ae-hiring-active').value === 'true',
           badge:       document.getElementById('ae-hiring-badge').value.trim(),
@@ -649,7 +1107,11 @@ window.adminSave = async function(section) {
             url
           };
         }).filter(l => l.title)
-      };
+      });
+    } else if (section === 'staffform') {
+      const latest = await window._firestoreGetSiteContent();
+      patch.command = Object.assign({}, latest.command || window._siteData?.command || {}, { staffForm });
+      window._siteData = Object.assign({}, latest, { command: patch.command });
     } else if (section === 'paywall') {
       const disabled = !document.getElementById('ae-paywall-enabled').checked;
       const untilRaw = document.getElementById('ae-paywall-until').value;
@@ -667,6 +1129,8 @@ window.adminSave = async function(section) {
     if (window._adminOriginalData) {
       window._adminOriginalData = Object.assign({}, window._adminOriginalData, JSON.parse(JSON.stringify(patch)));
     }
+
+    if (section === 'staffform') { staffSetDirty(false); staffShowWarnings(staffWarnings); }
 
     statusEl.textContent = '✓ Saved';
     statusEl.className = 'admin-status ok';
@@ -706,6 +1170,7 @@ window.openAdminPanel = function() {
   document.getElementById('ae-hiring-desc').value = h.description || '';
   document.getElementById('ae-hiring-url').value = h.url || '';
   renderCommandLinksEditor(data.command?.links || []);
+  renderStaffFormEditor(data.command?.staffForm);
   renderPaywallEditor(data.paywall);
 
   document.querySelectorAll('.admin-status').forEach(el => { el.textContent=''; el.className='admin-status'; });
@@ -825,10 +1290,11 @@ window.closeAdminPanel = function() {
     mount.innerHTML = `
 <div id="admin-panel">
   <div style="background:#000;width:100%;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
-    <div style="display:flex;border-bottom:1px solid var(--border);background:rgba(168,85,247,0.03);">
+    <div style="display:flex;border-bottom:1px solid var(--border);background:rgba(168,85,247,0.03);overflow-x:auto;flex-shrink:0;">
       <button class="admin-tab" data-tab="shop" onclick="switchAdminTab('shop')" style="color:var(--primary);border-bottom:2px solid var(--primary);">🛒 Shop</button>
       <button class="admin-tab" data-tab="banned" onclick="switchAdminTab('banned')" style="color:var(--muted);border-bottom:2px solid transparent;">🚫 Banned</button>
       <button class="admin-tab" data-tab="command" onclick="switchAdminTab('command')" style="color:var(--muted);border-bottom:2px solid transparent;">⚙️ Command</button>
+      <button class="admin-tab" data-tab="staffform" onclick="switchAdminTab('staffform')" style="color:var(--muted);border-bottom:2px solid transparent;">📝 Staff Form</button>
       <button class="admin-tab" data-tab="paywall" onclick="switchAdminTab('paywall')" style="color:var(--muted);border-bottom:2px solid transparent;">🚪 Paywall</button>
     </div>
     <div id="admin-content">
@@ -856,12 +1322,38 @@ window.closeAdminPanel = function() {
         <div class="admin-field"><label>Badge Label</label><input class="admin-input" id="ae-hiring-badge" /></div>
         <div class="admin-field"><label>Title</label><input class="admin-input" id="ae-hiring-title" /></div>
         <div class="admin-field"><label>Description</label><input class="admin-input" id="ae-hiring-desc" /></div>
-        <div class="admin-field"><label>Form URL</label><input class="admin-input" id="ae-hiring-url" /></div>
+        <div class="admin-field"><label>Form URL</label><input class="admin-input" id="ae-hiring-url" placeholder="/staff.html — the staff sign-up page" /></div>
         <hr class="admin-divider">
         <div class="admin-sublabel">Links</div>
         <div id="ae-command-links-list"></div>
         <button class="admin-add-btn" onclick="adminAddCommandLink()">+ Add Link</button>
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('command')">Save Command</button><span class="admin-status" id="status-command"></span></div>
+      </div>
+      <div class="admin-section" id="admin-staffform">
+        <p class="admin-hint" style="margin-bottom:1rem;">These questions build the staff sign-up page (<a href="/staff.html" target="_blank" rel="noopener" style="color:var(--secondary);">staff.html</a>). Point the Command tab's <strong style="color:var(--text);">Form URL</strong> at <code>/staff.html</code> so the banner button opens the form. Every submission is listed at the bottom of this tab.</p>        <div class="admin-card-item">
+          <div class="admin-field" style="margin-bottom:0;">
+            <label>Accepting Applications</label>
+            <label class="toggle-wrap" style="display:flex;align-items:center;gap:0.55rem;height:32px;margin:0;">
+              <span class="toggle-switch admin-toggle">
+                <input type="checkbox" id="ae-sf-enabled" onchange="updateStaffFormLabel()" />
+                <span class="toggle-track"></span>
+              </span>
+              <span class="toggle-label" id="ae-sf-enabled-lbl">Enabled</span>
+            </label>
+          </div>
+        </div>
+        <div class="admin-field" style="margin-top:1rem;"><label>Page Title</label><input class="admin-input" id="ae-sf-title" placeholder="KnowWhere Staff" /></div>
+        <div class="admin-field"><label>Intro Text</label><textarea class="admin-input" id="ae-sf-intro" rows="2" style="resize:vertical;font-family:var(--font-body);min-height:0;"></textarea></div>
+        <div class="admin-field"><label>Submit Button Label</label><input class="admin-input" id="ae-sf-submit-label" placeholder="Submit Application" /></div>
+        <div class="admin-field"><label>Thank You Message</label><textarea class="admin-input" id="ae-sf-success" rows="2" style="resize:vertical;font-family:var(--font-body);min-height:0;"></textarea></div>
+        <hr class="admin-divider">
+        <div class="admin-sublabel" style="margin-top:0;">Questions</div>
+        <p class="admin-hint" style="margin-bottom:0.75rem;">Each question is either <strong style="color:var(--text);">text</strong> (they type an answer), <strong style="color:var(--text);">multiple choice</strong> (they pick one) or <strong style="color:var(--text);">multiple answer</strong> (they can pick several). Choice questions need 2&ndash;4 choices. Use <strong style="color:var(--text);">Options</strong> on a question to mark it optional or set a character limit on a typed answer.</p>
+        <div id="ae-sf-questions" class="admin-row-list"></div>
+        <button class="admin-add-btn" onclick="adminAddStaffQuestion()">+ Add Question</button>
+        <div class="staff-problems" id="ae-sf-problems" style="display:none;"></div>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('staffform')">Save Form</button><span class="staff-dirty" id="ae-sf-dirty"></span><span class="admin-status" id="status-staffform"></span></div>
+        <p class="admin-hint" style="margin-top:0.9rem;">Submitted applications are listed under <strong style="color:var(--text);">Form Responses</strong> in the admin panel on <code>user.html</code>.</p>
       </div>
       <div class="admin-section" id="admin-paywall">
         <p class="admin-hint" style="margin-bottom:1rem;">Completely disable the <strong style="color:var(--text);">$3/month payment wall</strong> site-wide. Banned users are <strong style="color:var(--text);">still blocked</strong> — this only bypasses the payment gate. Leave "re-enable on" blank to keep it disabled until you change it.</p>

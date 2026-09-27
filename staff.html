@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Staff Application</title>
+<link rel="icon" href="/KnowWhere-Logo-Trans.png" type="image/x-icon"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+    @font-face{font-family:'Orbitron';font-style:normal;font-weight:400 900;font-display:swap;src:url('https://fonts.gstatic.com/s/orbitron/v35/yMJRMIlzdpvBhQQL_Qq7dy0.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --card: #111118;
+      --border: #222230;
+      --primary: #a855f7;
+      --primary-dim: rgba(168,85,247,0.15);
+      --secondary: #22d3ee;
+      --secondary-dim: rgba(34,211,238,0.15);
+      --danger: #ef4444;
+      --danger-dim: rgba(239,68,68,0.12);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --font-display: 'Orbitron', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-top: 56px;
+    }
+
+    /* ── AUTH WALL ── */
+    #auth-wall {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    #auth-wall.hidden { display: none; }
+    #main-content { display: none; }
+    #main-content.visible { display: block; }
+
+    .auth-box {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 2.5rem 2rem; width: 100%; max-width: 420px;
+      box-shadow: 0 0 60px rgba(168,85,247,0.12);
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .auth-logo { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-bottom: 1.75rem; }
+    .auth-logo img { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 0 12px rgba(168,85,247,0.8)); }
+    .auth-logo-name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 900; letter-spacing: 0.05em; }
+    .auth-logo-name span { color: var(--primary); }
+    .auth-tabs { display: flex; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 1.75rem; }
+    .auth-tab { flex: 1; padding: 0.65rem; background: transparent; border: none; color: var(--muted); font-family: var(--font-display); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .auth-tab.active { background: var(--primary-dim); color: var(--primary); border-bottom: 2px solid var(--primary); }
+    .auth-form { width: 100%; display: flex; flex-direction: column; gap: 1rem; }
+    .auth-field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .auth-field label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .auth-field input { width: 100%; background: #0d0d14; border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem 1rem; color: var(--text); font-size: 0.95rem; font-family: var(--font-body); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .auth-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+    .auth-submit { width: 100%; margin-top: 0.5rem; padding: 0.85rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-family: var(--font-display); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 20px rgba(168,85,247,0.35); transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
+    .auth-submit:hover { transform: scale(1.02); box-shadow: 0 0 32px rgba(168,85,247,0.6); }
+    .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .auth-error { width: 100%; background: var(--danger-dim); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 0.65rem 1rem; color: var(--danger); font-size: 0.85rem; display: none; margin-top: 0.25rem; }
+    .auth-error.show { display: block; }
+    #signup-success { color: #22c55e; }
+
+    /* ── PAGE ── */
+    .wrap { max-width: 760px; margin: 0 auto; padding: 2.25rem 1.5rem 4rem; }
+    .page-head { margin-bottom: 1.5rem; }
+    .page-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 900; letter-spacing: 0.05em; }
+    .page-title span { color: var(--primary); }
+    .page-sub { color: var(--muted); font-size: 0.875rem; line-height: 1.6; margin-top: 0.4rem; white-space: pre-wrap; }
+
+    .form-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem 1.75rem;
+      display: flex; flex-direction: column; gap: 1.15rem;
+    }
+
+    .applicant {
+      background: rgba(168,85,247,0.06);
+      border: 1px solid rgba(168,85,247,0.22);
+      border-radius: 10px; padding: 0.9rem 1rem;
+      display: flex; flex-direction: column; gap: 0.35rem;
+    }
+    .applicant-head { font-family: var(--font-display); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.2rem; }
+    .applicant-row { display: flex; gap: 0.6rem; align-items: baseline; font-size: 0.82rem; }
+    .applicant-row span { color: var(--muted); min-width: 74px; }
+    .applicant-row strong { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+
+    .field { display: flex; flex-direction: column; gap: 0.4rem; }
+    /* Room between questions so each one reads as its own block. */
+    #sf-questions { display: flex; flex-direction: column; gap: 1.75rem; }
+    .field-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .field-label .req { color: var(--primary); margin-left: 0.2rem; }
+    .field input[type="text"], .field textarea {
+      width: 100%; background: #0d0d14; color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.65rem 0.85rem; font-size: 0.875rem;
+      font-family: var(--font-body); outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input[type="text"]:focus, .field textarea:focus { border-color: rgba(168,85,247,0.5); }
+    .field textarea { min-height: 110px; resize: vertical; line-height: 1.55; }
+    .field input::placeholder, .field textarea::placeholder { color: #475569; }
+
+    .choices { display: flex; flex-direction: column; gap: 0.4rem; }
+    .choice {
+      display: flex; align-items: center; gap: 0.6rem;
+      background: #0d0d14; border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.6rem 0.8rem; cursor: pointer;
+      font-size: 0.875rem; color: var(--text);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .choice:hover { border-color: rgba(168,85,247,0.4); }
+    .choice input { accent-color: var(--primary); width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+    .choice.selected { border-color: var(--primary); background: var(--primary-dim); }
+    .field-max { color: var(--muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
+    .field-count { margin-top: 0.3rem; font-size: 0.7rem; color: var(--muted); text-align: right; }
+    .field-count.near { color: #fbbf24; }
+
+    .form-foot { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .submit-btn {
+      align-self: flex-start;
+      padding: 0.7rem 1.6rem; background: var(--primary); color: #fff;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-family: var(--font-display); font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .submit-btn:hover { opacity: 0.85; transform: scale(1.02); }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .form-msg { font-size: 0.85rem; line-height: 1.5; }
+    .form-msg.ok { color: #22c55e; }
+    .form-msg.err { color: var(--danger); }
+
+    .notice-box {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.5rem 1.75rem; text-align: center;
+    }
+    .notice-box h2 { font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.04em; margin-bottom: 0.5rem; }
+    .notice-box p { color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
+    .notice-box.ok { border-color: rgba(34,197,94,0.3); }
+    .notice-box.ok h2 { color: #22c55e; }
+    .notice-box svg { margin-bottom: 0.75rem; }
+
+    .answer-list { display: flex; flex-direction: column; gap: 0.85rem; margin-top: 1.25rem; text-align: left; }
+    .answer-item { border-left: 2px solid rgba(168,85,247,0.4); padding-left: 0.75rem; }
+    .answer-q { font-family: var(--font-display); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.25rem; }
+    .answer-a { font-size: 0.85rem; color: var(--text); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+    .loading-state { text-align: center; padding: 3rem; color: var(--muted); font-size: 0.875rem; }
+    .spinner { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(168,85,247,0.2); border-top-color: var(--primary); animation: spin 0.75s linear infinite; margin: 0 auto 0.75rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      .wrap { padding: 1.5rem 1rem 3rem; }
+      .page-title { font-size: 1.1rem; }
+      .form-card { padding: 1.25rem 1rem; }
+      .field textarea { min-height: 90px; }
+      .submit-btn { width: 100%; }
+      .applicant-row { flex-direction: column; gap: 0.1rem; }
+      .auth-box { padding: 1.75rem 1.25rem; }
+    }
+</style>
+</head>
+<body>
+
+<div id="auth-wall"></div>
+<script>window.KW_AUTH_OPTS = { allowUsername: true, signup: true, subtitle: "Staff Application" };</script>
+<script src="auth.js"></script>
+
+<div id="main-content">
+  <script src="nav.js"></script>
+  <script type="module" src="user-menu.js"></script>
+  <script type="module" src="notifications.js"></script>
+  <script type="module" src="auth-flows.js"></script>
+  <script type="module" src="payment-wall.js"></script>
+
+  <div class="wrap">
+    <div class="page-head">
+      <div class="page-title" id="sf-title">KnowWhere <span>Staff</span></div>
+      <div class="page-sub" id="sf-intro">Loading…</div>
+    </div>
+
+    <div class="notice-box" id="sf-closed" style="display:none;">
+      <h2>Applications Closed</h2>
+      <p>The KnowWhere staff form is not accepting applications right now. Check back later.</p>
+    </div>
+
+    <div class="notice-box" id="sf-waiting" style="display:none;">
+      <h2>Application Received</h2>
+      <p id="sf-waiting-text">Your request has been sent to the staff. They will review it and get back to you.</p>
+      <div class="answer-list" id="sf-existing-answers"></div>
+    </div>
+
+    <div class="notice-box ok" id="sf-done" style="display:none;">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <h2>Request Sent</h2>
+      <p id="sf-done-text">Thanks for applying! The staff will review your request.</p>
+    </div>
+
+    <div class="form-card" id="sf-card" style="display:none;">
+      <div class="applicant">
+        <div class="applicant-head">Applicant</div>
+        <div class="applicant-row"><span>Name</span><strong id="sf-applicant-name">—</strong></div>
+        <div class="applicant-row"><span>Username</span><strong id="sf-applicant-user">—</strong></div>
+        <div class="applicant-row"><span>Email</span><strong id="sf-applicant-email">—</strong></div>
+      </div>
+
+      <div id="sf-questions"></div>
+
+      <div class="form-foot">
+        <button class="submit-btn" id="sf-submit">Submit Application</button>
+        <div class="form-msg" id="sf-msg"></div>
+      </div>
+    </div>
+
+    <div class="loading-state" id="sf-loading"><div class="spinner"></div>Loading the form…</div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+  import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB_7DGpmrVotodTuPJDXoZrKrKbkzPhWDw",
+    authDomain: "knowwhere-firebase.firebaseapp.com",
+    projectId: "knowwhere-firebase",
+    storageBucket: "knowwhere-firebase.firebasestorage.app",
+    messagingSenderId: "389831660515",
+    appId: "1:389831660515:web:0bcd3292610b1be0af86d6",
+    measurementId: "G-9LMCC5TS1J"
+  };
+
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const read = window._kwDocRead || getDoc;
+
+  const DEFAULT_FORM = {
+    enabled: true,
+    title: 'KnowWhere Staff',
+    intro: 'Want to help run KnowWhere? Fill out the form below and the staff will review your request.',
+    submitLabel: 'Submit Application',
+    successMessage: 'Thanks for applying! The staff will review your request and get back to you.'
+  };
+
+  let currentUser = null;
+  let formConfig = null;
+  let questions = [];
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function el(id) { return document.getElementById(id); }
+
+  function formatDate(raw) {
+    if (!raw) return '';
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  const MAX_CHOICES = 4;
+  const MAX_CHARS = 5000;
+
+  function normalizeQuestions(raw) {
+    return (raw || [])
+      .filter(q => q && String(q.label || '').trim())
+      .map((q, i) => {
+        const type = q.type === 'choice' || q.type === 'multi' ? q.type : 'text';
+        const options = type === 'text'
+          ? []
+          : (q.options || []).map(o => String(o == null ? '' : o).trim()).filter(Boolean).slice(0, MAX_CHOICES);
+        // A character limit only applies to typed answers; 0 = no limit.
+        const rawMax = Math.floor(Number(q.maxLength));
+        const maxLength = type === 'text' && isFinite(rawMax) && rawMax > 0
+          ? Math.min(rawMax, MAX_CHARS)
+          : 0;
+        return {
+          id: String(q.id || 'q' + (i + 1)),
+          label: String(q.label).trim(),
+          type,
+          required: q.required !== false,
+          placeholder: type === 'text' ? String(q.placeholder || '') : '',
+          maxLength,
+          options
+        };
+      })
+      .filter(q => q.type === 'text' || q.options.length > 0);
+  }
+
+  function normalizeRequest(raw) {
+    return {
+      id: raw.id,
+      email: raw.email || '',
+      username: raw.username || '',
+      fullName: raw.fullName || '',
+      answers: Array.isArray(raw.answers) ? raw.answers : [],
+      submittedAt: raw.submittedAt || raw.submittedAtServer || null
+    };
+  }
+
+  async function fetchUserDoc(email) {
+    const raw = String(email || '').trim();
+    if (!raw) return null;
+    for (const id of [raw, raw.toLowerCase()]) {
+      try {
+        const snap = await read(doc(db, 'users', id));
+        if (snap.exists()) return snap.data();
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  async function loadFormConfig() {
+    try {
+      const snap = await read(doc(db, 'siteContent', 'main'));
+      const data = snap.exists() ? snap.data() : {};
+      return (data.command || {}).staffForm || {};
+    } catch (e) {
+      console.error('Could not load staff form settings:', e);
+      return null;
+    }
+  }
+
+  async function fetchExistingRequest(email) {
+    try {
+      const q = query(collection(db, 'staffRequests'), where('email', '==', email));
+      const snap = await getDocs(q);
+      if (snap.docs.length === 0) return null;
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')));
+      return normalizeRequest(docs[0]);
+    } catch (e) {
+      console.error('Could not check for an existing request:', e);
+      return null;
+    }
+  }
+
+  // ── Rendering ──────────────────────────────────────────────────────────────
+
+  function showClosed() {
+    el('sf-loading').style.display = 'none';
+    el('sf-closed').style.display = 'block';
+  }
+
+  function renderQuestion(q, i) {
+    const id = 'sfq-' + i;
+    const req = q.required ? '<span class="req">*</span>' : '';
+    if (q.type !== 'text') {
+      const inputType = q.type === 'multi' ? 'checkbox' : 'radio';
+      const opts = q.options.map(o => `
+        <label class="choice" data-choice="${id}">
+          <input type="${inputType}" name="${id}" value="${esc(o)}" />
+          <span>${esc(o)}</span>
+        </label>`).join('');
+      return `
+        <div class="field" data-question="${esc(q.id)}">
+          <div class="field-label">${esc(q.label)}${req}${q.type === 'multi' ? ' <span style="text-transform:none;letter-spacing:0;">(pick any)</span>' : ''}</div>
+          <div class="choices" id="${id}">${opts}</div>
+        </div>`;
+    }
+    return `
+      <div class="field" data-question="${esc(q.id)}">
+        <div class="field-label">${esc(q.label)}${req}${q.maxLength ? ` <span class="field-max">max ${q.maxLength} characters</span>` : ''}</div>
+        <textarea id="${id}" data-qid="${esc(q.id)}" placeholder="${esc(q.placeholder)}"${q.maxLength ? ` maxlength="${q.maxLength}"` : ''}></textarea>
+        ${q.maxLength ? `<div class="field-count" data-count-for="${id}">0 / ${q.maxLength}</div>` : ''}
+      </div>`;
+  }
+
+  // Live "12 / 150" counter under a limited text box.
+  function updateCharCount(field) {
+    const q = questions.find(x => x.id === field.dataset.qid);
+    if (!q || !q.maxLength) return;
+    const out = field.parentElement.querySelector('.field-count');
+    if (!out) return;
+    const used = field.value.length;
+    out.textContent = used + ' / ' + q.maxLength;
+    out.classList.toggle('near', used >= q.maxLength * 0.9);
+  }
+
+  function renderAnswers(list) {
+    if (!list.length) return '';
+    return list.map(a => {
+      const value = Array.isArray(a.value) ? a.value.join(', ') : a.value;
+      return `
+      <div class="answer-item">
+        <div class="answer-q">${esc(a.label || 'Question')}</div>
+        <div class="answer-a">${esc(value || '—')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderForm() {
+    el('sf-title').innerHTML = esc(formConfig.title || DEFAULT_FORM.title);
+    el('sf-intro').textContent = formConfig.intro || DEFAULT_FORM.intro;
+    el('sf-submit').textContent = formConfig.submitLabel || DEFAULT_FORM.submitLabel;
+    el('sf-questions').innerHTML = questions.map(renderQuestion).join('');
+    el('sf-msg').textContent = '';
+    el('sf-msg').className = 'form-msg';
+    // A re-render must hand back a usable button, even if a previous send
+    // left it disabled while the network was slow.
+    el('sf-submit').disabled = false;
+    el('sf-submit').textContent = formConfig.submitLabel || DEFAULT_FORM.submitLabel;
+    el('sf-loading').style.display = 'none';
+    el('sf-card').style.display = 'flex';
+
+    document.querySelectorAll('#sf-questions .choice input').forEach(input => {
+      input.addEventListener('change', () => {
+        // Radios are single-pick, so only one stays highlighted. Checkboxes
+        // ("multiple answer") keep every ticked option highlighted.
+        if (input.type === 'radio') {
+          input.closest('.choices').querySelectorAll('.choice')
+            .forEach(l => l.classList.remove('selected'));
+        }
+        input.closest('.choice').classList.toggle('selected', input.checked);
+      });
+    });
+
+    document.querySelectorAll('#sf-questions textarea').forEach(area => {
+      area.addEventListener('input', () => updateCharCount(area));
+      updateCharCount(area);
+    });
+  }
+
+  function renderAlreadyApplied(request) {
+    el('sf-loading').style.display = 'none';
+    const box = el('sf-waiting');
+    const when = formatDate(request.submittedAt);
+    el('sf-waiting-text').textContent = when
+      ? 'You already sent a request on ' + when + '. The staff has it — no need to apply again.'
+      : 'You already sent a request. The staff has it — no need to apply again.';
+    el('sf-existing-answers').innerHTML = renderAnswers(request.answers);
+    box.style.display = 'block';
+  }
+
+  function renderDone() {
+    el('sf-loading').style.display = 'none';
+    el('sf-card').style.display = 'none';
+    el('sf-done-text').textContent = formConfig.successMessage || DEFAULT_FORM.successMessage;
+    el('sf-done').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+
+  function hasAnswer(value) {
+    return Array.isArray(value) ? value.length > 0 : !!String(value || '').trim();
+  }
+
+  function collectAnswers() {
+    return questions.map((q, i) => {
+      let value = '';
+      if (q.type === 'multi') {
+        value = [...document.querySelectorAll('input[name="sfq-' + i + '"]:checked')].map(c => c.value);
+      } else if (q.type === 'choice') {
+        const checked = document.querySelector('input[name="sfq-' + i + '"]:checked');
+        value = checked ? checked.value : '';
+      } else {
+        const ta = el('sfq-' + i);
+        value = ta ? ta.value.trim() : '';
+      }
+      return { id: q.id, label: q.label, type: q.type, value };
+    });
+  }
+
+  async function submit() {
+    const btn = el('sf-submit');
+    const msg = el('sf-msg');
+    msg.textContent = '';
+    msg.className = 'form-msg';
+
+    const answers = collectAnswers();
+    const missing = answers.find(a => {
+      const q = questions.find(x => x.id === a.id);
+      return q && q.required && !hasAnswer(a.value);
+    });
+    if (missing) {
+      msg.textContent = 'Please answer "' + missing.label + '".';
+      msg.className = 'form-msg err';
+      const target = el('sf-questions').querySelector('[data-question="' + CSS.escape(missing.id) + '"]');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Safety net: the box already caps typing, but never send an over-limit answer.
+    const tooLong = answers.find(a => {
+      const q = questions.find(x => x.id === a.id);
+      return q && q.maxLength && String(a.value).length > q.maxLength;
+    });
+    if (tooLong) {
+      const q = questions.find(x => x.id === tooLong.id);
+      msg.textContent = '"' + q.label + '" is limited to ' + q.maxLength + ' characters — yours is ' + String(tooLong.value).length + '.';
+      msg.className = 'form-msg err';
+      const target = el('sf-questions').querySelector('[data-question="' + CSS.escape(tooLong.id) + '"]');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    try {
+      const userData = await fetchUserDoc(currentUser.email);
+      const requestId = currentUser.email.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now();
+      await setDoc(doc(db, 'staffRequests', requestId), {
+        email: currentUser.email,
+        username: (userData && userData.username) || currentUser.displayName || currentUser.email,
+        fullName: (userData && userData.fullName) || currentUser.displayName || currentUser.email,
+        answers: answers.filter(a => hasAnswer(a.value)),
+        status: 'pending',
+        submittedAt: new Date().toISOString()
+      });
+      renderDone();
+    } catch (e) {
+      console.error('Could not send staff request:', e);
+      msg.textContent = e.message || 'Failed to send your request. Try again.';
+      msg.className = 'form-msg err';
+      btn.disabled = false;
+      btn.textContent = formConfig.submitLabel || DEFAULT_FORM.submitLabel;
+    }
+  }
+
+  // ── Auth state ─────────────────────────────────────────────────────────────
+
+  async function start(user) {
+    currentUser = user;
+    const wall = el('auth-wall');
+    wall.classList.add('hidden');
+    el('main-content').classList.add('visible');
+
+    const userData = await fetchUserDoc(user.email);
+    el('sf-applicant-name').textContent = (userData && userData.fullName) || userData?.username || user.displayName || user.email;
+    el('sf-applicant-user').textContent = (userData && userData.username) || user.displayName || user.email;
+    el('sf-applicant-email').textContent = user.email;
+
+    const cfg = await loadFormConfig();
+    if (cfg === null) { showClosed(); return; }
+    formConfig = Object.assign({}, DEFAULT_FORM, cfg);
+    questions = normalizeQuestions(cfg.questions);
+
+    if (formConfig.enabled === false) { showClosed(); return; }
+    if (!questions.length) { showClosed(); return; }
+
+    const existing = await fetchExistingRequest(user.email);
+    if (existing) { renderAlreadyApplied(existing); return; }
+
+    renderForm();
+    el('sf-submit').addEventListener('click', submit);
+  }
+
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      currentUser = null;
+      el('auth-wall').classList.remove('hidden');
+      el('main-content').classList.remove('visible');
+      return;
+    }
+    start(user);
+  });
+</script>
+</body>
+</html>

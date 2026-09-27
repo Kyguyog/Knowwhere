@@ -1810,13 +1810,13 @@ const nt=data.notice||{};document.getElementById('notice-title').textContent=nt.
       </a>`;}).join('');GAMES=data.games||{};buildArchive('');const sitesList=document.getElementById('sites-list');const sl=data.sites||[];sitesList.innerHTML=sl.map(s=>{const safeUrl=(s.url||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const popup=s.openInPopup===true;return`<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="site-pill" data-url="${safeUrl}" ${popup?`data-popup-launch="1" data-track-playtime="1" data-launch-url="${safeUrl}" data-name="${(s.name||'Site').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`:''}>${s.name}${EXT_SVG}</a>`;}).join('');renderShop(data.shop||[]);syncShopVisibility(data.shop||[]);const gv=Object.values(GAMES);const totalGames=gv.reduce((sum,arr)=>sum+(arr||[]).length,0);const totalSites=sl.length;const banned=data.banned||[];const totalBanned=banned.length;const statsGrid=document.getElementById('stats-grid');statsGrid.innerHTML=[{value:totalGames,label:'Total Games'},{value:totalSites,label:'Unblocked Sites'},{value:totalBanned,label:'Banned Users'}].map(s=>`<div class="stat-item">
         <span class="stat-num" data-target="${s.value}">0</span>
         <span class="stat-label">${s.label}</span>
-      </div>`).join('');const cmd=data.command||{};const commandLinks=document.getElementById('command-links');const hiring=cmd.hiring;let hiringHTML='';if(hiring&&hiring.active){hiringHTML=`<a href="${hiring.url}" target="_blank" rel="noopener noreferrer" class="command-link reveal">
+      </div>`).join('');const cmd=data.command||{};const commandLinks=document.getElementById('command-links');const hiring=cmd.hiring;let hiringHTML='';if(hiring&&hiring.active){const staffFormOn=cmd.staffForm&&cmd.staffForm.enabled!==false;const hiringUrl=(hiring.url||'').trim()||(staffFormOn?'/staff.html':'');const hTag=hiringUrl?'a':'div';const hHref=hiringUrl?` href="${hiringUrl}" target="_blank" rel="noopener noreferrer"`:'';hiringHTML=`<${hTag}${hHref} class="command-link reveal">
         <div>
           <h4>${hiring.title}</h4>
           <p>${hiring.description}</p>
         </div>
         <span class="badge-pulse" style="font-size:0.6rem;padding:0.2rem 0.75rem;margin-bottom:0;">${hiring.badge}</span>
-      </a>`;}
+      </${hTag}>`;}
 const cmdLinks=cmd.links||[];commandLinks.innerHTML=hiringHTML+cmdLinks.map(link=>{const hasUrl=link.url&&link.url.trim()!=='';const right=link.status==='soon'?`<span class="coming-soon">Soon</span>`:`${ARROW_SVG}`;const tag=hasUrl?'a':'div';const href=hasUrl?` href="${link.url}" target="_blank" rel="noopener noreferrer"`:'';return`<${tag}${href} class="command-link reveal">
         <div>
           <h4>${link.title}</h4>
