@@ -1,5 +1,13 @@
 [
   {
+    "sha": "cf70e9035d1d9ff050612bc7ef887e144a64f283",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/cf70e9035d1d9ff050612bc7ef887e144a64f283",
+    "message": "perf: cut firebase reads/writes on boot and during play\n\n- add window._kwDocRead: in-flight promise cache (2.5s) keyed by doc\n  path; boot now dedupes siteContent/main (contentSnap + redirect +\n  tab presets + paywall) and users/<email> (activity + username +\n  prefs + favorites) into ~1 real read each. appliable to user-menu\n  loadPrefs/loadRedirectPresets/loadTabCloakPresets and payment-wall\n  fetchUserData/fetchSiteContent.\n- TTL-cache the full users collection scan in the Hall of Shame (5 min).\n- popup playtime autosave 60s -> 5 min (60 -> ~12 writes/hr during\n  site-modal play; close still flushes).\n\nNet: boot ~15 reads -> ~5 single-doc reads (+ the per-collection scan,\nnow amortized), per-hour idle ~50 -> ~15-25.",
+    "date": "2026-09-27T20:39:03Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "5cca9b7119bef05a6afe14d1bdc615544bf4c9c8",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/5cca9b7119bef05a6afe14d1bdc615544bf4c9c8",
     "message": "Delete push-2-app_engine.sh",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/a11d0eddd0eb7ec85ea4c6306b87c887bb2ea10e",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
     "date": "2026-05-09T08:51:09Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "b50e72749a2e2bd0d5df0b9c04a44d9947374544",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/b50e72749a2e2bd0d5df0b9c04a44d9947374544",
-    "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
-    "date": "2026-05-09T08:25:33Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
