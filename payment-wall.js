@@ -24,6 +24,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const kwRead = window._kwDocRead || getDoc;
 
 const isMessagesPage = /\/msg(\.html)?$/.test(window.location.pathname);
 const VENMO_IMG = "/MyVenmoQRCode.png";
@@ -79,7 +80,7 @@ async function fetchUserData(email) {
   if (lower !== raw) ids.push(lower);
   for (const id of ids) {
     try {
-      const snap = await getDoc(doc(db, "users", id));
+      const snap = await kwRead(doc(db, "users", id));
       if (snap.exists()) return snap.data();
     } catch (_) {}
   }
@@ -88,7 +89,7 @@ async function fetchUserData(email) {
 
 async function fetchSiteContent() {
   try {
-    const snap = await getDoc(doc(db, "siteContent", "main"));
+    const snap = await kwRead(doc(db, "siteContent", "main"));
     return snap.exists() ? snap.data() : {};
   } catch (_) {
     return {};
