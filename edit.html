@@ -504,6 +504,7 @@
   </style>
 </head>
 <body>
+<script src="cloak.js?v=2"></script>
 
 
 <div id="auth-wall"></div>
@@ -514,7 +515,7 @@
 <div id="main-content">
 
 <script src="nav.js"></script>
-<script type="module" src="user-menu.js"></script>
+<script type="module" src="user-menu.js?v=2"></script>
   <script type="module" src="notifications.js"></script>
   <script type="module" src="auth-flows.js"></script>
   <script type="module" src="payment-wall.js"></script>
@@ -978,6 +979,14 @@ window._isAdmin = false;
 window._siteData = null;
 window._adminOriginalData = null;
 
+function applyForcedTabRestrictions() {
+  if (window.__kwForcedTab !== true) return;
+  const tab = document.querySelector('.admin-tab[onclick="switchAdminTab(\'redirects\')"]');
+  if (tab) tab.remove();
+  const section = document.getElementById('admin-redirects');
+  if (section) section.remove();
+}
+
 window.injectAdminPanels = function() {
   if (document.getElementById('admin-panel')) return; 
   const mount = document.getElementById('admin-panels-mount');
@@ -1029,8 +1038,7 @@ window.injectAdminPanels = function() {
 
 <div id="approvals-panel" style="display:none;"></div>`;
 
-
-  
+  applyForcedTabRestrictions();
 };
 
 
@@ -1496,6 +1504,7 @@ window.deleteGameRequestEditor = async function(requestId) {
 };
 
 window.switchAdminTab = function(tab) {
+  if (window.__kwForcedTab === true && tab === 'redirects') tab = 'games';
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
   const section = document.getElementById('admin-' + tab);
@@ -1881,6 +1890,7 @@ window.adminAddSite = function() {
 
 window.adminSave = async function(section) {
   if (!window._isAdmin && !window._isEditor) return;
+  if (window.__kwForcedTab === true && section === 'redirects') return;
   const statusEl = document.getElementById('status-' + section);
   const btn = document.querySelector('#admin-' + section + ' .admin-save-btn');
   statusEl.textContent = 'Saving...';
