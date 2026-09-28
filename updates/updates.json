@@ -1,5 +1,13 @@
 [
   {
+    "sha": "648a9f4f0632445202739acf304c42b80d9ff90b",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/648a9f4f0632445202739acf304c42b80d9ff90b",
+    "message": "Fix stuff with about:blank tab",
+    "date": "2026-09-28T05:02:27Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "91d96f951a8d43975f2332d89bddc24faf9290f7",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/91d96f951a8d43975f2332d89bddc24faf9290f7",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/f71b8d27b05bb78b2fae1cfe1a16bd17e3e315bc",
     "message": "[fix] Fix soundboard not pulling audio",
     "date": "2026-05-11T16:45:48Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "2429d61f767b08230edf9aa072c6526c4c3cece6",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/2429d61f767b08230edf9aa072c6526c4c3cece6",
-    "message": "Update index.html",
-    "date": "2026-05-10T18:30:56Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
