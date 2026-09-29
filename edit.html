@@ -1420,10 +1420,10 @@ window.openAdminPanel = function() {
   renderSitesEditor(data.sites || []);
 
   
-  renderRedirectPresetsEditor((data.redirectPresets && data.redirectPresets.length) ? data.redirectPresets : (window._redirectPresetDefaults || []));
+  renderRedirectPresetsEditor(data.redirectPresets || []);
 
   
-  renderTabCloaksEditor((data.tabCloaks && data.tabCloaks.length) ? data.tabCloaks : (window._tabCloakDefaults || []));
+  renderTabCloaksEditor(data.tabCloaks || []);
 
   
   document.querySelectorAll('.admin-status').forEach(el => { el.textContent=''; el.className='admin-status'; });
@@ -1810,14 +1810,6 @@ function renderSitesEditor(items) {
   }).join('');
 }
 
-window._redirectPresetDefaults = [
-  { name: "Google", url: "https://google.com" },
-  { name: "Google Classroom", url: "https://classroom.google.com" },
-  { name: "Canvas", url: "https://canvas.instructure.com" },
-  { name: "Desmos", url: "https://www.desmos.com" },
-  { name: "Khan Academy", url: "https://www.khanacademy.org" },
-  { name: "YouTube", url: "https://www.youtube.com" }
-];
 function renderRedirectPresetsEditor(items) {
   document.getElementById('ae-redirects-list').innerHTML = items.map(p => {
     const url = typeof p === 'string' ? p : (p.url || '');
@@ -1841,14 +1833,6 @@ window.adminAddRedirectPreset = function() {
   document.getElementById('ae-redirects-list').appendChild(div);
 };
 
-window._tabCloakDefaults = [
-  { name: "Google", icon: "https://www.google.com/favicon.ico" },
-  { name: "Google Classroom", icon: "https://classroom.google.com/favicon.ico" },
-  { name: "Canvas", icon: "https://canvas.instructure.com/favicon.ico" },
-  { name: "Desmos", icon: "https://www.desmos.com/favicon.ico" },
-  { name: "Khan Academy", icon: "https://www.khanacademy.org/favicon.ico" },
-  { name: "YouTube", icon: "https://www.youtube.com/favicon.ico" }
-];
 function renderTabCloaksEditor(items) {
   document.getElementById('ae-tabcloaks-list').innerHTML = items.map(p => `
     <div class="admin-row-item">
@@ -1930,11 +1914,7 @@ window.adminSave = async function(section) {
         seen.add(key);
         return true;
       });
-      if (patch.redirectPresets.length) {
-        renderRedirectPresetsEditor(patch.redirectPresets);
-      } else {
-        renderRedirectPresetsEditor(window._redirectPresetDefaults || []);
-      }
+      renderRedirectPresetsEditor(patch.redirectPresets);
     } else if (section === 'tabcloaks') {
       const seen = new Set();
       patch.tabCloaks = [...document.querySelectorAll('#ae-tabcloaks-list .admin-row-item')].map(row => {
@@ -1947,11 +1927,7 @@ window.adminSave = async function(section) {
         seen.add(key);
         return true;
       });
-      if (patch.tabCloaks.length) {
-        renderTabCloaksEditor(patch.tabCloaks);
-      } else {
-        renderTabCloaksEditor(window._tabCloakDefaults || []);
-      }
+      renderTabCloaksEditor(patch.tabCloaks);
     }
 
     await window._firestoreUpdate(patch);

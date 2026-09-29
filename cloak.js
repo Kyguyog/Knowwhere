@@ -110,17 +110,16 @@
     } catch (e) {}
     try { w.focus(); } catch (e) {}
     try { if (kwIf) kwIf.focus(); } catch (e) {}
-    var redirectUrl = 'https://google.com';
+    var redirectUrl = null;
     try {
       var _kwPresets = null;
       try {
         var _kp = localStorage.getItem('kw_redirect_presets');
         if (_kp) { var _parsed = JSON.parse(_kp); if (Array.isArray(_parsed) && _parsed.length) _kwPresets = _parsed; }
       } catch (e2) {}
-      if (!_kwPresets) _kwPresets = ['https://google.com', 'https://classroom.google.com', 'https://canvas.instructure.com', 'https://www.desmos.com', 'https://www.khanacademy.org', 'https://www.youtube.com'];
-      redirectUrl = _kwPresets[Math.floor(Math.random() * _kwPresets.length)];
+      if (_kwPresets && _kwPresets.length) redirectUrl = _kwPresets[Math.floor(Math.random() * _kwPresets.length)];
     } catch (e) {}
-    try { window.location.replace(redirectUrl); } catch (e) {}
+    try { if (redirectUrl) window.location.replace(redirectUrl); } catch (e) {}
     [350, 1200, 3000, 6000].forEach(function (ms) {
       setTimeout(function () { try { w.focus(); if (kwIf) kwIf.focus(); } catch (e) {} }, ms);
     });
