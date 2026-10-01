@@ -16,7 +16,7 @@
             position: relative;
         }
         #unity-canvas {
-            width: 960px; height: 540px;
+            width: 100%; height: 100%;
             max-width: 100vw; max-height: 100vh;
             background: #000;
             cursor: default;
@@ -85,36 +85,62 @@
         var buildUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/game-assets/FNAE/build";
         var loaderUrl = buildUrl + "/WebGL.loader.js";
 
-        var config = {
-            dataUrl: buildUrl + "/WebGL.data",
-            frameworkUrl: buildUrl + "/WebGL.framework.js",
-            codeUrl: buildUrl + "/WebGL.wasm",
-            streamingAssetsUrl: "/StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "ExportedProject",
-            productVersion: "2.2",
-            showBanner: unityShowBanner,
-            startupErrorHandler: function(msg, url, line) {
-                if (console && console.warn) console.warn(msg);
-            },
-        };
-
-        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            var meta = document.createElement("meta");
-            meta.name = "viewport";
-            meta.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
-            document.getElementsByTagName("head")[0].appendChild(meta);
-            container.className = "unity-mobile";
-            canvas.className = "unity-mobile";
+        async function mergeDataParts(parts) {
+            const buffers = [];
+            for (let i = 0; i < parts.length; i++) {
+                const r = await fetch(parts[i]);
+                if (!r.ok) throw new Error("HTTP " + r.status + " for " + parts[i]);
+                buffers.push(await r.arrayBuffer());
+            }
+            return URL.createObjectURL(new Blob(buffers));
+        }
+        async function fetchJsAsBlobUrl(url) {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            const t = await r.text();
+            return URL.createObjectURL(new Blob([t], {type: "application/javascript"}));
+        }
+        async function fetchWasmAsUrl(url) {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            const b = await r.blob();
+            return URL.createObjectURL(b);
         }
 
-        loadingBar.style.display = "block";
+        (async function() {
+            var config = {
+                dataUrl: await mergeDataParts([
+                    buildUrl + "/WebGL.data.partaa",
+                    buildUrl + "/WebGL.data.partab"
+                ]),
+                frameworkUrl: await fetchJsAsBlobUrl(buildUrl + "/WebGL.framework.js"),
+                codeUrl: await fetchWasmAsUrl(buildUrl + "/WebGL.wasm"),
+                streamingAssetsUrl: "/StreamingAssets",
+                companyName: "DefaultCompany",
+                productName: "ExportedProject",
+                productVersion: "2.2",
+                showBanner: unityShowBanner,
+                startupErrorHandler: function(msg, url, line) {
+                    if (console && console.warn) console.warn(msg);
+                },
+            };
 
-        var _alert = window.alert;
-        window.alert = function() {};
-        fetch(loaderUrl).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); }).then(function(t){
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                var meta = document.createElement("meta");
+                meta.name = "viewport";
+                meta.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
+                document.getElementsByTagName("head")[0].appendChild(meta);
+                container.className = "unity-mobile";
+                canvas.className = "unity-mobile";
+            }
+
+            loadingBar.style.display = "block";
+
+            var _alert = window.alert;
+            window.alert = function() {};
+            const loaderText = await (await fetch(loaderUrl)).text();
             var script = document.createElement("script");
-            script.src = URL.createObjectURL(new Blob([t], {type: "application/javascript"}));
+            script.src = URL.createObjectURL(new Blob([loaderText], {type: "application/javascript"}));
             script.onload = function() {
                 createUnityInstance(canvas, config, function(progress) {
                     progressBarFull.style.width = (100 * progress) + "%";
@@ -129,24 +155,7 @@
                 });
             };
             document.body.appendChild(script);
-        }).catch(function(e){ alert("Failed to load Unity loader"); console.error(e); });
-
-        // Maintain 16:9 aspect ratio
-        function resizeCanvas() {
-            var w = window.innerWidth;
-            var h = window.innerHeight;
-            var targetRatio = 16 / 9;
-            var currentRatio = w / h;
-            if (currentRatio > targetRatio) {
-                canvas.style.width = (h * targetRatio) + "px";
-                canvas.style.height = h + "px";
-            } else {
-                canvas.style.width = w + "px";
-                canvas.style.height = (w / targetRatio) + "px";
-            }
-        }
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas();
+        })();
     </script>
 </body>
 </html>
