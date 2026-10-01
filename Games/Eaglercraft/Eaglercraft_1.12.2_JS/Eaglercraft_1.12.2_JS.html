@@ -65,7 +65,7 @@
                 const script = document.createElement('script');
                 script.type = 'text/javascript';
                 
-                fetch(url)
+                nativeFetch(url)
                     .then(response => {
                         if (!response.ok) throw new Error("Network issue pulling from GitHub repository");
                         return response.text();

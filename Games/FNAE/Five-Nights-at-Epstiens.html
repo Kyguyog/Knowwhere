@@ -112,22 +112,24 @@
 
         var _alert = window.alert;
         window.alert = function() {};
-        var script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = function() {
-            createUnityInstance(canvas, config, function(progress) {
-                progressBarFull.style.width = (100 * progress) + "%";
-                loadingText.innerText = "Loading... " + Math.round(100 * progress) + "%";
-            }).then(function(unityInstance) {
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = function() {
-                    unityInstance.SetFullscreen(1);
-                };
-            }).catch(function(message) {
-                alert(message);
-            });
-        };
-        document.body.appendChild(script);
+        fetch(loaderUrl).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); }).then(function(t){
+            var script = document.createElement("script");
+            script.src = URL.createObjectURL(new Blob([t], {type: "application/javascript"}));
+            script.onload = function() {
+                createUnityInstance(canvas, config, function(progress) {
+                    progressBarFull.style.width = (100 * progress) + "%";
+                    loadingText.innerText = "Loading... " + Math.round(100 * progress) + "%";
+                }).then(function(unityInstance) {
+                    loadingBar.style.display = "none";
+                    fullscreenButton.onclick = function() {
+                        unityInstance.SetFullscreen(1);
+                    };
+                }).catch(function(message) {
+                    alert(message);
+                });
+            };
+            document.body.appendChild(script);
+        }).catch(function(e){ alert("Failed to load Unity loader"); console.error(e); });
 
         // Maintain 16:9 aspect ratio
         function resizeCanvas() {
