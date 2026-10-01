@@ -21,10 +21,9 @@
         window.fetch = function(...args) {
             let url = args[0];
             if (typeof url === 'string') {
-                // If the game tries to download any game asset chunks, force the GitHub path
-                if (url.includes('asset_0.bin')) {
+                if (url.includes('asset_0.bin') || url.endsWith('/asset_0.bin') || url.endsWith('asset_0.bin')) {
                     args[0] = repoBase + 'asset_0.bin';
-                } else if (url.includes('asset_1.bin')) {
+                } else if (url.includes('asset_1.bin') || url.endsWith('asset_1.bin')) {
                     args[0] = repoBase + 'asset_1.bin';
                 } else if (url.includes('assets.epk')) {
                     args[0] = repoBase + 'assets.epk';
@@ -48,6 +47,8 @@
     <!-- The Final Pure GitHub WASM-GC Dynamic Executor -->
     <script type="text/javascript">
         // Standard option layout matching original configurations
+        var relayId = Math.floor(Math.random() * 3);
+
         window.eaglercraftXOpts = {
             container: "game_frame", 
             worldsDB: "worlds",
@@ -60,6 +61,8 @@
                 { addr: "wss://tuff.ws", name: "TuffNET" }	
             ]
         };
+
+        window.eaglercraftXOpts.assetsURI = repoBase + "asset_0.bin";
 
         const scriptFiles = ["script_0.js", "script_1.js", "script_2.js"];
 

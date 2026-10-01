@@ -1,6 +1,6 @@
 "use strict";
 (function(){
-	window.eaglercraftXOpts.assetsURI = "assets/asset_0.bin";
+	window.eaglercraftXOpts.assetsURI = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/game-assets/Eaglercraft/Tuff/assets/asset_0.bin";
 
 	var launchInterval = -1;
 	var launchCounter = 1;
