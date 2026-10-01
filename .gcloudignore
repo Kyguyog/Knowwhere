@@ -90,3 +90,11 @@ Games/Stickman Hook/code/
 
 # ULTRAKILL - Unity build parts stream from GitHub raw (entry stays)
 Games/UltraKill/assets/
+# Eaglercraft 1.8 Shaders - assets stream from GitHub raw
+Games/Eaglercraft/Eaglercraft_1.8_Shaders/assets/
+
+# Tuff Eaglercraft - assets stream from GitHub raw
+Games/Eaglercraft/Tuff/assets/
+
+# FNAE - Unity build streams from GitHub raw (entry stays)
+Games/FNAE/build/
