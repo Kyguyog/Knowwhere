@@ -1,5 +1,13 @@
 [
   {
+    "sha": "030281a91fddc56a5b425774bbe5b137851188e4",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/030281a91fddc56a5b425774bbe5b137851188e4",
+    "message": "Revise README for clarity and detail\n\nUpdated the README with a clearer and more polished description of the game site, including its features and current status.",
+    "date": "2026-10-03T00:26:49Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "045c9907bc31ba78903b3cfa0f5b8ee6dd89a0a0",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/045c9907bc31ba78903b3cfa0f5b8ee6dd89a0a0",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/1177e3eb4eacad6448b0646eea177c2f73011b7a",
     "message": "Add idle breakout",
     "date": "2026-05-14T02:10:38Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "55e6f4d8924063d1513603e637ff410cccdc4f3f",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/55e6f4d8924063d1513603e637ff410cccdc4f3f",
-    "message": "Merge branch 'main' of https://github.com/Kyguyog/kyguyog.github.io",
-    "date": "2026-05-12T04:34:36Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
