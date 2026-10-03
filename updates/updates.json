@@ -1,5 +1,13 @@
 [
   {
+    "sha": "162fdc91ae5bda4f457e149e6e3b5704e72c397f",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/162fdc91ae5bda4f457e149e6e3b5704e72c397f",
+    "message": "Revise README content for better readability\n\nReworded the README to improve clarity and fix formatting issues.",
+    "date": "2026-10-03T00:30:51Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "030281a91fddc56a5b425774bbe5b137851188e4",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/030281a91fddc56a5b425774bbe5b137851188e4",
     "message": "Revise README for clarity and detail\n\nUpdated the README with a clearer and more polished description of the game site, including its features and current status.",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/65460be18eb6eb65c357059910a1c07bddc681ed",
     "message": "Beta stuff (likely to be rolled back or updated))",
     "date": "2026-05-14T02:43:13Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "1177e3eb4eacad6448b0646eea177c2f73011b7a",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/1177e3eb4eacad6448b0646eea177c2f73011b7a",
-    "message": "Add idle breakout",
-    "date": "2026-05-14T02:10:38Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
