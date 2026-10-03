@@ -1,3 +1,6 @@
+> [!NOTE]
+> THIS IS ALMOST ENTIRELY VIBE-CODED
+
 AI Re-Worded:
 This is a game site I made last year with a friend. It’s currently 100% static-hosted (not by choice 😭), so spinning up a local instance is super easy—but it has basically zero security, and proxies aren’t possible.
 
