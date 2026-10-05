@@ -90,7 +90,7 @@
 
             fetch(src, { signal: controller.signal, cache: "no-store" })
                 .then(function (response) {
-                    if (!response.ok) throw new Error("GitHub returned HTTP " + response.status);
+                    if (!response.ok) throw new Error("HTTP " + response.status + " from the server");
                     return response.text();
                 })
                 .then(function (html) {

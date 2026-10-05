@@ -48,6 +48,18 @@
         #unity-warning { position: absolute; top: 5%; left: 50%; transform: translateX(-50%);
             background: #a00; color: #fff; padding: 10px 20px;
             font-family: monospace; font-size: 14px; border-radius: 6px; display: none; }
+        #unity-fatal { display: none; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); max-width: 640px; width: min(92vw, 640px);
+            background: #1a0000; border: 1px solid #a00; border-radius: 8px;
+            color: #e88; padding: 14px 18px; font-family: monospace; font-size: 13px;
+            line-height: 1.5; z-index: 10; }
+        #unity-fatal-title { color: #ff6b6b; font-weight: bold; margin-bottom: 8px; }
+        #unity-fatal-detail { color: #c88; word-break: break-word; }
+        #unity-fatal a { color: #ffd700; }
+        #unity-retry { margin-top: 12px; padding: 6px 14px; background: #222;
+            border: 1px solid #555; border-radius: 6px; color: #ddd; font: inherit;
+            font-size: 13px; cursor: pointer; }
+        #unity-retry:hover { background: #2c2c2c; }
     </style>
 </head>
 <body>
@@ -63,8 +75,13 @@
             <svg viewBox="0 0 24 24"><path d="M5 5h5V3H3v7h2V5zm9-2v2h5v5h2V3h-7zm7 14h-2v5h-5v2h7v-7zM5 19v-5H3v7h7v-2H5z"/></svg>
         </div>
         <div id="unity-warning"></div>
+        <div id="unity-fatal">
+            <div id="unity-fatal-title">FNAE failed to load</div>
+            <div id="unity-fatal-detail"></div>
+            <button id="unity-retry" type="button">Retry</button>
+        </div>
     </div>
-    <script>
+<script>
         var container = document.querySelector("#unity-container");
         var canvas = document.querySelector("#unity-canvas");
         var loadingBar = document.querySelector("#unity-loading-bar");
@@ -72,6 +89,9 @@
         var loadingText = document.querySelector("#loading-text");
         var fullscreenButton = document.querySelector("#unity-fullscreen-button");
         var warningBanner = document.querySelector("#unity-warning");
+        var fatalBox = document.querySelector("#unity-fatal");
+        var fatalDetail = document.querySelector("#unity-fatal-detail");
+        var retryButton = document.querySelector("#unity-retry");
 
         function unityShowBanner(msg, type) {
             warningBanner.style.display = "block";
@@ -83,80 +103,254 @@
         }
 
         var buildUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/game-assets/FNAE/build";
-        var loaderUrl = buildUrl + "/WebGL.loader.js";
 
-        async function mergeDataParts(parts) {
-            const buffers = [];
-            for (let i = 0; i < parts.length; i++) {
-                const r = await fetch(parts[i]);
-                if (!r.ok) throw new Error("HTTP " + r.status + " for " + parts[i]);
-                buffers.push(await r.arrayBuffer());
+        // raw.githubusercontent serves this build as text/plain + nosniff, so none of it can
+        // be pointed at directly: the loader/framework have to execute as script, the wasm
+        // needs an application/wasm blob for instantiateStreaming, and Emscripten wants one
+        // .data file rather than the two parts GitHub's 100MB limit forced us into.
+        // So everything is pulled into memory and handed to Unity as blob: URLs.
+        var DATA_PARTS = ["WebGL.data.partaa", "WebGL.data.partab"];
+        var FRAMEWORK_FILE = "WebGL.framework.js";
+        var LOADER_FILE = "WebGL.loader.js";
+        var WASM_FILE = "WebGL.wasm";
+
+        // The build is ~160MB across 5 requests. Connections to raw.githubusercontent get reset
+        // mid-body often enough that a single failure is normal rather than fatal - it shows
+        // up as a bare "TypeError: Failed to fetch" even though the 200 arrived on the wire -
+        // so every fetch retries with backoff and a cache-busting URL, which also shakes off
+        // a half-cached edge response.
+        var RETRY_DELAYS_MS = [0, 1200, 3000, 7000, 12000];
+        var FETCH_TIMEOUT_MS = 120000;
+
+        var totalBytes = 0;
+        var receivedBytes = 0;
+        var objectUrls = [];
+
+        function fmtBytes(n) {
+            if (!n) return "?";
+            return (n / 1048576).toFixed(n < 10485760 ? 1 : 0) + " MB";
+        }
+
+        function report(label, done, total) {
+            if (totalBytes > 0) {
+                progressBarFull.style.width =
+                    Math.min(100, 100 * (receivedBytes + done) / totalBytes) + "%";
             }
-            return URL.createObjectURL(new Blob(buffers));
-        }
-        async function fetchJsAsBlobUrl(url) {
-            const r = await fetch(url);
-            if (!r.ok) throw new Error("HTTP " + r.status);
-            const t = await r.text();
-            return URL.createObjectURL(new Blob([t], {type: "application/javascript"}));
-        }
-        async function fetchWasmAsUrl(url) {
-            const r = await fetch(url);
-            if (!r.ok) throw new Error("HTTP " + r.status);
-            const b = await r.blob();
-            return URL.createObjectURL(b);
+            loadingText.innerText = "Downloading " + label + " - " + fmtBytes(done) +
+                (total ? " of " + fmtBytes(total) : "");
         }
 
-        (async function() {
-            var config = {
-                dataUrl: await mergeDataParts([
-                    buildUrl + "/WebGL.data.partaa",
-                    buildUrl + "/WebGL.data.partab"
-                ]),
-                frameworkUrl: await fetchJsAsBlobUrl(buildUrl + "/WebGL.framework.js"),
-                codeUrl: await fetchWasmAsUrl(buildUrl + "/WebGL.wasm"),
-                streamingAssetsUrl: "/StreamingAssets",
-                companyName: "DefaultCompany",
-                productName: "ExportedProject",
-                productVersion: "2.2",
-                showBanner: unityShowBanner,
-                startupErrorHandler: function(msg, url, line) {
-                    if (console && console.warn) console.warn(msg);
-                },
-            };
+        function showFatal(message) {
+            loadingBar.style.display = "none";
+            fatalDetail.innerHTML = message;
+            fatalBox.style.display = "block";
+        }
 
-            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                var meta = document.createElement("meta");
-                meta.name = "viewport";
-                meta.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
-                document.getElementsByTagName("head")[0].appendChild(meta);
-                container.className = "unity-mobile";
-                canvas.className = "unity-mobile";
+        function clearFatal() {
+            fatalBox.style.display = "none";
+            fatalDetail.textContent = "";
+        }
+
+        function trackBlob(blob) {
+            var url = URL.createObjectURL(blob);
+            objectUrls.push(url);
+            return url;
+        }
+
+        function releaseBlobs() {
+            while (objectUrls.length) URL.revokeObjectURL(objectUrls.pop());
+        }
+
+        // Streams the body so the bar actually moves during the 95MB data part instead of
+        // sitting at 0%, and hands the chunks straight to Blob instead of first
+        // materialising a second contiguous copy as an ArrayBuffer.
+        async function fetchChunks(file, attempt) {
+            var url = buildUrl + "/" + file + (attempt ? "?retry=" + attempt + "-" + Date.now() : "");
+            var controller = new AbortController();
+            var timer = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+            try {
+                var response = await fetch(url, { signal: controller.signal });
+                if (!response.ok) throw new Error("HTTP " + response.status + " from the server");
+
+                var declared = Number(response.headers.get("content-length")) || 0;
+                if (!response.body) {
+                    var buffer = await response.arrayBuffer();
+                    receivedBytes += buffer.byteLength;
+                    report(file, buffer.byteLength, declared);
+                    return [buffer];
+                }
+
+                var reader = response.body.getReader();
+                var chunks = [];
+                var got = 0;
+                for (;;) {
+                    var step = await reader.read();
+                    if (step.done) break;
+                    chunks.push(step.value);
+                    got += step.value.byteLength;
+                    report(file, got, declared);
+                }
+                if (!chunks.length) throw new Error("empty response body");
+                receivedBytes += got;
+                return chunks;
+            } finally {
+                clearTimeout(timer);
             }
+        }
 
+        async function fetchWithRetry(file) {
+            var lastError = null;
+            for (var attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt++) {
+                if (RETRY_DELAYS_MS[attempt]) {
+                    var wait = RETRY_DELAYS_MS[attempt];
+                    loadingText.innerText = "Connection dropped - retrying " + file + " in " +
+                        Math.round(wait / 1000) + "s (attempt " + (attempt + 1) + " of " +
+                        RETRY_DELAYS_MS.length + ")";
+                    await new Promise(function (res) { setTimeout(res, wait); });
+                }
+                try {
+                    var chunks = await fetchChunks(file, attempt);
+                    console.log("[FNAE] " + file + " ok on attempt " + (attempt + 1));
+                    return chunks;
+                } catch (err) {
+                    lastError = err;
+                    console.warn("[FNAE] " + file + " attempt " + (attempt + 1) + " failed: " +
+                        (err && err.name === "AbortError"
+                            ? "timed out after " + (FETCH_TIMEOUT_MS / 1000) + "s"
+                            : String(err && err.message || err)));
+                }
+            }
+            throw new Error("Could not download " + file + " after " + RETRY_DELAYS_MS.length +
+                " attempts: " + String(lastError && lastError.message || lastError));
+        }
+
+        // Cheap HEADs so the bar can show a real overall percentage across ~160MB instead of
+        // jumping per file. Cosmetic only - if these fail the bar just falls back to
+        // per-file progress.
+        async function measureTotal() {
+            var files = DATA_PARTS.concat([WASM_FILE, FRAMEWORK_FILE, LOADER_FILE]);
+            var sizes = await Promise.all(files.map(async function (file) {
+                var controller = new AbortController();
+                var timer = setTimeout(function () { controller.abort(); }, 15000);
+                try {
+                    var r = await fetch(buildUrl + "/" + file, { method: "HEAD", signal: controller.signal });
+                    return r.ok ? Number(r.headers.get("content-length")) || 0 : 0;
+                } catch (e) {
+                    return 0;
+                } finally {
+                    clearTimeout(timer);
+                }
+            }));
+            totalBytes = sizes.reduce(function (a, b) { return a + b; }, 0);
+        }
+
+        function loadScript(url) {
+            return new Promise(function (resolve, reject) {
+                var script = document.createElement("script");
+                script.src = url;
+                script.onload = resolve;
+                script.onerror = function () { reject(new Error("failed to execute " + url)); };
+                document.body.appendChild(script);
+            });
+        }
+
+        var realAlert = window.alert.bind(window);
+        var booting = false;
+
+        async function boot() {
+            if (booting) return;
+            booting = true;
+            clearFatal();
+            releaseBlobs();
+            receivedBytes = 0;
+            totalBytes = 0;
+            progressBarFull.style.width = "0%";
             loadingBar.style.display = "block";
+            loadingText.innerText = "Contacting GitHub...";
 
-            var _alert = window.alert;
-            window.alert = function() {};
-            const loaderText = await (await fetch(loaderUrl)).text();
-            var script = document.createElement("script");
-            script.src = URL.createObjectURL(new Blob([loaderText], {type: "application/javascript"}));
-            script.onload = function() {
-                createUnityInstance(canvas, config, function(progress) {
+            try {
+                await measureTotal();
+
+                // Small files first so a broken build fails in seconds instead of after
+                // two minutes of data download.
+                var loaderUrl = trackBlob(new Blob(await fetchWithRetry(LOADER_FILE),
+                    { type: "application/javascript" }));
+                var frameworkUrl = trackBlob(new Blob(await fetchWithRetry(FRAMEWORK_FILE),
+                    { type: "application/javascript" }));
+
+                var dataChunks = [];
+                for (var i = 0; i < DATA_PARTS.length; i++) {
+                    dataChunks = dataChunks.concat(await fetchWithRetry(DATA_PARTS[i]));
+                }
+                var dataUrl = trackBlob(new Blob(dataChunks));
+                dataChunks.length = 0;
+
+                var codeUrl = trackBlob(new Blob(await fetchWithRetry(WASM_FILE),
+                    { type: "application/wasm" }));
+
+                if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                    var meta = document.createElement("meta");
+                    meta.name = "viewport";
+                    meta.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
+                    document.getElementsByTagName("head")[0].appendChild(meta);
+                    container.className = "unity-mobile";
+                    canvas.className = "unity-mobile";
+                }
+
+                // Unity pops a licence alert on boot; swallow window.alert until the
+                // instance is up, then hand the real one back so runtime alerts still work.
+                window.alert = function () {};
+
+                progressBarFull.style.width = "100%";
+                loadingText.innerText = "Starting Unity...";
+
+                await loadScript(loaderUrl);
+                if (typeof createUnityInstance !== "function") {
+                    throw new Error(LOADER_FILE + " did not define createUnityInstance()");
+                }
+
+                var config = {
+                    dataUrl: dataUrl,
+                    frameworkUrl: frameworkUrl,
+                    codeUrl: codeUrl,
+                    streamingAssetsUrl: "/StreamingAssets",
+                    companyName: "DefaultCompany",
+                    productName: "ExportedProject",
+                    productVersion: "2.2",
+                    showBanner: unityShowBanner,
+                    startupErrorHandler: function(msg, url, line) {
+                        if (console && console.warn) console.warn(msg);
+                    }
+                };
+
+                var unityInstance = await createUnityInstance(canvas, config, function(progress) {
                     progressBarFull.style.width = (100 * progress) + "%";
                     loadingText.innerText = "Loading... " + Math.round(100 * progress) + "%";
-                }).then(function(unityInstance) {
-                    window.unityInstance = unityInstance;
-                    loadingBar.style.display = "none";
-                    fullscreenButton.onclick = function() {
-                        unityInstance.SetFullscreen(1);
-                    };
-                }).catch(function(message) {
-                    alert(message);
                 });
-            };
-            document.body.appendChild(script);
-        })();
-    </script>
-</body>
+
+                // index.html's popup hands call Quit() through this global so Unity can
+                // flush its IndexedDB save before the iframe is torn down.
+                window.unityInstance = unityInstance;
+                window.alert = realAlert;
+                loadingBar.style.display = "none";
+                fullscreenButton.onclick = function() {
+                    unityInstance.SetFullscreen(1);
+                };
+                console.log("[FNAE] booted");
+            } catch (err) {
+                window.alert = realAlert;
+                console.error("[FNAE] boot failed", err);
+                releaseBlobs();
+                showFatal(String(err && err.message || err) +
+                    "<br><br>If this repeats, the ~160MB build download is being cut off - " +
+                    "retry on a wired connection, or disable any ad/privacy extension that " +
+                    "may be blocking raw.githubusercontent.com.");
+            } finally {
+                booting = false;
+            }
+        }
+
+        retryButton.addEventListener("click", boot);
+        boot();
+    </script></body>
 </html>
