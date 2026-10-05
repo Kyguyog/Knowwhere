@@ -161,10 +161,19 @@
             while (objectUrls.length) URL.revokeObjectURL(objectUrls.pop());
         }
 
-        // Streams the body so the bar actually moves during the 95MB data part instead of
-        // sitting at 0%, and hands the chunks straight to Blob instead of first
-        // materialising a second contiguous copy as an ArrayBuffer.
-        async function fetchChunks(file, attempt) {
+        // Streams the body into a Blob.
+        //
+        // This deliberately never accumulates the bytes in a JS array (nor reads a full
+        // ArrayBuffer): doing either pins the whole part on the JS heap, and this build is
+        // ~160MB across 5 files. Measured on a 95MB part, holding the chunks costs ~96MB of
+        // permanently pinned heap and arrayBuffer() ~112MB, which is what makes the last
+        // fetch fail with "net::ERR_FAILED" even though the 200 arrived - the renderer runs
+        // out of room, not the network. response.blob() lets the browser spool the stream
+        // straight to blob storage instead, leaving ~29MB on the heap.
+        //
+        // The counter rides along in a TransformStream so the progress bar still moves
+        // during the long data parts.
+        async function fetchBlob(file, attempt, mimeType) {
             var url = buildUrl + "/" + file + (attempt ? "?retry=" + attempt + "-" + Date.now() : "");
             var controller = new AbortController();
             var timer = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
@@ -177,28 +186,30 @@
                     var buffer = await response.arrayBuffer();
                     receivedBytes += buffer.byteLength;
                     report(file, buffer.byteLength, declared);
-                    return [buffer];
+                    return new Blob([buffer], mimeType ? { type: mimeType } : undefined);
                 }
 
-                var reader = response.body.getReader();
-                var chunks = [];
                 var got = 0;
-                for (;;) {
-                    var step = await reader.read();
-                    if (step.done) break;
-                    chunks.push(step.value);
-                    got += step.value.byteLength;
-                    report(file, got, declared);
-                }
-                if (!chunks.length) throw new Error("empty response body");
+                var body = response.body.pipeThrough(new TransformStream({
+                    transform: function (chunk, ctl) {
+                        got += chunk.byteLength;
+                        report(file, got, declared);
+                        ctl.enqueue(chunk);
+                    }
+                }));
+                var blob = await new Response(body).blob();
+                if (!blob.size) throw new Error("empty response body");
                 receivedBytes += got;
-                return chunks;
+                // Blob.type is settable at construction only, so retag via slice when a
+                // MIME type matters (loader/framework must run as script, the wasm must
+                // satisfy instantiateStreaming's application/wasm check).
+                return mimeType ? blob.slice(0, blob.size, { type: mimeType }) : blob;
             } finally {
                 clearTimeout(timer);
             }
         }
 
-        async function fetchWithRetry(file) {
+        async function fetchWithRetry(file, mimeType) {
             var lastError = null;
             for (var attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt++) {
                 if (RETRY_DELAYS_MS[attempt]) {
@@ -209,9 +220,10 @@
                     await new Promise(function (res) { setTimeout(res, wait); });
                 }
                 try {
-                    var chunks = await fetchChunks(file, attempt);
-                    console.log("[FNAE] " + file + " ok on attempt " + (attempt + 1));
-                    return chunks;
+                    var blob = await fetchBlob(file, attempt, mimeType);
+                    console.log("[FNAE] " + file + " ok on attempt " + (attempt + 1) +
+                        " (" + (blob.size / 1048576).toFixed(1) + " MB)");
+                    return blob;
                 } catch (err) {
                     lastError = err;
                     console.warn("[FNAE] " + file + " attempt " + (attempt + 1) + " failed: " +
@@ -271,22 +283,26 @@
             try {
                 await measureTotal();
 
-                // Small files first so a broken build fails in seconds instead of after
-                // two minutes of data download.
-                var loaderUrl = trackBlob(new Blob(await fetchWithRetry(LOADER_FILE),
-                    { type: "application/javascript" }));
-                var frameworkUrl = trackBlob(new Blob(await fetchWithRetry(FRAMEWORK_FILE),
-                    { type: "application/javascript" }));
+                // fetchWithRetry already returns a Blob, so the MIME type is passed down at
+                // construction rather than by re-wrapping (a Blob is not iterable, so
+                // new Blob(blob) would throw).
+                var loaderUrl = trackBlob(await fetchWithRetry(LOADER_FILE, "application/javascript"));
+                var frameworkUrl = trackBlob(await fetchWithRetry(FRAMEWORK_FILE, "application/javascript"));
 
-                var dataChunks = [];
+                // Grab the wasm before the data parts. It is what was failing, and pulling
+                // it while the heap is still empty leaves the most headroom for the two big
+                // parts that follow.
+                var codeUrl = trackBlob(await fetchWithRetry(WASM_FILE, "application/wasm"));
+
+                // Stitch the split .data back together. Blob-from-Blob copies straight
+                // between blob storage handles, so this costs no JS heap at all - unlike
+                // concatenating byte arrays, which would hold ~108MB there.
+                var dataParts = [];
                 for (var i = 0; i < DATA_PARTS.length; i++) {
-                    dataChunks = dataChunks.concat(await fetchWithRetry(DATA_PARTS[i]));
+                    dataParts.push(await fetchWithRetry(DATA_PARTS[i]));
                 }
-                var dataUrl = trackBlob(new Blob(dataChunks));
-                dataChunks.length = 0;
-
-                var codeUrl = trackBlob(new Blob(await fetchWithRetry(WASM_FILE),
-                    { type: "application/wasm" }));
+                var dataUrl = trackBlob(new Blob(dataParts));
+                dataParts.length = 0;
 
                 if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
                     var meta = document.createElement("meta");
