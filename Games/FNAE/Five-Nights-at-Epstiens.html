@@ -1,162 +1,119 @@
-
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>play fnae game online</title><link rel="canonical" href="https://knowwhere.mygamesonline.org/Games/FNAE/Five-Nights-at-Epstiens.html">
-    <link rel="icon" href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/game-assets/FNAE/build/favicon-32x32.webp" type="image/png">
+    <title>Five Nights at Epstein's</title>
+    <link rel="canonical" href="https://knowwhere.mygamesonline.org/Games/FNAE/Five-Nights-at-Epstiens.html">
+    <link rel="icon" href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/game-assets/FNAE/build/favicon-32x32.webp" type="image/webp">
     <style>
         * { margin: 0; padding: 0; }
         html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
-        #unity-container {
-            width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            position: relative;
-        }
-        #unity-canvas {
-            width: 100%; height: 100%;
-            max-width: 100vw; max-height: 100vh;
-            background: #000;
-            cursor: default;
-        }
-        #unity-loading-bar {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            display: none;
-        }
-        #unity-progress-bar-empty {
-            width: 300px; height: 18px;
-            background: #1a1a1a;
-            border: 1px solid #444;
-            border-radius: 9px;
-            overflow: hidden;
-        }
-        #unity-progress-bar-full {
-            width: 0%; height: 100%;
-            background: linear-gradient(to right, #c8a600, #ffd700);
-            border-radius: 9px;
-            transition: width 0.1s;
-        }
-        #loading-text {
-            color: #888; font-family: monospace;
-            font-size: 14px; margin-top: 10px;
-        }
-        #unity-fullscreen-button { display: none; }
-        #unity-warning { position: absolute; top: 5%; left: 50%; transform: translateX(-50%);
-            background: #a00; color: #fff; padding: 10px 20px;
-            font-family: monospace; font-size: 14px; border-radius: 6px; display: none; }
+        body { display: flex; align-items: center; justify-content: center; font-family: monospace; color: #888; }
+
+        #boot { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        #boot.done { display: none; }
+        #boot-bar-empty { width: 300px; height: 18px; background: #1a1a1a; border: 1px solid #444; border-radius: 9px; overflow: hidden; }
+        #boot-bar-full { width: 12%; height: 100%; background: linear-gradient(to right, #c8a600, #ffd700); border-radius: 9px; transition: width .4s ease; }
+        #boot-text { font-size: 14px; }
+        #boot-error { display: none; max-width: 620px; padding: 14px 18px; background: #1a0000; border: 1px solid #a00; border-radius: 8px; color: #e88; font-size: 13px; line-height: 1.5; }
+        #boot-error a { color: #ffd700; }
+        #boot-retry { display: none; margin-top: 4px; padding: 6px 14px; background: #222; border: 1px solid #555; border-radius: 6px; color: #ddd; font: inherit; font-size: 13px; cursor: pointer; }
+        #boot-retry:hover { background: #2c2c2c; }
     </style>
 </head>
 <body>
-    <div id="unity-container">
-        <canvas id="unity-canvas" tabindex="-1"></canvas>
-        <div id="unity-loading-bar">
-            <div id="unity-progress-bar-empty">
-                <div id="unity-progress-bar-full"></div>
-            </div>
-            <div id="loading-text">Loading...</div>
-        </div>
-        <div id="unity-fullscreen-button" title="Fullscreen">
-            <svg viewBox="0 0 24 24"><path d="M5 5h5V3H3v7h2V5zm9-2v2h5v5h2V3h-7zm7 14h-2v5h-5v2h7v-7zM5 19v-5H3v7h7v-2H5z"/></svg>
-        </div>
-        <div id="unity-warning"></div>
+    <div id="boot">
+        <div id="boot-bar-empty"><div id="boot-bar-full"></div></div>
+        <div id="boot-text">Pulling FNAE from GitHub...</div>
+        <div id="boot-error"></div>
+        <button id="boot-retry" type="button">Retry</button>
     </div>
+
     <script>
-        var container = document.querySelector("#unity-container");
-        var canvas = document.querySelector("#unity-canvas");
-        var loadingBar = document.querySelector("#unity-loading-bar");
-        var progressBarFull = document.querySelector("#unity-progress-bar-full");
-        var loadingText = document.querySelector("#loading-text");
-        var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-        var warningBanner = document.querySelector("#unity-warning");
+    // Thin launcher: the real game page lives in the repo's game-assets folder and
+    // is streamed from raw.githubusercontent.com, same as every other asset on the
+    // site. This file only fetches it and swaps it in, so the Unity build runs in
+    // this page's origin (Unity needs a real origin for IndexedDB saves) instead of
+    // a cross-origin iframe.
+    //
+    // raw.githubusercontent serves .html as text/plain, so the page has to be
+    // fetched and written in - pointing an iframe straight at the raw URL would
+    // render it as plain text.
+    //
+    // Query params: ?ref=<branch>  pull from another branch
+    //                ?page=<path>  pull a different file (repo path, or a
+    //                             root-relative/absolute URL for local testing)
+    (function () {
+        var OWNER = "Kyguyog";
+        var REPO = "Knowwhere";
+        var DEFAULT_REF = "main";
+        var DEFAULT_PAGE = "game-assets/FNAE/index.html";
+        var TIMEOUT_MS = 20000;
 
-        function unityShowBanner(msg, type) {
-            warningBanner.style.display = "block";
-            warningBanner.innerText = msg;
-            if (type === "error") warningBanner.style.background = "#a00";
-            else if (type === "warning") warningBanner.style.background = "#a60";
-            else warningBanner.style.background = "#444";
-            setTimeout(function() { warningBanner.style.display = "none"; }, 5000);
+        var params = new URLSearchParams(location.search);
+        var ref = params.get("ref") || DEFAULT_REF;
+        var page = params.get("page") || DEFAULT_PAGE;
+        // ?page= accepts a repo path (game-assets/FNAE/index.html), or a
+        // root-relative / absolute URL so you can test local edits without
+        // pushing first.
+        var src = /^(https?:\/\/|\/)/.test(page)
+            ? page
+            : "https://raw.githubusercontent.com/" + OWNER + "/" + REPO + "/refs/heads/" +
+              encodeURIComponent(ref) + "/" + page.split("/").map(encodeURIComponent).join("/");
+
+        var boot = document.getElementById("boot");
+        var bar = document.getElementById("boot-bar-full");
+        var text = document.getElementById("boot-text");
+        var errorBox = document.getElementById("boot-error");
+        var retry = document.getElementById("boot-retry");
+
+        function fail(message) {
+            bar.style.display = "none";
+            text.textContent = "Could not load FNAE";
+            errorBox.style.display = "block";
+            errorBox.innerHTML = message + "<br>Tried: <a href=\"" + src + "\" target=\"_blank\" rel=\"noopener\">" + src + "</a>";
+            retry.style.display = "inline-block";
         }
 
-        var buildUrl = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/refs/heads/main/game-assets/FNAE/build";
-        var loaderUrl = buildUrl + "/WebGL.loader.js";
+        function load() {
+            errorBox.style.display = "none";
+            errorBox.textContent = "";
+            retry.style.display = "none";
+            bar.style.display = "";
+            bar.style.width = "35%";
+            text.textContent = "Pulling FNAE from GitHub...";
 
-        async function mergeDataParts(parts) {
-            const buffers = [];
-            for (let i = 0; i < parts.length; i++) {
-                const r = await fetch(parts[i]);
-                if (!r.ok) throw new Error("HTTP " + r.status + " for " + parts[i]);
-                buffers.push(await r.arrayBuffer());
-            }
-            return URL.createObjectURL(new Blob(buffers));
-        }
-        async function fetchJsAsBlobUrl(url) {
-            const r = await fetch(url);
-            if (!r.ok) throw new Error("HTTP " + r.status);
-            const t = await r.text();
-            return URL.createObjectURL(new Blob([t], {type: "application/javascript"}));
-        }
-        async function fetchWasmAsUrl(url) {
-            const r = await fetch(url);
-            if (!r.ok) throw new Error("HTTP " + r.status);
-            const b = await r.blob();
-            return URL.createObjectURL(b);
-        }
+            var controller = new AbortController();
+            var timer = setTimeout(function () { controller.abort(); }, TIMEOUT_MS);
 
-        (async function() {
-            var config = {
-                dataUrl: await mergeDataParts([
-                    buildUrl + "/WebGL.data.partaa",
-                    buildUrl + "/WebGL.data.partab"
-                ]),
-                frameworkUrl: await fetchJsAsBlobUrl(buildUrl + "/WebGL.framework.js"),
-                codeUrl: await fetchWasmAsUrl(buildUrl + "/WebGL.wasm"),
-                streamingAssetsUrl: "/StreamingAssets",
-                companyName: "DefaultCompany",
-                productName: "ExportedProject",
-                productVersion: "2.2",
-                showBanner: unityShowBanner,
-                startupErrorHandler: function(msg, url, line) {
-                    if (console && console.warn) console.warn(msg);
-                },
-            };
-
-            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                var meta = document.createElement("meta");
-                meta.name = "viewport";
-                meta.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
-                document.getElementsByTagName("head")[0].appendChild(meta);
-                container.className = "unity-mobile";
-                canvas.className = "unity-mobile";
-            }
-
-            loadingBar.style.display = "block";
-
-            var _alert = window.alert;
-            window.alert = function() {};
-            const loaderText = await (await fetch(loaderUrl)).text();
-            var script = document.createElement("script");
-            script.src = URL.createObjectURL(new Blob([loaderText], {type: "application/javascript"}));
-            script.onload = function() {
-                createUnityInstance(canvas, config, function(progress) {
-                    progressBarFull.style.width = (100 * progress) + "%";
-                    loadingText.innerText = "Loading... " + Math.round(100 * progress) + "%";
-                }).then(function(unityInstance) {
-                    window.unityInstance = unityInstance;
-                    loadingBar.style.display = "none";
-                    fullscreenButton.onclick = function() {
-                        unityInstance.SetFullscreen(1);
-                    };
-                }).catch(function(message) {
-                    alert(message);
+            fetch(src, { signal: controller.signal, cache: "no-store" })
+                .then(function (response) {
+                    if (!response.ok) throw new Error("GitHub returned HTTP " + response.status);
+                    return response.text();
+                })
+                .then(function (html) {
+                    clearTimeout(timer);
+                    if (!/<canvas|createUnityInstance/i.test(html)) {
+                        throw new Error("that file is not the FNAE page (wrong ref or path?)");
+                    }
+                    bar.style.width = "100%";
+                    // Drop the splash before the game's own markup is written over it.
+                    boot.remove();
+                    document.open();
+                    document.write(html);
+                    document.close();
+                })
+                .catch(function (err) {
+                    clearTimeout(timer);
+                    fail(err && err.name === "AbortError" ? "Timed out waiting on GitHub." : String(err && err.message || err));
                 });
-            };
-            document.body.appendChild(script);
-        })();
+        }
+
+        retry.addEventListener("click", load);
+        load();
+    })();
     </script>
 </body>
 </html>
