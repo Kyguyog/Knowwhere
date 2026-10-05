@@ -435,6 +435,7 @@ function RotScreen() {
             progressBarFull.style.width = (progress * 100) + "%";
           }
         }).then((unityInstance) => {
+          window.unityInstance = unityInstance;
           loadingBar.style.display = "none";
             // call is harmless on desktop (helper early-returns)
               if (window.__hookMobileAudio) { window.__hookMobileAudio(unityInstance); }

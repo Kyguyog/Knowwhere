@@ -160,7 +160,8 @@ function mergeFiles(fileParts) {
         companyName: "Hakita and Cake Logic",
         productName: "ULTRAKILL",
         productVersion: "1.4",
-      }).then(function () {
+      }).then(function (unityInstance) {
+        window.unityInstance = unityInstance;
         loadingText.remove();
       });
     })
