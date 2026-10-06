@@ -1,37 +1,12 @@
 <!doctype html>
 <html>
   <head>
-    <script>
-      // Asset-streaming shim, same pattern as every other game on the site: the
-      // game build lives in game-assets/PolyTrack/ and is served from GitHub raw
-      // instead of being deployed to App Engine. A <base> makes every relative
-      // URL the game emits (bundles, wasm, images, audio, models, tracks, fonts)
-      // resolve against that raw folder. The page still runs on this origin, so
-      // localStorage/IndexedDB saves keep working.
-      // ?ref=<branch> pulls from a different branch (defaults to main).
-      (function () {
-        var ref = new URLSearchParams(location.search).get("ref") || "main";
-        var baseEl = document.createElement("base");
-        baseEl.href =
-          "https://raw.githubusercontent.com/Kyguyog/Knowwhere/" +
-          encodeURIComponent(ref) +
-          "/game-assets/PolyTrack/";
-        document.head.appendChild(baseEl);
-      })();
-    </script>
     <meta charset="utf-8" />
-    <link
-      rel="preload"
-      href="forced_square.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin="anonymous"
-    />
-    <link rel="manifest" href="manifest.json" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no"
     />
+    <base href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/PolyTrack/" />
     <script>
       window.polytrackModConfiguration = {
         unblocked: true,
@@ -39,12 +14,129 @@
         author: "Kyguy",
       };
     </script>
-    <script defer="defer" src="error_screen.bundle.js"></script>
-    <script defer="defer" src="main.bundle.js"></script>
   </head>
   <body>
     <canvas id="screen"></canvas>
     <div id="ui"></div>
     <div id="transition-layer"></div>
+    <script>
+      // PolyTrack (a webpack build) is streamed from the repo's game-assets
+      // folder like every other game on the site. GitHub raw serves .js as
+      // text/plain, so Chromium's Opaque Response Blocking refuses to execute
+      // it from a cross-origin <script> tag -- instead every script is
+      // downloaded as text and re-served from a same-origin blob: URL (the
+      // trick used by FNAE, Going Balls, etc.). The <base> tag makes every URL
+      // the game resolves against the document (images, models, tracks, draco,
+      // fonts) point at the raw folder; webpack's publicPath and the physics
+      // worker wiring are patched to match.
+      (function () {
+        var BASE =
+          "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/PolyTrack/";
+        var CHUNKS = [
+          "124.bundle.js",
+          "142.bundle.js",
+          "168.bundle.js",
+          "280.bundle.js",
+          "57.bundle.js",
+          "789.bundle.js",
+          "982.bundle.js",
+        ];
+
+        function fetchText(url) {
+          return fetch(url).then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status + " for " + url);
+            return r.text();
+          });
+        }
+
+        function blobUrl(src) {
+          return URL.createObjectURL(
+            new Blob([src], { type: "application/javascript" })
+          );
+        }
+
+        function patchedBlob(src, patches, label) {
+          var out = src;
+          patches.forEach(function (p) {
+            out = out.split(p[0]).join(p[1]);
+            if (out.indexOf(p[1]) === -1)
+              console.warn(label + ": patch text not present");
+          });
+          return blobUrl(out);
+        }
+
+        Promise.all([
+          // Physics glue: it derives its relative wasm path from
+          // `new URL(".", self.location.href)`, i.e. the worker script's own
+          // folder -- pin it to the raw folder root where the wasm lives.
+          fetchText(BASE + "lib/polytrack_physics.js").then(function (src) {
+            return patchedBlob(
+              src,
+              [
+                [
+                  "r=self.location.href",
+                  'r="' + BASE + 'simulation_worker.bundle.js"',
+                ],
+              ],
+              "polytrack_physics.js"
+            );
+          }),
+          // Simulation worker (patched once the physics blob exists).
+          fetchText(BASE + "simulation_worker.bundle.js"),
+          // Every script the build loads at runtime; chunks first so they sit
+          // in webpack's shared array before the entry runtime consumes them.
+          Promise.all(
+            []
+              .concat(CHUNKS, ["error_screen.bundle.js", "main.bundle.js"])
+              .map(function (f) {
+                return fetchText(BASE + f);
+              })
+          ),
+        ])
+          .then(function (results) {
+            var physicsUrl = results[0];
+            var workerSource = results[1];
+
+            var workerBody = workerSource.split(
+              'importScripts("lib/polytrack_physics.js")'
+            ).join('importScripts("' + physicsUrl + '")');
+            var workerUrl = URL.createObjectURL(
+              new Blob([workerBody], { type: "application/javascript" })
+            );
+
+            var entrySources = results[2];
+            var mainUrl = patchedBlob(
+              entrySources[CHUNKS.length + 1],
+              [
+                // Freeze webpack's publicPath so every n.p + "..." asset
+                // reference goes straight to the raw folder.
+                ["(i.p = e)", '(i.p = "' + BASE + '")'],
+                // Route the physics worker through its blob.
+                [
+                  'new Worker("simulation_worker.bundle.js")',
+                  'new Worker("' + workerUrl + '")',
+                ],
+              ],
+              "main.bundle.js"
+            );
+
+            var urls = [];
+            for (var i = 0; i < CHUNKS.length; i++)
+              urls.push(blobUrl(entrySources[i]));
+            urls.push(blobUrl(entrySources[CHUNKS.length])); // error_screen
+            urls.push(mainUrl);
+
+            urls.forEach(function (u) {
+              var s = document.createElement("script");
+              s.src = u;
+              document.body.appendChild(s);
+            });
+          })
+          .catch(function (err) {
+            console.error("LOADER-FAIL", (err && err.stack) || err);
+            alert("Failed to download the game: " + err.message);
+          });
+      })();
+    </script>
   </body>
 </html>

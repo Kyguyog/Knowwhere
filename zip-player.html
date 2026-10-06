@@ -157,6 +157,30 @@
       return { fileCount, entry: chooseEntry(fileMap) };
     }
 
+    // The runtime id becomes part of the URL pathname, and Unity/Emscripten keys
+    // its IndexedDB save database on that pathname (EM_FS_<pathname>). A random id
+    // per launch therefore points every session at a brand new save database, so
+    // progress could never survive a reload. Derive it from the zip contents so the
+    // same game always resolves to the same id.
+    async function stableRuntimeId(file, ab) {
+      const base = (String((file && file.name) || 'zip')
+        .replace(/\.zip$/i, '')
+        .replace(/[^a-zA-Z0-9._-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 48)) || 'zip';
+      try {
+        if (typeof crypto !== 'undefined' && crypto.subtle) {
+          const digest = await crypto.subtle.digest('SHA-256', ab);
+          const hex = Array.from(new Uint8Array(digest).slice(0, 8))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+          return `${base}-${hex}`;
+        }
+      } catch (_) {}
+      // Fallback: same name + same size still maps to the same runtime.
+      return `${base}-${file && file.size ? file.size : '0'}`;
+    }
+
     async function runZip(file) {
       if (!file) return;
       if (!/\.zip$/i.test(file.name || '')) throw new Error('Please choose a .zip file.');
@@ -166,7 +190,7 @@
 
       setStatus('Reading ZIP file…');
       const ab = await file.arrayBuffer();
-      const runtimeId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const runtimeId = await stableRuntimeId(file, ab);
 
       setStatus('Extracting and caching game files…');
       const { fileCount, entry } = await loadZipToCache(ab, runtimeId);

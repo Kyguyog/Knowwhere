@@ -112,6 +112,30 @@
           .join('(n||"").includes("iPadOS")');
       }
 
+      // The framework only writes /idbfs back to IndexedDB when Unity calls
+      // JS_FileSystem_Sync(). Its 1s safety timer early-returns unless a sync
+      // was already queued, so any save the game has not explicitly flushed is
+      // dropped when the popup swaps the iframe to about:blank. Make the timer
+      // reconcile unconditionally and flush on page teardown as well. Both
+      // targets are unique in this framework source.
+      function patchFrameworkSource(src) {
+        var out = src
+          .split("fs.sync(true);")
+          .join("fs.sync(false);")
+          .split("}, fs.syncInternal);")
+          .join(
+            "}, fs.syncInternal);\n" +
+              '    var kwFlushSave = function () { try { fs.sync(false); } catch (e) {} };\n' +
+              '    window.addEventListener("pagehide", kwFlushSave);\n' +
+              '    window.addEventListener("beforeunload", kwFlushSave);\n' +
+              '    document.addEventListener("visibilitychange", function () {\n' +
+              '      if (document.hidden) kwFlushSave();\n' +
+              "    });"
+          );
+        if (out === src) console.warn("Going Balls: save-flush patch did not apply");
+        return out;
+      }
+
       // Download the loader (runner) and framework (unityFramework) as blobs.
       // loader.js is what defines createUnityInstance; framework.js is loaded by
       // the loader via its own <script> tag, so it needs blob treatment too.
@@ -124,19 +148,19 @@
         fetch(GH + "Build/Build_Fullscreen_2.framework.js").then(function (r) {
           if (!r.ok)
             throw new Error("Failed to download framework (HTTP " + r.status + ")");
-          return r.blob();
+          return r.text();
         }),
       ];
 
       Promise.all(buildFiles)
         .then(function (results) {
           var loaderSource = patchLoaderSource(results[0]);
-          var frameworkBlob = results[1];
+          var frameworkSource = patchFrameworkSource(results[1]);
 
           var config = {
             dataUrl: GH + "Build/Build_Fullscreen_2.data",
             frameworkUrl: URL.createObjectURL(
-              new Blob([frameworkBlob], { type: "application/javascript" })
+              new Blob([frameworkSource], { type: "application/javascript" })
             ),
             codeUrl: GH + "Build/Build_Fullscreen_2.wasm",
             streamingAssetsUrl: GH + "StreamingAssets",
