@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <script>
+      // Asset-streaming shim, same pattern as every other game on the site: the
+      // game build lives in game-assets/PolyTrack/ and is served from GitHub raw
+      // instead of being deployed to App Engine. A <base> makes every relative
+      // URL the game emits (bundles, wasm, images, audio, models, tracks, fonts)
+      // resolve against that raw folder. The page still runs on this origin, so
+      // localStorage/IndexedDB saves keep working.
+      // ?ref=<branch> pulls from a different branch (defaults to main).
+      (function () {
+        var ref = new URLSearchParams(location.search).get("ref") || "main";
+        var baseEl = document.createElement("base");
+        baseEl.href =
+          "https://raw.githubusercontent.com/Kyguyog/Knowwhere/" +
+          encodeURIComponent(ref) +
+          "/game-assets/PolyTrack/";
+        document.head.appendChild(baseEl);
+      })();
+    </script>
+    <meta charset="utf-8" />
+    <link
+      rel="preload"
+      href="forced_square.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link rel="manifest" href="manifest.json" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no"
+    />
+    <script>
+      window.polytrackModConfiguration = {
+        unblocked: true,
+        modName: "PolyUnblocked",
+        author: "Kyguy",
+      };
+    </script>
+    <script defer="defer" src="error_screen.bundle.js"></script>
+    <script defer="defer" src="main.bundle.js"></script>
+  </head>
+  <body>
+    <canvas id="screen"></canvas>
+    <div id="ui"></div>
+    <div id="transition-layer"></div>
+  </body>
+</html>
