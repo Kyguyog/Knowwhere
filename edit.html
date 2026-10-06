@@ -1811,7 +1811,9 @@ function renderSitesEditor(items) {
 }
 
 function renderRedirectPresetsEditor(items) {
-  document.getElementById('ae-redirects-list').innerHTML = items.map(p => {
+  const list = document.getElementById('ae-redirects-list');
+  if (!list) return;
+  list.innerHTML = items.map(p => {
     const url = typeof p === 'string' ? p : (p.url || '');
     const name = (typeof p === 'string' || !p) ? '' : (p.name || '');
     return `
