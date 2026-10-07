@@ -408,10 +408,7 @@ function RotScreen() {
         companyName: UB.companyName,
         productName: UB.productName,
         productVersion: UB.productVersion,
-        showBanner: unityShowBanner,
-        // Required by this Unity generation: FS.mount(IDBFS, {autoPersist: ...})
-        // is what installs the write hooks that flush /idbfs to IndexedDB.
-        autoSyncPersistentDataPath: true
+        showBanner: unityShowBanner
       };
       if (UB.codeUrl)    config.codeUrl = UB.codeUrl;
       if (UB.memoryUrl)  config.memoryUrl = UB.memoryUrl;

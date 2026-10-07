@@ -334,9 +334,6 @@
                     productName: "ExportedProject",
                     productVersion: "2.2",
                     showBanner: unityShowBanner,
-                    // Required by this Unity generation: FS.mount(IDBFS, {autoPersist: ...})
-                    // is what installs the write hooks that flush /idbfs to IndexedDB.
-                    autoSyncPersistentDataPath: true,
                     startupErrorHandler: function(msg, url, line) {
                         if (console && console.warn) console.warn(msg);
                     }

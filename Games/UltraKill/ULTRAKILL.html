@@ -130,7 +130,31 @@ function mergeFiles(fileParts) {
   });
 }
 
-(function() {
+// This build's filesystem flushes are broken in two ways:
+  //  - Its 1s safety timer calls fs.sync(true), which early-returns unless a sync
+  //    was already queued, so saves never reach IndexedDB during play.
+  //  - Its auto-persist upgrade (autoSyncPersistentDataPath) wraps node_ops.rmdir/
+  //    unlink with the wrong signatures, so it also cannot be used (crashes with
+  //    "Cannot read properties of undefined" in FS.hashName).
+  // Make the safety timer flush unconditionally and also flush on page teardown.
+  // Both patch targets are unique in the .unityweb source.
+  function patchFrameworkSource(src) {
+    var out = src
+      .split("fs.sync(true)")
+      .join("fs.sync(false)")
+      .split("},fs.syncInternal)}function _JS_FileSystem_Sync(){")
+      .join(
+        "},fs.syncInternal)}var kwFlushSave=function(){try{fs.sync(false)}catch(e){}};" +
+          'window.addEventListener("pagehide",kwFlushSave);' +
+          'window.addEventListener("beforeunload",kwFlushSave);' +
+          'document.addEventListener("visibilitychange",function(){if(document.hidden)kwFlushSave()});' +
+          "function _JS_FileSystem_Sync(){"
+      );
+    if (out === src) console.warn("ULTRAKILL: save-flush patch did not apply");
+    return out;
+  }
+
+  (function() {
   loadBlobText("Build/ultrakill.loader.js")
     .then(injectScript)
     .then(function () {
@@ -140,9 +164,11 @@ function mergeFiles(fileParts) {
         mergeFiles(getParts("Build/ultrakill.wasm.unityweb", 1, 2)),
         fetch(GITHUB_BASE + "Build/ultrakill.framework.js.unityweb").then(function (r) {
           if (!r.ok) throw new Error('Missing framework (HTTP ' + r.status + ')');
-          return r.blob();
-        }).then(function (blob) {
-          return URL.createObjectURL(blob);
+          return r.text();
+        }).then(function (text) {
+          return URL.createObjectURL(
+            new Blob([patchFrameworkSource(text)], { type: "application/javascript" })
+          );
         })
       ]);
     })
