@@ -276,6 +276,18 @@
                   'new Worker("simulation_worker.bundle.js")',
                   'new Worker("' + workerUrl + '")',
                 ],
+                // The shipped three.js WebGLState wrappers are mangled: each
+                // `catch (e) { e("WebGLState:", e) }` captures the thrown
+                // error into `e`, then calls it as a function -- minifiers
+                // collapsed `console` and the catch parameter to the same
+                // name. Whenever a WebGL texture call actually throws, the
+                // handler itself throws "e is not a function" and the whole
+                // game dies instead of logging and continuing. Restore the
+                // intended log-and-continue behavior.
+                [
+                  '} catch (e) {\n                e("WebGLState:", e);\n              }',
+                  '} catch (e) {\n                console.error("WebGLState:", e);\n              }',
+                ],
               ],
               "main.bundle.js"
             );
