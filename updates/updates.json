@@ -1,5 +1,13 @@
 [
   {
+    "sha": "a55dcb32c91683530126f028116ffef66c479746",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/a55dcb32c91683530126f028116ffef66c479746",
+    "message": "change status game glow",
+    "date": "2026-10-08T18:35:59Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "ae0a00f6eccd1940ab9f26a50ab2eb41b4eebe76",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/ae0a00f6eccd1940ab9f26a50ab2eb41b4eebe76",
     "message": "like a mil. updates",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/5e2d6992641e3556dcb313d0aaffeed66be0508b",
     "message": "Update AppEngineDeploy.yml",
     "date": "2026-05-15T19:48:43Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "91434b38ca6e4b7856f958bb14b4b746ac6426e0",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/91434b38ca6e4b7856f958bb14b4b746ac6426e0",
-    "message": "Update omoggle",
-    "date": "2026-05-15T16:00:01Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
