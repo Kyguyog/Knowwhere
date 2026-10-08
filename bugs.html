@@ -121,16 +121,6 @@
     }
     .report-date { font-size: 0.72rem; color: var(--muted); }
 
-    .severity-pill {
-      display: inline-flex; align-items: center;
-      padding: 0.18rem 0.55rem; border-radius: 999px;
-      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    }
-    .sev-low     { background:rgba(34,197,94,0.12); color:#22c55e; border:1px solid rgba(34,197,94,0.35); }
-    .sev-medium  { background:rgba(251,191,36,0.12); color:#fbbf24; border:1px solid rgba(251,191,36,0.35); }
-    .sev-high    { background:rgba(249,115,22,0.12); color:#f97316; border:1px solid rgba(249,115,22,0.35); }
-    .sev-critical{ background:rgba(239,68,68,0.12); color:var(--danger); border:1px solid rgba(239,68,68,0.35); }
-
     .status-pill {
       display: inline-flex; align-items: center; gap: 0.3rem;
       padding: 0.2rem 0.65rem; border-radius: 999px;
@@ -297,6 +287,13 @@
     }
     .field textarea { min-height: 140px; resize: vertical; }
     .field select option { background: #111118; }
+    .field-hint {
+      font-size: 0.7rem; color: var(--muted); line-height: 1.5;
+    }
+    .field-hint code {
+      background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2);
+      border-radius: 3px; padding: 0.05rem 0.3rem; color: var(--secondary);
+    }
 
     .submit-btn {
       align-self: flex-start;
@@ -364,7 +361,7 @@
 
 <div id="main-content">
     <script src="nav.js"></script>
-  <script type="module" src="user-menu.js?v=2"></script>
+  <script type="module" src="user-menu.js?v=3"></script>
   <script type="module" src="notifications.js"></script>
   <script type="module" src="auth-flows.js"></script>
   <script type="module" src="payment-wall.js"></script>
@@ -414,16 +411,9 @@
       <div class="form-card">
         <div class="field">
           <label>Page or Game</label>
-          <input id="bug-page" placeholder="index.html / Time Shooter / etc" />
-        </div>
-        <div class="field">
-          <label>Severity</label>
-          <select id="bug-severity">
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-            <option>Critical</option>
-          </select>
+          <input id="bug-page" list="bug-page-options" placeholder="Search games & sites…" autocomplete="off" />
+          <datalist id="bug-page-options"></datalist>
+          <div class="field-hint">Pick the game or site from the list instead of typing it — this is what marks it as broken on the home page. Only type manually for main pages (e.g. <code>index.html</code>).</div>
         </div>
         <div class="field">
           <label>What happened?</label>
@@ -469,10 +459,6 @@
 
   function esc(s) {
     return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  function severityClass(sev) {
-    return { Low:'sev-low', Medium:'sev-medium', High:'sev-high', Critical:'sev-critical' }[sev] || 'sev-low';
   }
 
   function formatDate(iso) {
@@ -557,8 +543,7 @@
       filtered = filtered.filter(r =>
         (r.details || '').toLowerCase().includes(searchTerm) ||
         (r.page    || '').toLowerCase().includes(searchTerm) ||
-        (r.email   || '').toLowerCase().includes(searchTerm) ||
-        (r.severity|| '').toLowerCase().includes(searchTerm)
+        (r.email   || '').toLowerCase().includes(searchTerm)
       );
     }
 
@@ -591,7 +576,6 @@
           <div class="report-top">
             <div class="report-meta">
               ${isAdmin ? `<span class="report-user">${esc(r.email)}</span>` : ''}
-              <span class="severity-pill ${severityClass(r.severity)}">${esc(r.severity)}</span>
               ${r.page ? `<span class="report-page">${esc(r.page)}</span>` : ''}
             </div>
             <div style="display:flex;align-items:center;gap:0.5rem;">
@@ -781,7 +765,6 @@
     }
     const page    = document.getElementById('bug-page').value.trim();
     const details = document.getElementById('bug-details').value.trim();
-    const severity = document.getElementById('bug-severity').value;
     if (!details) {
       msgEl.textContent = 'Please describe the issue.';
       msgEl.style.color = 'var(--danger)';
@@ -793,7 +776,6 @@
       await addDoc(collection(db, 'bugReports'), {
         email: currentUser.email,
         page,
-        severity,
         details,
         status: 'open',
         createdAt: new Date().toISOString(),
@@ -824,6 +806,29 @@
     } catch { return false; }
   }
 
+  // ── Page/Game picker options ────────────────────────────────────────────────
+
+  async function loadBugPageOptions() {
+    try {
+      const snap = await getDoc(doc(db, 'siteContent', 'main'));
+      if (!snap.exists()) return;
+      const data = snap.data() || {};
+      const games = Object.values(data.games || {}).flat().map(g => (g && g.name || '').trim()).filter(Boolean);
+      const sites = (Array.isArray(data.sites) ? data.sites : []).map(s => (s && s.name || '').trim()).filter(Boolean);
+      const pages = ['index.html', 'bugs.html', 'msg.html', 'updates.html', 'playtime.html', 'tos.html', 'staff.html', 'edit.html', 'admin.html'];
+      const seen = new Set();
+      const values = [];
+      const push = v => { const k = v.toLowerCase(); if (seen.has(k)) return; seen.add(k); values.push(v); };
+      games.forEach(push);
+      sites.forEach(push);
+      pages.forEach(push);
+      const list = document.getElementById('bug-page-options');
+      if (list) list.innerHTML = values.map(v => `<option value="${esc(v)}"></option>`).join('');
+    } catch (e) {
+      console.warn('Could not load game/site suggestions:', e);
+    }
+  }
+
   // ── Auth state ──────────────────────────────────────────────────────────────
 
   onAuthStateChanged(auth, async user => {
@@ -842,6 +847,7 @@
     document.getElementById('main-content').classList.add('visible');
     loadReports();
     loadComments();
+    loadBugPageOptions();
   });
 </script>
 </body>

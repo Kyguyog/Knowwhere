@@ -882,6 +882,76 @@
     }
     .site-pill:hover svg { opacity: 1; }
 
+    /* ── OPEN-BUG STATUS GLOWS (green = ok, yellow = open reports, red = 4+ people or admin-flagged broken) ──
+       Colorblind cues: green = thin solid, yellow = thicker DASHED + brighter, red = thickest solid. */
+    .game-card.glow-green, .site-pill.glow-green, .game-feature.glow-green {
+      outline: 2px solid rgba(34,197,94,0.9);
+      outline-offset: 2px;
+      box-shadow: 0 0 14px rgba(34,197,94,0.45);
+    }
+    .game-card.glow-yellow, .site-pill.glow-yellow, .game-feature.glow-yellow {
+      outline: 3px dashed #facc15;
+      outline-offset: 2px;
+      box-shadow: 0 0 24px rgba(250,204,21,0.7), 0 0 6px rgba(250,204,21,0.55);
+    }
+    .game-card.glow-red, .site-pill.glow-red, .game-feature.glow-red {
+      outline: 4px solid #dc2626;
+      outline-offset: 2px;
+      box-shadow: 0 0 28px rgba(220,38,38,0.75), 0 0 8px rgba(153,27,27,0.7);
+    }
+    .game-card.glow-green:hover, .site-pill.glow-green:hover, .game-feature.glow-green:hover {
+      outline-color: #22c55e;
+      box-shadow: 0 0 20px rgba(34,197,94,0.65);
+    }
+    .game-card.glow-yellow:hover, .site-pill.glow-yellow:hover, .game-feature.glow-yellow:hover {
+      outline-color: #fde047;
+      box-shadow: 0 0 32px rgba(250,204,21,0.9), 0 0 10px rgba(250,204,21,0.75);
+    }
+    .game-card.glow-red:hover, .site-pill.glow-red:hover, .game-feature.glow-red:hover {
+      outline-color: #f87171;
+      box-shadow: 0 0 36px rgba(239,68,68,0.9), 0 0 12px rgba(239,68,68,0.8);
+    }
+
+    /* ── Broken-game warning popup (shown before opening yellow/red games) ── */
+    #glow-warn-modal {
+      position: fixed; inset: 0; z-index: 10075; display: none;
+      align-items: center; justify-content: center; padding: 1.25rem;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+    }
+    .glow-warn-card {
+      background: #12111a; border: 1px solid var(--border); border-radius: 14px;
+      max-width: 430px; width: 100%; padding: 1.6rem 1.4rem 1.4rem; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+    #glow-warn-modal[data-level="yellow"] .glow-warn-card {
+      border-color: rgba(250,204,21,0.55);
+      box-shadow: 0 0 34px rgba(250,204,21,0.28), 0 20px 60px rgba(0,0,0,0.6);
+    }
+    #glow-warn-modal[data-level="red"] .glow-warn-card {
+      border-color: rgba(220,38,38,0.65);
+      box-shadow: 0 0 34px rgba(220,38,38,0.32), 0 20px 60px rgba(0,0,0,0.6);
+    }
+    .glow-warn-icon { font-size: 2.1rem; line-height: 1; margin-bottom: 0.65rem; }
+    .glow-warn-title {
+      margin: 0 0 0.5rem; font-family: var(--font-display);
+      font-size: 1.15rem; font-weight: 800; color: var(--text);
+    }
+    #glow-warn-modal[data-level="yellow"] .glow-warn-title { color: #facc15; }
+    #glow-warn-modal[data-level="red"] .glow-warn-title { color: #f87171; }
+    .glow-warn-text { margin: 0 0 1.2rem; color: var(--muted); font-size: 0.95rem; line-height: 1.5; }
+    .glow-warn-btns { display: flex; flex-direction: column; gap: 0.6rem; }
+    .gw-btn {
+      padding: 0.65rem 1rem; border-radius: 8px; font-family: var(--font-display);
+      font-weight: 700; font-size: 0.85rem; letter-spacing: 0.04em; cursor: pointer;
+      border: 1px solid var(--border); background: transparent; color: var(--text);
+      transition: border-color 0.15s, background 0.15s, filter 0.15s;
+    }
+    .gw-btn:hover { border-color: var(--primary); }
+    .gw-btn.primary { background: var(--primary); border-color: var(--primary); color: #0a0a0f; }
+    .gw-btn.primary:hover { filter: brightness(1.12); }
+    .gw-btn.cancel { color: var(--danger); border-color: rgba(239,68,68,0.45); }
+    .gw-btn.cancel:hover { background: var(--danger-dim); border-color: var(--danger); }
+
 
     /* ── STATS ── */
     .stats-grid {
@@ -1618,7 +1688,7 @@ archive.innerHTML=html;if(totalMatches===0&&q){noResults.style.display='block';a
 function syncShopVisibility(items){const has=(items||[]).length>0;const sec=document.getElementById('shop');if(sec)sec.style.display=has?'':'none';const link=document.querySelector('.sidebar-link[href="#shop"]');if(link)link.style.display=has?'':'none';}async function renderHallOfShame(baseNames){const listEl=document.getElementById('banned-list');const secEl=document.getElementById('banned');let items=(baseNames||[]).slice();try{let userDocs;const now=Date.now();if(!window._kwHosCache||now-window._kwHosCacheT>600000){const snap=await window._getDocs(window._collection(window.db,'users'));window._kwHosCache=snap.docs;window._kwHosCacheT=now;}userDocs=window._kwHosCache;const bannedUsers=userDocs.map(d=>d.data()).filter(u=>u.banType==='permanent'||(u.banType==='temporary'&&u.banUntil&&new Date(u.banUntil).getTime()>Date.now()));items=items.concat(bannedUsers.map(u=>{const nm=u.fullName||u.username||u.email||'Unknown';if(u.banType==='temporary'){const t=new Date(u.banUntil);const when=isNaN(t.getTime())?'':t.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});return nm+(when?' - Unbanned: '+when:'');}return nm;}));}catch(e){}if(secEl)secEl.style.display=items.length?'':'none';if(listEl)listEl.innerHTML=items.map(u=>`<div class="banned-item"><span class="banned-dot"></span><span>${escHtml(u)}</span></div>`).join('');}
 function populatePage(data){const h=data.home||{};document.getElementById('home-subtitle').textContent=h.subtitle||'';const homeBtns=document.querySelector('.home-btns');if(homeBtns){const btnPrimary=homeBtns.querySelector('a.btn-primary');const btnSecondary=homeBtns.querySelector('a.btn-secondary');if(btnPrimary){btnPrimary.href=h.primary_btn_href||'#games';btnPrimary.childNodes[btnPrimary.childNodes.length-1].textContent=h.primary_btn_label||'Play Now';}
 if(btnSecondary){btnSecondary.href=h.secondary_btn_href||'msg.html';btnSecondary.textContent=h.secondary_btn_label||'Messages';}}
-const nt=data.notice||{};document.getElementById('notice-title').textContent=nt.title||'';document.getElementById('notice-text').innerHTML=nt.text||'';const topTierGrid=document.getElementById('top-tier-grid');const topTierItems=Object.values(data.games||{}).flat().filter(g=>g.isTopTier===true);const topTierSection=document.getElementById('top-tier');if(topTierSection)topTierSection.style.display=topTierItems.length?'':'none';topTierGrid.innerHTML=topTierItems.map(g=>{const bgImg=g.screenshot||g.backgroundImage;const bgStyle=bgImg?`style="background-image:url('${bgImg}');background-size:cover;background-position:center;"`:'';const popup=g.openInPopup===true;return`<a href="${g.url}" target="_blank" rel="noopener noreferrer" class="game-feature reveal" ${popup?`data-popup-launch="1" data-track-playtime="1" data-launch-url="${String(g.url||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" data-name="${String(g.name||'Game').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`:''}>
+const nt=data.notice||{};document.getElementById('notice-title').textContent=nt.title||'';document.getElementById('notice-text').innerHTML=nt.text||'';const topTierGrid=document.getElementById('top-tier-grid');const topTierItems=Object.values(data.games||{}).flat().filter(g=>g.isTopTier===true);const topTierSection=document.getElementById('top-tier');if(topTierSection)topTierSection.style.display=topTierItems.length?'':'none';topTierGrid.innerHTML=topTierItems.map(g=>{const bgImg=g.screenshot||g.backgroundImage;const bgStyle=bgImg?`style="background-image:url('${bgImg}');background-size:cover;background-position:center;"`:'';const popup=g.openInPopup===true;return`<a href="${g.url}" target="_blank" rel="noopener noreferrer" class="game-feature reveal" data-name="${String(g.name||'Game').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" ${popup?`data-popup-launch="1" data-track-playtime="1" data-launch-url="${String(g.url||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`:''}>
         <div class="game-feature-bg" ${bgStyle}></div>
         <div class="game-feature-overlay"></div>
         <div class="game-feature-content">
@@ -1627,7 +1697,7 @@ const nt=data.notice||{};document.getElementById('notice-title').textContent=nt.
           <span class="hover-btn">Open Game →</span>
         </div>
         <div class="game-feature-border"></div>
-      </a>`;}).join('');GAMES=data.games||{};buildArchive('');const sitesList=document.getElementById('sites-list');const sl=data.sites||[];sitesList.innerHTML=sl.map(s=>{const safeUrl=(s.url||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const popup=s.openInPopup===true;return`<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="site-pill" data-url="${safeUrl}" ${popup?`data-popup-launch="1" data-track-playtime="1" data-launch-url="${safeUrl}" data-name="${(s.name||'Site').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`:''}>${s.name}${EXT_SVG}</a>`;}).join('');renderShop(data.shop||[]);syncShopVisibility(data.shop||[]);const gv=Object.values(GAMES);const totalGames=gv.reduce((sum,arr)=>sum+(arr||[]).length,0);const totalSites=sl.length;const banned=data.banned||[];const totalBanned=banned.length;const statsGrid=document.getElementById('stats-grid');statsGrid.innerHTML=[{value:totalGames,label:'Total Games'},{value:totalSites,label:'Unblocked Sites'},{value:totalBanned,label:'Banned Users'}].map(s=>`<div class="stat-item">
+      </a>`;}).join('');GAMES=data.games||{};buildArchive('');const sitesList=document.getElementById('sites-list');const sl=data.sites||[];sitesList.innerHTML=sl.map(s=>{const safeUrl=(s.url||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const popup=s.openInPopup===true;return`<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="site-pill" data-url="${safeUrl}" data-name="${(s.name||'Site').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" ${popup?`data-popup-launch="1" data-track-playtime="1" data-launch-url="${safeUrl}"`:''}>${s.name}${EXT_SVG}</a>`;}).join('');renderShop(data.shop||[]);syncShopVisibility(data.shop||[]);const gv=Object.values(GAMES);const totalGames=gv.reduce((sum,arr)=>sum+(arr||[]).length,0);const totalSites=sl.length;const banned=data.banned||[];const totalBanned=banned.length;const statsGrid=document.getElementById('stats-grid');statsGrid.innerHTML=[{value:totalGames,label:'Total Games'},{value:totalSites,label:'Unblocked Sites'},{value:totalBanned,label:'Banned Users'}].map(s=>`<div class="stat-item">
         <span class="stat-num" data-target="${s.value}">0</span>
         <span class="stat-label">${s.label}</span>
       </div>`).join('');const cmd=data.command||{};const commandLinks=document.getElementById('command-links');const hiring=cmd.hiring;let hiringHTML='';if(hiring&&hiring.active){const staffFormOn=cmd.staffForm&&cmd.staffForm.enabled!==false;const hiringUrl=(hiring.url||'').trim()||(staffFormOn?'/staff.html':'');const hTag=hiringUrl?'a':'div';const hHref=hiringUrl?` href="${hiringUrl}" target="_blank" rel="noopener noreferrer"`:'';hiringHTML=`<${hTag}${hHref} class="command-link reveal">
@@ -1643,7 +1713,7 @@ const cmdLinks=cmd.links||[];commandLinks.innerHTML=hiringHTML+cmdLinks.map(link
           <p>${link.description}</p>
         </div>
         ${right}
-      </${tag}>`;}).join('');renderHallOfShame(banned);const ft=data.footer||{};document.getElementById('footer-tagline').textContent=ft.tagline||'';document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));document.querySelectorAll('.stats-grid').forEach(el=>observer.observe(el));}
+      </${tag}>`;}).join('');renderHallOfShame(banned);const ft=data.footer||{};document.getElementById('footer-tagline').textContent=ft.tagline||'';window._kwGlowBroken=new Set();Object.values(GAMES).flat().forEach(g=>{if(g&&g.broken===true&&g.name)window._kwGlowBroken.add(String(g.name).trim().toLowerCase());});(sl||[]).forEach(s=>{if(s&&s.broken===true&&s.name)window._kwGlowBroken.add(String(s.name).trim().toLowerCase());});if(window._kwLoadBugGlows)window._kwLoadBugGlows();if(window._kwApplyGlows)window._kwApplyGlows();document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));document.querySelectorAll('.stats-grid').forEach(el=>observer.observe(el));}
 const searchInput=document.getElementById('search-input');const clearBtn=document.getElementById('clear-search');searchInput.addEventListener('input',()=>{const q=searchInput.value;clearBtn.style.display=q?'block':'none';buildArchive(q);});clearBtn.addEventListener('click',()=>{searchInput.value='';clearBtn.style.display='none';buildArchive('');searchInput.focus();});window.toggleFavFilter=function(){SHOW_FAVORITES=!SHOW_FAVORITES;const btn=document.getElementById('fav-filter-btn');const label=document.getElementById('fav-filter-label');if(SHOW_FAVORITES){btn.style.borderColor='var(--primary)';btn.style.color='var(--primary)';label.textContent='Fav On';btn.innerHTML=HEART_FILLED_SVG+'<span id="fav-filter-label">Fav On</span>';}else{btn.style.borderColor='var(--border)';btn.style.color='var(--muted)';btn.innerHTML=HEART_OUTLINE_SVG+'<span id="fav-filter-label">Fav</span>';}buildArchive(searchInput.value);};</script>
 <script>let shopCart={};function renderShop(items){const wrap=document.getElementById('shop-content');if(!wrap)return;if(!items||!items.length){wrap.innerHTML=`
       <div class="shop-empty">
@@ -2026,6 +2096,19 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     if (raw.includes('/')) return raw;
     return './Games/' + raw;
   }
+  function isGamePopupWindowed() {
+    const modal = document.getElementById('game-popup-modal');
+    return !!(modal && modal.classList.contains('windowed'));
+  }
+  function setGamePopupWindowed(on) {
+    const modal = document.getElementById('game-popup-modal');
+    if (!modal) return;
+    const shell = modal.querySelector('.game-popup-shell');
+    modal.classList.toggle('windowed', on);
+    if (shell) shell.classList.toggle('windowed', on);
+    const btn = document.getElementById('game-popup-windowed');
+    if (btn) btn.textContent = on ? 'Exit Windowed' : 'Windowed';
+  }
   function ensureGamePopup() {
     if (document.getElementById('game-popup-modal')) return;
     const style = document.createElement('style');
@@ -2041,6 +2124,8 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       #game-popup-frame{flex:1;width:100%;border:0;background:#06070f;}
       #game-popup-ruffle{display:none;flex:1;width:100%;background:#06070f;overflow:hidden;}
       #game-popup-ruffle ruffle-player{width:100%;height:100%;border:0;display:block;}
+      #game-popup-modal.windowed{padding:0;background:#02030a;}
+      .game-popup-shell.windowed{width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;border-radius:0;border-color:transparent;}
     `;
     document.head.appendChild(style);
     const wrap = document.createElement('div');
@@ -2050,6 +2135,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
         <div class="game-popup-head">
           <div class="game-popup-title" id="game-popup-title">Game</div>
           <div class="game-popup-actions">
+            <button type="button" class="game-popup-btn" id="game-popup-windowed">Windowed</button>
             <button type="button" class="game-popup-btn" id="game-popup-fullscreen">Fullscreen</button>
             <button type="button" class="game-popup-btn" id="game-popup-close">Close</button>
           </div>
@@ -2061,7 +2147,15 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.body.appendChild(wrap);
     wrap.addEventListener('click', (e) => { if (e.target === wrap) closeGamePopup(); });
     document.getElementById('game-popup-close').addEventListener('click', closeGamePopup);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeGamePopup(); });
+    document.getElementById('game-popup-windowed').addEventListener('click', () => {
+      setGamePopupWindowed(!isGamePopupWindowed());
+      setTimeout(focusGameFrame, 80);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (isGamePopupWindowed()) { setGamePopupWindowed(false); return; }
+      closeGamePopup();
+    });
     document.getElementById('game-popup-fullscreen').addEventListener('click', async () => {
       const ruffleContainer = document.getElementById('game-popup-ruffle');
       const frame = document.getElementById('game-popup-frame');
@@ -2218,6 +2312,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const frame = document.getElementById('game-popup-frame');
     stopPopupPlayAutosave();
     flushPopupPlaytime(true);
+    setGamePopupWindowed(false);
     modal.classList.remove('open');
     frame.setAttribute('src', 'about:blank');
     frame.style.display = '';
@@ -2240,7 +2335,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const q = (filter || '').toLowerCase().trim();
     let totalMatches = 0;
     let html = '';
-    const uploadCard = `<div class="letter-group"><div class="letter-bg">+</div><div class="letter-heading">ZIP</div><div class="games-grid"><a href="/zip-player.html" class="game-card" data-popup="1" data-launch-url="/zip-player.html" data-name="Upload ZIP Game" data-screenshot="" data-url="/zip-player.html">${GAMEPAD_SVG}<span>Upload ZIP Game</span></a></div></div>`;
+    const uploadCard = `<div class="letter-group"><div class="letter-bg">+</div><div class="letter-heading">ZIP</div><div class="games-grid"><a href="/zip-player.html" class="game-card" data-noglow="1" data-popup="1" data-launch-url="/zip-player.html" data-name="Upload ZIP Game" data-screenshot="" data-url="/zip-player.html">${GAMEPAD_SVG}<span>Upload ZIP Game</span></a></div></div>`;
     const uploadSearchText = 'upload zip game zip-player local';
     const uploadMatches = !q || uploadSearchText.includes(q);
     for (const [letter, games] of Object.entries(GAMES).sort(([a], [b]) => a.localeCompare(b))) {
@@ -2287,7 +2382,95 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       archive.style.display = 'flex';
       searchCount.textContent = q ? `${totalMatches} game${totalMatches !== 1 ? 's' : ''} found` : '';
     }
+    if (window._kwApplyGlows) window._kwApplyGlows();
   };
+
+  // ── Broken-game warning popup (intercepts yellow/red games before opening) ──
+  const GW_KEY = 'kw_broken_warn_off';
+  let gwPending = null;
+  function gwIgnored() {
+    try { return JSON.parse(localStorage.getItem(GW_KEY) || '[]'); } catch (_) { return []; }
+  }
+  function gwHide() {
+    const m = document.getElementById('glow-warn-modal');
+    if (m) m.style.display = 'none';
+    gwPending = null;
+  }
+  function gwLaunch(el) {
+    const launchUrl = (el.dataset.launchUrl || '').trim() || el.getAttribute('href');
+    if (!launchUrl) return;
+    const popupCard = el.dataset.popup === '1';
+    const launchAttr = el.hasAttribute('data-popup-launch');
+    if (popupCard || launchAttr) {
+      if (isGameNewTab()) window.open(launchUrl, '_blank', 'noopener');
+      else openGamePopup(el.dataset.name || 'Game', launchUrl, popupCard ? true : el.dataset.trackPlaytime === '1');
+    } else {
+      window.open(launchUrl, '_blank', 'noopener');
+    }
+  }
+  function gwContinue() { const p = gwPending; gwHide(); if (p) gwLaunch(p.el); }
+  function gwNever() {
+    const p = gwPending;
+    if (p) {
+      const key = p.name.trim().toLowerCase();
+      const list = gwIgnored();
+      if (!list.includes(key)) {
+        list.push(key);
+        try { localStorage.setItem(GW_KEY, JSON.stringify(list)); } catch (_) {}
+      }
+    }
+    gwHide();
+    if (p) gwLaunch(p.el);
+  }
+  function gwCancel() { gwHide(); if (window.closeGamePopup) closeGamePopup(); }
+  function gwShow(el, name, level) {
+    gwPending = { el, name };
+    let modal = document.getElementById('glow-warn-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'glow-warn-modal';
+      modal.innerHTML = `
+        <div class="glow-warn-card">
+          <div class="glow-warn-icon" id="glow-warn-icon">⚠️</div>
+          <div class="glow-warn-title" id="glow-warn-title"></div>
+          <p class="glow-warn-text" id="glow-warn-text"></p>
+          <div class="glow-warn-btns">
+            <button type="button" class="gw-btn primary" id="glow-warn-continue">Continue</button>
+            <button type="button" class="gw-btn" id="glow-warn-never">Don't remind me again</button>
+            <button type="button" class="gw-btn cancel" id="glow-warn-cancel">Cancel</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      modal.addEventListener('click', (e) => { if (e.target === modal) gwCancel(); });
+      document.getElementById('glow-warn-continue').addEventListener('click', gwContinue);
+      document.getElementById('glow-warn-never').addEventListener('click', gwNever);
+      document.getElementById('glow-warn-cancel').addEventListener('click', gwCancel);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') { e.stopPropagation(); gwCancel(); }
+      }, true);
+    }
+    const isRed = level === 'red';
+    modal.dataset.level = level;
+    document.getElementById('glow-warn-icon').textContent = isRed ? '⛔' : '⚠️';
+    document.getElementById('glow-warn-title').textContent = isRed ? 'This game is almost definitely broken' : 'This game may be broken';
+    document.getElementById('glow-warn-text').textContent = isRed
+      ? 'This game is almost definitely broken because either an editor marked it as broken or we got 4+ bug reports for it'
+      : 'This game may be broken because we have received at least 1 bug report for this game';
+    modal.style.display = 'flex';
+  }
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.fav-btn')) return;
+    const el = e.target.closest('#archive .game-card, #top-tier-grid .game-feature');
+    if (!el || el.dataset.noglow) return;
+    const level = el.classList.contains('glow-red') ? 'red' : el.classList.contains('glow-yellow') ? 'yellow' : '';
+    if (!level) return;
+    const name = (el.dataset.name || '').trim();
+    if (!name) return;
+    if (gwIgnored().includes(name.toLowerCase())) return;
+    e.preventDefault();
+    e.stopPropagation();
+    gwShow(el, name, level);
+  }, true);
 
   document.addEventListener('click', (e) => {
     const card = e.target.closest('#archive .game-card');
@@ -2316,6 +2499,61 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
   const searchInputEl = document.getElementById('search-input');
   buildArchive(searchInputEl ? searchInputEl.value : '');
 })();
+</script>
+
+<script type="module">
+window._kwBugGlow = {};
+if (!(window._kwGlowBroken instanceof Set)) window._kwGlowBroken = new Set();
+
+window._kwApplyGlows = function () {
+  const bug = window._kwBugGlow || {};
+  const broken = window._kwGlowBroken instanceof Set ? window._kwGlowBroken : new Set();
+  document.querySelectorAll('#archive .game-card, #top-tier-grid .game-feature, #sites-list .site-pill').forEach(el => {
+    if (el.dataset.noglow) return;
+    const name = (el.dataset.name || '').trim().toLowerCase();
+    let status = 'green';
+    if (name) {
+      if (broken.has(name)) status = 'red';
+      else status = bug[name] || 'green';
+    }
+    el.classList.remove('glow-green', 'glow-yellow', 'glow-red');
+    el.classList.add('glow-' + status);
+  });
+};
+
+let _bugGlowLoaded = false;
+let _bugGlowLoading = false;
+window._kwLoadBugGlows = function () {
+  if (_bugGlowLoaded || _bugGlowLoading || !window.db || !window._getDocs || !window._collection) return;
+  _bugGlowLoading = true;
+  (async () => {
+    try {
+      const snap = await window._getDocs(window._collection(window.db, 'bugReports'));
+      const map = {};
+      snap.docs.forEach(d => {
+        const r = d.data() || {};
+        if (r.status === 'resolved') return;
+        const key = String(r.page || '').trim().toLowerCase();
+        if (!key) return;
+        const entry = map[key] || (map[key] = { count: 0, who: new Set() });
+        entry.count++;
+        if (r.email) entry.who.add(String(r.email).toLowerCase());
+      });
+      const out = {};
+      Object.keys(map).forEach(k => {
+        out[k] = map[k].who.size >= 4 ? 'red' : 'yellow';
+      });
+      window._kwBugGlow = out;
+      _bugGlowLoaded = true;
+    } catch (e) {
+      console.warn('Could not load bug-report glow status:', e);
+    } finally {
+      _bugGlowLoading = false;
+      if (window._kwApplyGlows) window._kwApplyGlows();
+    }
+  })();
+};
+window._kwLoadBugGlows();
 </script>
 
 <script>
@@ -2756,7 +2994,7 @@ window.closeProfile = function() {
 }
 </script>
 <script src="nav.js"></script>
-<script type="module" src="user-menu.js?v=2"></script>
+<script type="module" src="user-menu.js?v=3"></script>
 <script type="module" src="notifications.js"></script>
 <script type="module" src="auth-flows.js"></script>
 <script type="module" src="payment-wall.js"></script>

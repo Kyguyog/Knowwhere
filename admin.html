@@ -518,7 +518,7 @@
 <div id="main-content">
 
 <script src="nav.js"></script>
-<script type="module" src="user-menu.js?v=2"></script>
+<script type="module" src="user-menu.js?v=3"></script>
   <script type="module" src="notifications.js"></script>
   <script type="module" src="auth-flows.js"></script>
   <script type="module" src="payment-wall.js"></script>
@@ -1050,6 +1050,40 @@ window.updatePaywallLabel = function() {
 };
 
 
+// ── Admin: render notice popup editor ──
+function renderNoticePopupEditor(np) {
+  np = np || {};
+  const input = document.getElementById('ae-noticepopup-enabled');
+  if (input) input.checked = np.enabled === true;
+  const remember = document.getElementById('ae-noticepopup-remember');
+  if (remember) remember.checked = np.remember !== false;
+  const title = document.getElementById('ae-noticepopup-title');
+  if (title) title.value = np.title || '';
+  const text = document.getElementById('ae-noticepopup-text');
+  if (text) text.value = np.text || '';
+  updateNoticePopupLabel();
+  updateNoticePopupRememberLabel();
+}
+
+window.updateNoticePopupLabel = function() {
+  const input = document.getElementById('ae-noticepopup-enabled');
+  const lbl = document.getElementById('ae-noticepopup-lbl');
+  if (!input || !lbl) return;
+  const on = input.checked;
+  lbl.textContent = on ? 'Enabled' : 'Disabled';
+  lbl.style.color = on ? '#22c55e' : 'var(--muted)';
+};
+
+window.updateNoticePopupRememberLabel = function() {
+  const input = document.getElementById('ae-noticepopup-remember');
+  const lbl = document.getElementById('ae-noticepopup-remember-lbl');
+  if (!input || !lbl) return;
+  const on = input.checked;
+  lbl.textContent = on ? 'On' : 'Off';
+  lbl.style.color = on ? '#22c55e' : 'var(--muted)';
+};
+
+
 // ── Admin: save ──
 window.adminSave = async function(section) {
   if (!window._isAdmin) return;
@@ -1122,6 +1156,14 @@ window.adminSave = async function(section) {
         disableUntil: (until && !isNaN(until.getTime())) ? until.toISOString() : null
       };
       renderPaywallEditor(patch.paywall);
+    } else if (section === 'noticepopup') {
+      patch.noticePopup = {
+        enabled: document.getElementById('ae-noticepopup-enabled').checked,
+        remember: document.getElementById('ae-noticepopup-remember').checked,
+        title: document.getElementById('ae-noticepopup-title').value.trim(),
+        text: document.getElementById('ae-noticepopup-text').value
+      };
+      renderNoticePopupEditor(patch.noticePopup);
     }
 
     await window._firestoreUpdate(patch);
@@ -1173,6 +1215,7 @@ window.openAdminPanel = function() {
   renderCommandLinksEditor(data.command?.links || []);
   renderStaffFormEditor(data.command?.staffForm);
   renderPaywallEditor(data.paywall);
+  renderNoticePopupEditor(data.noticePopup);
 
   document.querySelectorAll('.admin-status').forEach(el => { el.textContent=''; el.className='admin-status'; });
 
@@ -1297,6 +1340,7 @@ window.closeAdminPanel = function() {
       <button class="admin-tab" data-tab="command" onclick="switchAdminTab('command')" style="color:var(--muted);border-bottom:2px solid transparent;">⚙️ Command</button>
       <button class="admin-tab" data-tab="staffform" onclick="switchAdminTab('staffform')" style="color:var(--muted);border-bottom:2px solid transparent;">📝 Staff Form</button>
       <button class="admin-tab" data-tab="paywall" onclick="switchAdminTab('paywall')" style="color:var(--muted);border-bottom:2px solid transparent;">🚪 Paywall</button>
+      <button class="admin-tab" data-tab="noticepopup" onclick="switchAdminTab('noticepopup')" style="color:var(--muted);border-bottom:2px solid transparent;">🔔 Notice Popup</button>
     </div>
     <div id="admin-content">
       <div class="admin-section active" id="admin-shop">
@@ -1375,6 +1419,36 @@ window.closeAdminPanel = function() {
           <input type="datetime-local" class="admin-input" id="ae-paywall-until" />
         </div>
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('paywall')">Save Paywall</button><span class="admin-status" id="status-paywall"></span></div>
+      </div>
+      <div class="admin-section" id="admin-noticepopup">
+        <p class="admin-hint" style="margin-bottom:1rem;">Show a popup to everyone when the page loads. With <b>Auto-hide once closed</b> on, visitors dismiss it once and it stays dismissed until you change the content; turn it off to show the popup on every page load. Leave the main toggle disabled to hide it. HTML is allowed in the message.</p>
+        <div class="admin-card-item">
+          <div class="admin-field" style="margin-bottom:0;">
+            <label>Notice Popup</label>
+            <label class="toggle-wrap" style="display:flex;align-items:center;gap:0.55rem;height:32px;margin:0;">
+              <span class="toggle-switch admin-toggle">
+                <input type="checkbox" id="ae-noticepopup-enabled" onchange="updateNoticePopupLabel()" />
+                <span class="toggle-track"></span>
+              </span>
+              <span class="toggle-label" id="ae-noticepopup-lbl">Disabled</span>
+            </label>
+          </div>
+        </div>
+        <div class="admin-card-item" style="margin-top:0.75rem;">
+          <div class="admin-field" style="margin-bottom:0;">
+            <label>Auto-hide once closed <span style="font-weight:400;color:var(--muted);font-size:0.78rem;">— off = popup shows again on every page load</span></label>
+            <label class="toggle-wrap" style="display:flex;align-items:center;gap:0.55rem;height:32px;margin:0;">
+              <span class="toggle-switch admin-toggle">
+                <input type="checkbox" id="ae-noticepopup-remember" onchange="updateNoticePopupRememberLabel()" />
+                <span class="toggle-track"></span>
+              </span>
+              <span class="toggle-label" id="ae-noticepopup-remember-lbl">On</span>
+            </label>
+          </div>
+        </div>
+        <div class="admin-field"><label>Title</label><input class="admin-input" id="ae-noticepopup-title" placeholder="Site Notice" /></div>
+        <div class="admin-field"><label>Message</label><textarea class="admin-input" id="ae-noticepopup-text" rows="5" style="resize:vertical;font-family:var(--font-body);min-height:120px;" placeholder="Write the notice visitors will see…"></textarea></div>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('noticepopup')">Save Notice Popup</button><span class="admin-status" id="status-noticepopup"></span></div>
       </div>
     </div>
   </div>

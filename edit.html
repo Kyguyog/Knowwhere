@@ -515,7 +515,7 @@
 <div id="main-content">
 
 <script src="nav.js"></script>
-<script type="module" src="user-menu.js?v=2"></script>
+<script type="module" src="user-menu.js?v=3"></script>
   <script type="module" src="notifications.js"></script>
   <script type="module" src="auth-flows.js"></script>
   <script type="module" src="payment-wall.js"></script>
@@ -1553,6 +1553,14 @@ function renderGameRow(g = {}) {
           </span>
           <span class="toggle-label" title="Toggle to add/remove this game from the Top Tier section">Top Tier</span>
         </label>
+        ${window._isAdmin === true ? `
+        <label class="toggle-wrap" style="white-space:nowrap;" title="Admin: flag this game as broken (red glow)">
+          <span class="toggle-switch admin-toggle">
+            <input type="checkbox" class="game-broken-input" ${g.broken === true ? 'checked' : ''} />
+            <span class="toggle-track"></span>
+          </span>
+          <span class="toggle-label">Broken</span>
+        </label>` : ''}
         <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
       </div>
     </div>`;
@@ -1657,7 +1665,8 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
       domain,
       description: row.querySelector('.game-desc-input').value.trim(),
       openInPopup: !!row.querySelector('.game-popup-input').checked,
-      isTopTier: !!row.querySelector('.game-toptier-input')?.checked
+      isTopTier: !!row.querySelector('.game-toptier-input')?.checked,
+      broken: row.querySelector('.game-broken-input') ? row.querySelector('.game-broken-input').checked : undefined
     };
   });
 
@@ -1697,12 +1706,16 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     const originalKey = normalizeGameKey(originalName);
     const nextKey = normalizeGameKey(name);
     const originalGame = originalKey ? originalMap.get(originalKey) : null;
+    const serverGame = originalKey ? latestMap.get(originalKey) : null;
+    const serverBroken = !!(serverGame && serverGame.broken === true);
+    const brokenVal = item.broken !== undefined ? item.broken : serverBroken;
     const nextGame = name ? { name, url } : null;
     if (nextGame && alias) nextGame.alias = alias;
     if (nextGame && openInPopup) nextGame.openInPopup = true;
     if (nextGame && screenshot) nextGame.screenshot = screenshot;
     if (nextGame && isTopTier) nextGame.isTopTier = true;
     if (nextGame && description) nextGame.description = description;
+    if (nextGame && brokenVal) nextGame.broken = true;
     if (nextGame && originalGame && originalGame.addedAt) nextGame.addedAt = originalGame.addedAt;
     if (nextGame && !originalGame) nextGame.addedAt = new Date().toISOString();
 
@@ -1722,6 +1735,7 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (originalGame.screenshot) originalComparable.screenshot = originalGame.screenshot;
     if (originalGame.isTopTier === true) originalComparable.isTopTier = true;
     if (originalGame.description) originalComparable.description = originalGame.description;
+    if (originalGame.broken === true) originalComparable.broken = true;
 
     const nextComparable = nextGame ? {
       name: nextGame.name || '',
@@ -1730,8 +1744,9 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
     if (nextComparable && nextGame.alias) nextComparable.alias = nextGame.alias;
     if (nextComparable && nextGame.openInPopup === true) nextComparable.openInPopup = true;
     if (nextComparable && nextGame.screenshot) nextComparable.screenshot = nextGame.screenshot;
-    if (nextComparable && nextGame.isTopTier === true) nextComparable.isTopTier = true;
+    if (nextComparable && nextGame.isTopTier === true) nextComparable.isTopTier = nextGame.isTopTier;
     if (nextComparable && nextGame.description) nextComparable.description = nextGame.description;
+    if (nextComparable && nextGame.broken === true) nextComparable.broken = true;
 
     const unchanged = JSON.stringify(originalComparable) === JSON.stringify(nextComparable);
     if (unchanged) return;
@@ -1793,7 +1808,7 @@ function renderSitesEditor(items) {
     const popupDisabled = isSwf ? 'disabled' : '';
     const toggleDim = isSwf ? 'opacity:0.5;' : '';
     return `
-    <div class="admin-row-item">
+    <div class="admin-row-item" data-original-name="${escAttr(s.name || '')}">
       <input class="admin-row-input" placeholder="Display name" value="${escAttr(s.name)}" style="flex:1;" />
       <input class="admin-row-input" placeholder="https://..." value="${escAttr(url)}" style="flex:2;" oninput="adminHandleGameUrlInput(this)" />
       <div style="display:flex;align-items:center;gap:0.45rem;min-width:0;">
@@ -1804,6 +1819,14 @@ function renderSitesEditor(items) {
           </span>
           <span class="toggle-label">${isSwf ? 'Popup (Flash)' : 'Popup'}</span>
         </label>
+        ${window._isAdmin === true ? `
+        <label class="toggle-wrap" style="white-space:nowrap;" title="Admin: flag this site as broken (red glow)">
+          <span class="toggle-switch admin-toggle">
+            <input type="checkbox" class="site-broken-input" ${s.broken === true ? 'checked' : ''} />
+            <span class="toggle-track"></span>
+          </span>
+          <span class="toggle-label">Broken</span>
+        </label>` : ''}
         <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
       </div>
     </div>`;
@@ -1868,6 +1891,14 @@ window.adminAddSite = function() {
         </span>
         <span class="toggle-label">Popup</span>
       </label>
+      ${window._isAdmin === true ? `
+      <label class="toggle-wrap" style="white-space:nowrap;" title="Admin: flag this site as broken (red glow)">
+        <span class="toggle-switch admin-toggle">
+          <input type="checkbox" class="site-broken-input" />
+          <span class="toggle-track"></span>
+        </span>
+        <span class="toggle-label">Broken</span>
+      </label>` : ''}
       <button class="admin-row-remove" onclick="adminRemoveRow(this)">✕</button>
     </div>`;
   document.getElementById('ae-sites-list').appendChild(div);
@@ -1899,10 +1930,34 @@ window.adminSave = async function(section) {
       window._adminOriginalData = Object.assign({}, window._adminOriginalData || {}, { games: JSON.parse(JSON.stringify(mergedGames)) });
       renderGamesEditor(mergedGames);
     } else if (section === 'sites') {
+      const latestData = await window._firestoreGetSiteContent();
+      const latestSites = Array.isArray(latestData.sites) ? latestData.sites : [];
+      const findPrior = (name, url, originalName) => {
+        const byOrig = originalName ? latestSites.find(s => (s.name || '').trim().toLowerCase() === originalName.toLowerCase()) : null;
+        if (byOrig) return byOrig;
+        if (name) {
+          const byName = latestSites.find(s => (s.name || '').trim().toLowerCase() === name.toLowerCase());
+          if (byName) return byName;
+        }
+        if (url) return latestSites.find(s => (s.url || '').trim() === url) || null;
+        return null;
+      };
       patch.sites = [...document.querySelectorAll('#ae-sites-list .admin-row-item')].map(row => {
-        const [n, u] = row.querySelectorAll('input');
-        return { name: n.value.trim(), url: u.value.trim(), openInPopup: !!row.querySelector('.site-popup-input')?.checked };
+        const inputs = row.querySelectorAll('input');
+        const n = inputs[0], u = inputs[1];
+        const name = n.value.trim();
+        const url = u.value.trim();
+        const site = { name, url, openInPopup: !!row.querySelector('.site-popup-input')?.checked };
+        const brokenInput = row.querySelector('.site-broken-input');
+        const prior = findPrior(name, url, (row.dataset.originalName || '').trim());
+        if (brokenInput) {
+          if (brokenInput.checked) site.broken = true;
+        } else if (prior && prior.broken === true) {
+          site.broken = true;
+        }
+        return site;
       }).filter(s => s.name);
+      renderSitesEditor(patch.sites);
     } else if (section === 'redirects') {
       const seen = new Set();
       patch.redirectPresets = [...document.querySelectorAll('#ae-redirects-list .admin-row-item')].map(row => {
