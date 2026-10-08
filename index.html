@@ -882,13 +882,8 @@
     }
     .site-pill:hover svg { opacity: 1; }
 
-    /* ── OPEN-BUG STATUS GLOWS (green = ok, yellow = open reports, red = 4+ people or admin-flagged broken) ──
-       Colorblind cues: green = thin solid, yellow = thicker DASHED + brighter, red = thickest solid. */
-    .game-card.glow-green, .site-pill.glow-green, .game-feature.glow-green {
-      outline: 2px solid rgba(34,197,94,0.9);
-      outline-offset: 2px;
-      box-shadow: 0 0 14px rgba(34,197,94,0.45);
-    }
+    /* ── OPEN-BUG STATUS GLOWS (no outline = ok, yellow = open reports, red = 4+ people or admin-flagged broken) ──
+       Colorblind cues: yellow = dashed + brighter, red = thickest solid. */
     .game-card.glow-yellow, .site-pill.glow-yellow, .game-feature.glow-yellow {
       outline: 3px dashed #facc15;
       outline-offset: 2px;
@@ -898,10 +893,6 @@
       outline: 4px solid #dc2626;
       outline-offset: 2px;
       box-shadow: 0 0 28px rgba(220,38,38,0.75), 0 0 8px rgba(153,27,27,0.7);
-    }
-    .game-card.glow-green:hover, .site-pill.glow-green:hover, .game-feature.glow-green:hover {
-      outline-color: #22c55e;
-      box-shadow: 0 0 20px rgba(34,197,94,0.65);
     }
     .game-card.glow-yellow:hover, .site-pill.glow-yellow:hover, .game-feature.glow-yellow:hover {
       outline-color: #fde047;
@@ -2511,13 +2502,13 @@ window._kwApplyGlows = function () {
   document.querySelectorAll('#archive .game-card, #top-tier-grid .game-feature, #sites-list .site-pill').forEach(el => {
     if (el.dataset.noglow) return;
     const name = (el.dataset.name || '').trim().toLowerCase();
-    let status = 'green';
+    let status = '';
     if (name) {
       if (broken.has(name)) status = 'red';
-      else status = bug[name] || 'green';
+      else status = bug[name] || '';
     }
     el.classList.remove('glow-green', 'glow-yellow', 'glow-red');
-    el.classList.add('glow-' + status);
+    if (status) el.classList.add('glow-' + status);
   });
 };
 
