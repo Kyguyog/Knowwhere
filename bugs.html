@@ -139,6 +139,15 @@
       background: rgba(255,255,255,0.025); border: 1px solid var(--border);
       border-radius: 6px; padding: 0.75rem 1rem;
     }
+    .report-edit textarea {
+      width: 100%; min-height: 90px; resize: vertical; box-sizing: border-box;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--primary);
+      border-radius: 6px; padding: 0.75rem 1rem;
+      color: var(--text); font-family: var(--font-body); font-size: 0.875rem;
+      line-height: 1.6;
+    }
+    .report-edit textarea:focus { outline: none; box-shadow: 0 0 0 2px rgba(168,85,247,0.25); }
+    .report-edit-btns { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
     .resolve-btn {
       padding: 0.3rem 0.85rem; border-radius: 6px; border: none;
       font-family: var(--font-display); font-size: 0.58rem; font-weight: 700;
@@ -452,6 +461,8 @@
   let commentsByReport = {};
   let expandedComments = new Set();
   let currentFilter = 'all';
+  let editingReportId = null;
+  let editingDetails = '';
   let unsubscribe = null;
   let commentsUnsubscribe = null;
 
@@ -569,25 +580,28 @@
       const meTooList = Array.isArray(r.meToo) ? r.meToo : [];
       const meTooCount = meTooList.length;
       const iMeToo = !!currentUser && meTooList.indexOf(currentUser.email) !== -1;
+      const isOwner = !!currentUser && !!currentUser.email && !!r.email &&
+        r.email.toLowerCase() === currentUser.email.toLowerCase();
+      const canToggleStatus = isAdmin || isOwner;
       const commentList = commentsByReport[r.id] || [];
       const expanded = expandedComments.has(r.id);
       return `
         <div class="report-card ${resolved ? 'resolved' : ''}">
           <div class="report-top">
             <div class="report-meta">
-              ${isAdmin ? `<span class="report-user">${esc(r.email)}</span>` : ''}
+              ${isAdmin || isOwner ? `<span class="report-user">${esc(r.email)}</span>` : ''}
               ${r.page ? `<span class="report-page">${esc(r.page)}</span>` : ''}
             </div>
             <div style="display:flex;align-items:center;gap:0.5rem;">
               <span class="status-pill ${resolved ? 'status-resolved' : 'status-open'}">
                 ${resolved ? '✓ Resolved' : '● Unresolved'}
               </span>
-              ${isAdmin ? `
+              ${canToggleStatus ? `
                 <button class="resolve-btn ${resolved ? 'mark-open' : 'mark-resolved'}"
                   onclick="toggleStatus('${esc(r.id)}', ${resolved})">
                   ${resolved ? 'Re-open' : 'Mark Resolved'}
-                </button>
-                ${resolved ? `
+                </button>` : ''}
+              ${isAdmin && resolved ? `
                 <span class="delete-confirm" id="del-confirm-${esc(r.id)}" style="display:none;">
                   <span>Delete?</span>
                   <button class="confirm-yes" onclick="deleteReport('${esc(r.id)}')">Yes, delete</button>
@@ -595,11 +609,19 @@
                 </span>
                 <button class="delete-btn" id="del-btn-${esc(r.id)}" onclick="promptDelete('${esc(r.id)}')">
                   Delete
-                </button>` : ''}` : ''}
+                </button>` : ''}
             </div>
           </div>
 
-          <div class="report-details">${esc(r.details)}</div>
+          ${editingReportId === r.id ? `
+          <div class="report-edit">
+            <textarea id="edit-details-${esc(r.id)}" oninput="setEditDetails(this.value)">${esc(editingDetails)}</textarea>
+            <div class="report-edit-btns">
+              <button class="resolve-btn mark-resolved" onclick="saveDetails('${esc(r.id)}')">Save</button>
+              <button class="resolve-btn mark-open" onclick="cancelEditDetails()">Cancel</button>
+            </div>
+          </div>` : `
+          <div class="report-details">${esc(r.details)}</div>`}
 
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;">
             <span class="report-date">${formatDate(r.createdAt)}</span>
@@ -613,6 +635,8 @@
             <button class="comments-toggle" onclick="toggleComments('${esc(r.id)}')">
               💬 Comments${commentList.length ? ` · ${commentList.length}` : ''} ${expanded ? '▾' : '▸'}
             </button>
+            ${isOwner && editingReportId !== r.id ? `
+            <button class="resolve-btn mark-open" onclick="editDetails('${esc(r.id)}')">Edit</button>` : ''}
           </div>
 
           ${expanded ? `
@@ -701,10 +725,14 @@
     });
   }
 
-  // ── Toggle status (admin only) ──────────────────────────────────────────────
+  // ── Toggle status (admins, or the report's own owner) ──────────────────────
 
   window.toggleStatus = async function(reportId, currentlyResolved) {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      const r = allReports.find(x => x.id === reportId);
+      const myEmail = currentUser && currentUser.email ? currentUser.email.toLowerCase() : '';
+      if (!r || !myEmail || !r.email || r.email.toLowerCase() !== myEmail) return;
+    }
     try {
       await updateDoc(doc(db, 'bugReports', reportId), {
         status: currentlyResolved ? 'open' : 'resolved'
@@ -734,11 +762,53 @@
     }
   };
 
+  // ── Edit description (report owner only — page/game is not editable) ───────
+
+  function canEditReport(r) {
+    return !!r && !!currentUser && !!currentUser.email && !!r.email &&
+      r.email.toLowerCase() === currentUser.email.toLowerCase();
+  }
+
+  window.editDetails = function(reportId) {
+    const r = allReports.find(x => x.id === reportId);
+    if (!canEditReport(r)) return;
+    editingReportId = reportId;
+    editingDetails = r.details || '';
+    renderReports();
+    setTimeout(() => {
+      const el = document.getElementById('edit-details-' + reportId);
+      if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+    }, 0);
+  };
+
+  window.setEditDetails = function(v) { editingDetails = v; };
+
+  window.cancelEditDetails = function() {
+    editingReportId = null;
+    editingDetails = '';
+    renderReports();
+  };
+
+  window.saveDetails = async function(reportId) {
+    const r = allReports.find(x => x.id === reportId);
+    if (!canEditReport(r)) return;
+    const text = (editingDetails || '').trim();
+    if (!text) { alert('Description cannot be empty.'); return; }
+    try {
+      await updateDoc(doc(db, 'bugReports', reportId), { details: text });
+      editingReportId = null;
+      editingDetails = '';
+      // onSnapshot refreshes the list automatically
+    } catch (e) {
+      alert('Failed to save description: ' + e.message);
+    }
+  };
+
   // ── Load reports ────────────────────────────────────────────────────────────
 
   function loadReports() {
     if (unsubscribe) unsubscribe();
-    // Everyone can now see all reports; admins can change status
+    // Everyone can see all reports; admins and owners can change status
     const q = query(collection(db, 'bugReports'), orderBy('createdAtServer', 'desc'));
 
     unsubscribe = onSnapshot(q, snap => {
