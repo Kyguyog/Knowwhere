@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>1v1.lol</title>
+    <base href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/IvI/">
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <meta name="robots" content="noindex,nofollow" />
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; background-color: black; overflow: hidden; }
+        #game-frame {
+            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            width: 100%; height: 100%; border: none; margin: 0; padding: 0;
+            overflow: hidden; z-index: 999999;
+        }
+        #kw-status {
+            position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+            color: #fff; font-family: monospace; font-size: 13px;
+            background: rgba(0,0,0,.75); padding: 6px 12px; border-radius: 6px;
+            z-index: 1000000; pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="kw-status">Loading 1v1.lol…</div>
+    <iframe id="game-frame" allow="autoplay; fullscreen; gamepad; clipboard-read; clipboard-write"></iframe>
+    <script>
+        // The repo only ships 1v1.lol's icons (favicon.png/.ico), which are now
+        // pulled from game-assets/IvI via <base>. The playable build is a
+        // third-party embed (a Google OpenSocial gadget pointing at jsDelivr);
+        // it is launched here and any failure to load is surfaced rather than
+        // silently redirecting away.
+        (function () {
+            var EMBED = "https://docs-opensocial.googleusercontent.com/gadgets/ifr?url=" +
+                encodeURIComponent("https://cdn.jsdelivr.net/gh/ko1ov/to@1e8a949f89fcf2b110640c41a0705db01405d161/d7uf4.xml") + "#";
+            var frame = document.getElementById("game-frame");
+            var status = document.getElementById("kw-status");
+            frame.src = EMBED;
+            frame.addEventListener("load", function () {
+                status.style.display = "none";
+            });
+            setTimeout(function () {
+                if (status.style.display !== "none") {
+                    status.textContent = "1v1.lol embed is taking a while (or is unavailable)…";
+                }
+            }, 8000);
+        })();
+    </script>
+</body>
+</html>

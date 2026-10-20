@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+        <base href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/basketball-stars/" />
+        <link rel="stylesheet" href="assets/css/app.css" type="text/css" />
+        <title>Basketball Stars | 3kh0</title>
+
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    </head>
+    <body>
+        <div id="content"></div>
+        <div id="orientation"></div>
+        <div id="loader">Loading ...</div>
+        <script>
+            // All game JS is pulled from the repo's game-assets folder. GitHub raw
+            // serves .js as text/plain, so Chromium's Opaque Response Blocking
+            // refuses a cross-origin <script src>. Each script is therefore fetched
+            // as text and re-served from a same-origin blob: URL, in the original
+            // order, so globals (nape, createjs, $, ...) are defined as expected.
+            var GITHUB_BASE = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/basketball-stars/";
+            var SCRIPTS = [
+                "assets/box2dweb/nape.min.js",
+                "assets/box2dweb/nape-debug-draw.min.js",
+                "assets/box2dweb/jquery-3.1.1.min.js",
+                "assets/box2dweb/easeljs-0.8.2.combined.js",
+                "assets/box2dweb/bluebird.min.js"
+            ];
+
+            function loadScript(src) {
+                return fetch(GITHUB_BASE + src).then(function (r) {
+                    if (!r.ok) throw new Error("HTTP " + r.status + " for " + src);
+                    return r.text();
+                }).then(function (text) {
+                    var url = URL.createObjectURL(new Blob([text], { type: "application/javascript" }));
+                    return new Promise(function (resolve, reject) {
+                        var s = document.createElement("script");
+                        s.src = url;
+                        s.async = false;
+                        s.onload = function () { URL.revokeObjectURL(url); resolve(); };
+                        s.onerror = function () { reject(new Error("Failed to execute " + src)); };
+                        document.body.appendChild(s);
+                    });
+                });
+            }
+
+            // Phaser's script loader injects <script src> tags directly for some
+            // files (e.g. assets/box2dweb/dragonBones.min.js). A cross-origin raw
+            // GitHub script is refused by Opaque Response Blocking, so intercept
+            // those tags at creation time and redirect any URL that points at the
+            // repo's game-assets folder through a same-origin blob: URL.
+            (function () {
+                var nativeCreate = document.createElement.bind(document);
+                document.createElement = function (tag) {
+                    var el = nativeCreate(tag);
+                    if (String(tag).toLowerCase() === "script") {
+                        var desc = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, "src");
+                        if (desc && desc.set) {
+                            Object.defineProperty(el, "src", {
+                                configurable: true,
+                                get: function () { return desc.get.call(this); },
+                                set: function (value) {
+                                    if (typeof value === "string" && value.indexOf("raw.githubusercontent.com") !== -1) {
+                                        var match = /game-assets\/basketball-stars\/(.*)$/.exec(value);
+                                        var self = this;
+                                        if (match) {
+                                            fetch(value).then(function (r) { return r.text(); }).then(function (text) {
+                                                var blob = URL.createObjectURL(new Blob([text], { type: "application/javascript" }));
+                                                desc.set.call(self, blob);
+                                                self.addEventListener("load", function () { URL.revokeObjectURL(blob); }, { once: true });
+                                            }).catch(function () { desc.set.call(self, value); });
+                                            return;
+                                        }
+                                    }
+                                    desc.set.call(this, value);
+                                }
+                            });
+                        }
+                    }
+                    return el;
+                };
+            })();
+
+            var useEvents = typeof Event === "function";
+
+            var myDispatchEvent = function (name) {
+                var event;
+                if (useEvents) {
+                    event = new Event(name);
+                } else {
+                    event = document.createEvent("Event");
+                    event.initEvent(name, true, true);
+                }
+                document.getElementById("content").dispatchEvent(event);
+            };
+
+            window["GD_OPTIONS"] = {
+                gameId: "69d78d071f704fa183d75b4114ae40ec",
+                onEvent: function (event) {
+                    switch (event.name) {
+                        case "SDK_GAME_START":
+                            myDispatchEvent("SDK_GAME_START");
+                            break;
+                        case "SDK_GAME_PAUSE":
+                            myDispatchEvent("SDK_GAME_PAUSE");
+                            break;
+                        case "SDK_GDPR_TRACKING":
+                            console.log("SDK_GDPR_TRACKING");
+                            break;
+                        case "SDK_GDPR_TARGETING":
+                            console.log("SDK_GDPR_TARGETING");
+                            break;
+                        case "SDK_READY":
+                            console.log("SDK_READY");
+                            break;
+                    }
+                },
+            };
+
+            SCRIPTS.reduce(function (chain, src) {
+                return chain.then(function () { return loadScript(src); });
+            }, Promise.resolve())
+                .then(function () { return loadScript("assets/main.min.js"); })
+                .then(function () { return loadScript("assets/basketball_legends_2019.min.js"); })
+                .catch(function (err) { console.error("[basketball-stars]", err); });
+        </script>
+    </body>
+</html>

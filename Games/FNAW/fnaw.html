@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Five Nights at Winston's</title>
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; }
+        #kw-frame { width: 100%; height: 100%; border: 0; display: block; }
+        #kw-status {
+            position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+            color: #fff; font-family: monospace; font-size: 14px;
+            background: rgba(0,0,0,.7); padding: 6px 12px; border-radius: 6px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div id="kw-status">Loading…</div>
+    <script>
+        // The offline build of FNAW is a single self-contained HTML file (a
+        // wrapper plus a ~12.5MB base64 TAR holding every image and sound). It
+        // is hosted in the repo's game-assets folder; fetch it as text and run
+        // it from a same-origin blob: URL inside this frame so it is not
+        // fetched cross-origin directly.
+        (function () {
+            var SRC = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/FNAW/fnaw.html";
+            var status = document.getElementById("kw-status");
+
+            fetch(SRC)
+                .then(function (r) {
+                    if (!r.ok) throw new Error("HTTP " + r.status);
+                    return r.text();
+                })
+                .then(function (html) {
+                    var url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+                    var frame = document.createElement("iframe");
+                    frame.id = "kw-frame";
+                    frame.setAttribute("allow", "autoplay; fullscreen");
+                    frame.src = url;
+                    frame.onload = function () {
+                        status.style.display = "none";
+                        URL.revokeObjectURL(url);
+                    };
+                    document.body.appendChild(frame);
+                })
+                .catch(function (err) {
+                    status.textContent = "Failed to load: " + err.message;
+                    console.error("[FNAW]", err);
+                });
+        })();
+    </script>
+</body>
+</html>

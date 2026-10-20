@@ -1,0 +1,73 @@
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slope</title>
+    <base href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/slope/slight-drop/">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <script>
+        // The game and all assets are streamed from the repo's game-assets
+        // folder. GitHub raw serves .js as text/plain, so Unity's loader
+        // templates (UnityProgress.js, unityloader41.js) are fetched as text and
+        // run from same-origin blob: URLs before UnityLoader.instantiate. The
+        // loader then resolves Build/slope.json and its .unityweb files against
+        // <base> and fetches them itself.
+        window.KW_GITHUB_BASE = "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/slope/slight-drop/";
+        window.kwLoadScript = function (src) {
+            return fetch(window.KW_GITHUB_BASE + src).then(function (r) {
+                if (!r.ok) throw new Error("HTTP " + r.status + " for " + src);
+                return r.text();
+            }).then(function (text) {
+                var url = URL.createObjectURL(new Blob([text], { type: "application/javascript" }));
+                return new Promise(function (resolve, reject) {
+                    var s = document.createElement("script");
+                    s.src = url;
+                    s.async = false;
+                    s.onload = function () { URL.revokeObjectURL(url); resolve(); };
+                    s.onerror = function () { reject(new Error("Failed to execute " + src)); };
+                    document.head.appendChild(s);
+                });
+            });
+        };
+    </script>
+    <style>
+        .alert {
+          padding: 20px;
+          background-color: #04AA6D;
+          color: white;
+        }
+
+        .closebtn {
+          margin-left: 15px;
+          color: white;
+          p {text-align: center;}  
+          font-weight: bold;
+          float: right;
+          font-size: 22px;
+          line-height: 20px;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+
+        .closebtn:hover {
+          color: black;
+        }
+    </style>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+    <div class="webgl-content">
+        <div id="gameContainer" style="width: 100%; height: 100%; margin: 0;"></div>
+    </div>
+    <script>
+        kwLoadScript("TemplateData/UnityProgress.js")
+            .then(function () { return kwLoadScript("TemplateData/unityloader41.js"); })
+            .then(function () {
+                window.gameInstance = UnityLoader.instantiate(
+                    "gameContainer",
+                    KW_GITHUB_BASE + "Build/slope.json",
+                    { onProgress: UnityProgress, Module: { onRuntimeInitialized: function () { UnityProgress(gameInstance, "complete"); } } }
+                );
+            })
+            .catch(function (err) { console.error("[slope]", err); });
+    </script>
+</body>
