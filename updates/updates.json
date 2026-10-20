@@ -1,5 +1,13 @@
 [
   {
+    "sha": "47612c12a383a499c43522ab4d1f5c54403a08a8",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/47612c12a383a499c43522ab4d1f5c54403a08a8",
+    "message": "Update bugs.html",
+    "date": "2026-10-12T05:23:43Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "a55dcb32c91683530126f028116ffef66c479746",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/a55dcb32c91683530126f028116ffef66c479746",
     "message": "change status game glow",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/48800bf960b09dab09323712629a5877fd67a85e",
     "message": "Update OMMOGLE-Practice.html",
     "date": "2026-05-20T19:03:39Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "5e2d6992641e3556dcb313d0aaffeed66be0508b",
-    "url": "https://github.com/Kyguyog/kyguyog.github.io/commit/5e2d6992641e3556dcb313d0aaffeed66be0508b",
-    "message": "Update AppEngineDeploy.yml",
-    "date": "2026-05-15T19:48:43Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
