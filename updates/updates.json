@@ -1,5 +1,13 @@
 [
   {
+    "sha": "588e8073919ca45bf0c82d714007e572839d3c64",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/588e8073919ca45bf0c82d714007e572839d3c64",
+    "message": "skip cloak on mobile, add firestore backups",
+    "date": "2026-10-21T04:56:12Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "56adfc6b1e37dfad4afbd03b9a4ae224067c9b0b",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/56adfc6b1e37dfad4afbd03b9a4ae224067c9b0b",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/Knowwhere/commit/d479b040919f5b8db335d661ca31507bec16d829",
     "message": "hu",
     "date": "2026-07-17T15:53:16Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "02bcbaa5668358131d4af6bf412bf4bbf99586d1",
-    "url": "https://github.com/Kyguyog/Knowwhere/commit/02bcbaa5668358131d4af6bf412bf4bbf99586d1",
-    "message": "delete games/sites",
-    "date": "2026-07-17T03:04:43Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
