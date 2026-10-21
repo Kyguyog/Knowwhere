@@ -67,26 +67,63 @@
     }
   </style>
   <script>
-    window.kwLoadJs = function (url) {
-      return fetch(url).then(function (r) {
-        if (!r.ok) throw new Error("kw http " + r.status);
-        return r.arrayBuffer();
-      }).then(function (buf) {
-        return URL.createObjectURL(new Blob([buf], { type: "text/javascript" }));
-      });
-    };
-    window.kwEvalScript = function (url) {
-      return kwLoadJs(url).then(function (objUrl) {
+    // Ruffle is streamed from the repo's game-assets folder. GitHub raw serves
+    // .js as text/plain + nosniff, so Chromium's Opaque Response Blocking
+    // refuses a cross-origin <script src> -- every script is downloaded as
+    // text and re-served from a same-origin blob: URL instead.
+    //
+    // ruffle.js is not self-contained: at runtime webpack lazy-loads the
+    // core.ruffle.<hash>.js chunk through a <script> tag and fetch()es the
+    // .wasm, both resolved against ruffle.js's own URL (webpack's publicPath).
+    // A blob: URL cannot be used as a base, so publicPath falls back to the
+    // page's own folder and both requests 404 (the ChunkLoadError). Fix: run
+    // the core chunk from a blob: URL *before* ruffle.js -- webpack drains the
+    // self.webpackChunkruffle_selfhosted queue when its runtime starts, so the
+    // chunk counts as already loaded -- and pin publicPath to the raw folder
+    // so the wasm still resolves.
+    window.kwRuffleBase =
+      "https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Burito%20Bison%20Revenge/";
+    window.kwRuffleReady = (function () {
+      var BASE = window.kwRuffleBase;
+
+      function fetchText(url) {
+        return fetch(url).then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status + " for " + url);
+          return r.text();
+        });
+      }
+
+      function evalFromBlob(text) {
+        var url = URL.createObjectURL(
+          new Blob([text], { type: "text/javascript" })
+        );
         return new Promise(function (res, rej) {
           var s = document.createElement("script");
-          s.onload = res;
-          s.onerror = function () { rej(new Error("kw exec " + url)); };
-          s.src = objUrl;
+          s.src = url;
+          s.onload = function () {
+            URL.revokeObjectURL(url);
+            res();
+          };
+          s.onerror = function () {
+            URL.revokeObjectURL(url);
+            rej(new Error("kw script failed"));
+          };
           document.head.appendChild(s);
         });
-      });
-    };
-    window.kwRuffleReady = kwEvalScript("https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Burito%20Bison%20Revenge/assets/ruffle.min.js").catch(function (e) { console.warn("ruffle load:", e); });
+      }
+
+      return fetchText(BASE + "core.ruffle.ae1054522f49580946c0.js")
+        .then(evalFromBlob)
+        .then(function () {
+          window.RufflePlayer = window.RufflePlayer || {};
+          window.RufflePlayer.config = Object.assign(
+            { publicPath: BASE + "assets/" },
+            window.RufflePlayer.config
+          );
+          return fetchText(BASE + "assets/ruffle.min.js");
+        })
+        .then(evalFromBlob);
+    })();
   </script>
 </head>
 <body>
@@ -135,16 +172,22 @@
       resizeGame();
       (window.kwRuffleReady || Promise.resolve()).then(() => {
         const ruffle = window.RufflePlayer?.newest() || window.RufflePlayer?.createPlayer();
-        if (ruffle && container) {
-          const player = ruffle.createPlayer();
-          player.style.width = "100%";
-          player.style.height = "100%";
-          player.style.background = "black";
-          container.appendChild(player);
-          player.load("https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/Burito%20Bison%20Revenge/Burrito_Bison_Revenge_FIX.swf");
-        } else {
+        if (!ruffle || !container) {
           container.textContent = "Ruffle failed to load.";
+          return;
         }
+        const player = ruffle.createPlayer();
+        player.style.width = "100%";
+        player.style.height = "100%";
+        player.style.background = "black";
+        container.appendChild(player);
+        player.load(window.kwRuffleBase + "Burrito_Bison_Revenge_FIX.swf").catch((e) => {
+          console.warn("swf load:", e);
+          container.textContent = "Ruffle failed to load.";
+        });
+      }).catch((e) => {
+        console.warn("ruffle load:", e);
+        container.textContent = "Ruffle failed to load.";
       });
     });
   </script>
