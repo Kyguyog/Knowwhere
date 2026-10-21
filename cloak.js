@@ -162,7 +162,13 @@
       if (navigator.userAgentData && navigator.userAgentData.platform) isChromebook = navigator.userAgentData.platform === 'ChromeOS';
     } catch (e) {}
     if (!isChromebook && /CrOS/.test(navigator.userAgent)) isChromebook = true;
-    if (isChromebook) {
+    var isMobile = false;
+    try {
+      if (navigator.userAgentData && navigator.userAgentData.mobile === true) isMobile = true;
+    } catch (e) {}
+    if (!isMobile && /Android|iPhone|iPad|iPod|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent)) isMobile = true;
+    if (!isMobile && navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent)) isMobile = true;
+    if (isChromebook || isMobile) {
       if (overlayEl) overlayEl.classList.add('hidden');
       return;
     }

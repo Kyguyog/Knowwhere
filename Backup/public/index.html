@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Self-hosted Firestore backups and recovery.">
+  <title>fsbak · Firestore backups</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header><a href="/" class="brand"><span class="brand-icon">↗</span>fsbak<span class="brand-divider">/</span><span class="brand-caption">Firestore backups</span></a><button id="logout" type="button">Sign out</button></header>
+  <main>
+    <div class="heading"><div><div class="eyebrow">DATABASE RECOVERY</div><h1>A little peace of mind.</h1><p>Automatic backups. A clear path back.</p></div><button id="backup-now" class="primary" disabled>＋ Back up now</button></div>
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <section id="recovery" class="recovery" hidden><h2>Restore needs attention</h2><p>A restore failed or was interrupted. Automatic backups and retention of protected files are paused. Inspect your database, then restore a protected backup below. To accept the current database and resume scheduling, acknowledge recovery.</p><button id="acknowledge">Acknowledge recovery…</button></section>
+    <section class="metrics" aria-label="Backup overview">
+      <div><span class="metric-label">CONNECTION</span><strong id="connection">Not configured</strong><span id="database-label">Connect your Firestore database below</span></div>
+      <div><span class="metric-label">NEXT BACKUP</span><strong id="next-backup">—</strong><span id="schedule-label">No schedule yet</span></div>
+      <div><span class="metric-label">BACKUPS SAVED</span><strong id="backup-count">0 <small>/ 100</small></strong><span id="storage-label">Stored in your Docker volume</span></div>
+    </section>
+    <section id="job-panel" class="job-panel" hidden aria-live="polite"><span class="pulse"></span><div><strong id="job-title"></strong><p id="job-detail"></p></div></section>
+    <div class="workspace">
+      <section class="card settings"><div class="section-heading"><h2>Backup settings</h2><span class="step">01 / CONFIGURE</span></div>
+        <form id="settings-form">
+          <label for="service-account">Service-account JSON <span id="credential-status" class="hint">Required for first connection</span></label>
+          <textarea id="service-account" rows="5" spellcheck="false" autocomplete="off" placeholder='{"type": "service_account", "project_id": "…", "private_key": "…", "client_email": "…"}'></textarea>
+          <p class="field-note">Firebase Console → Project settings → Service accounts → Generate new private key. Your browser Firebase config cannot back up the database.</p>
+          <label for="key-file" class="file-label">Or load a JSON key file</label><input type="file" id="key-file" accept="application/json,.json">
+          <label for="project-id">Project ID <span class="hint">Optional when loading a key</span></label><input id="project-id" placeholder="my-firebase-project" autocomplete="off">
+          <label for="database-id">Database ID</label><input id="database-id" value="(default)" autocomplete="off">
+          <div class="form-divider"></div>
+          <div class="toggle-row"><label for="enabled">Automatic backups</label><input type="checkbox" id="enabled" checked role="switch"></div>
+          <label for="interval-value">Back up every</label><div class="inline-inputs"><input type="number" id="interval-value" min="1" max="365000" value="1" required><select id="interval-unit" aria-label="Interval unit"><option value="minutes">Minutes</option><option value="hours">Hours</option><option value="days" selected>Days</option></select></div>
+          <label for="retention">Backups to keep</label><input type="number" id="retention" min="1" max="1000" value="100" required><p class="field-note">1–1,000 backups. Oldest backups are removed automatically. Safety backups count toward this limit; recovery files stay protected after a failed restore.</p>
+          <button type="submit" id="save" class="primary full">Test connection &amp; save</button>
+          <p class="secret-note">Your key is encrypted on the server and never returned to the UI.</p>
+        </form>
+      </section>
+      <section class="card history"><div class="section-heading"><div><h2>Backup history</h2><p>Every saved copy, ready when you need it.</p></div><span class="step">02 / RECOVER</span></div>
+        <div class="restore-note"><strong>Safety comes first.</strong> Every restore starts with an immediate backup. Then it replaces the database’s documents with the selected copy. Pause other database writers during backups and restores.</div>
+        <div class="table-scroll"><table><thead><tr><th>CREATED</th><th>TYPE</th><th>DOCUMENTS</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="backups"></tbody></table></div>
+        <div id="empty" class="empty"><span class="empty-icon">▤</span><h3>Your first backup starts here.</h3><p>Connect your database, then take a backup<br>or let your schedule handle it.</p></div>
+        <div class="history-footer"><span id="last-result">No jobs yet</span><span>↻ Refreshes automatically</span></div>
+      </section>
+    </div>
+    <footer>fsbak <span>Firestore documents &amp; subcollections · Persistent local storage</span></footer>
+  </main>
+  <dialog id="restore-dialog"><form method="dialog" id="restore-form"><div class="eyebrow">RESTORE DATABASE</div><h2>Return to this backup?</h2><p id="restore-summary"></p><p>A fresh safety backup must finish successfully before any documents are changed. This replaces documents across the entire configured database, including deleting documents added since this backup.</p><p>Stop other writers first. This operation is not atomic and may trigger Cloud Functions, extensions, or TTL policies.</p><label for="confirmation">Type <strong id="confirmation-label"></strong> to confirm</label><input id="confirmation" required autocomplete="off"><div class="dialog-actions"><button type="button" id="cancel-restore">Cancel</button><button id="confirm-restore" type="submit" class="danger">Create safety backup &amp; restore</button></div></form></dialog>
+  <dialog id="recovery-dialog"><form id="recovery-form"><h2>Resume automatic backups?</h2><p>Acknowledging recovery allows retention to remove protected backups and resumes the schedule. Check your database first.</p><label for="recovery-confirmation">Type RESUME to continue</label><input id="recovery-confirmation" required autocomplete="off"><div class="dialog-actions"><button type="button" id="cancel-recovery">Cancel</button><button type="submit" class="danger">Acknowledge &amp; resume</button></div></form></dialog>
+</body>
+</html>

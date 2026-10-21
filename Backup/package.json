@@ -1,0 +1,14 @@
+{
+  "name": "fsbak",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted Firestore backup scheduler and restore dashboard",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "check": "node --check src/server.js && node --check src/engine.js && node --check src/firestore.js && node --check src/storage.js && node --check public/app.js && node --check public/login.js"
+  },
+  "dependencies": { "google-auth-library": "11.3.1" }
+}

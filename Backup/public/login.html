@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · fsbak</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/login.js" defer></script>
+</head>
+<body>
+  <header><a href="/" class="brand"><span class="brand-icon">↗</span>fsbak<span class="brand-divider">/</span><span class="brand-caption">Firestore backups</span></a></header>
+  <main class="login-container">
+    <section class="card login-card">
+      <div class="eyebrow">YOUR BACKUP DASHBOARD</div>
+      <h1>Welcome back.</h1>
+      <p>Sign in with the admin credentials from your local configuration.</p>
+      <form id="login-form">
+        <label for="username">Username</label>
+        <input id="username" name="username" autocomplete="username" value="admin" required autofocus>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <p id="login-error" class="login-error" role="alert" hidden></p>
+        <button class="primary full" id="login-submit" type="submit">Sign in</button>
+      </form>
+      <p class="secret-note">Use the values after ADMIN_USER= and ADMIN_PASSWORD= in Backup/.env.</p>
+    </section>
+  </main>
+</body>
+</html>
