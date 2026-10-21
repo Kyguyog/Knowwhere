@@ -6,6 +6,7 @@ A self-hosted Firestore backup dashboard, built for Docker. Everything for this 
 - Schedule a backup every N minutes, hours, or days, or back up immediately.
 - Keep 1–1,000 backups (default 100), automatically removing the oldest copies.
 - Download backups and restore a selected copy to the same project/database.
+- Browse the database tree and exclude whole collections or individual documents, including their descendants. Excluded branches are skipped by default, with optional overrides for individual manual backups and restores.
 - Every restore first takes and verifies a fresh safety backup. Failed or interrupted restores protect recovery files and pause scheduled jobs.
 - Settings, credentials, schedules, and backup files survive container restarts in a named Docker volume.
 
@@ -18,7 +19,7 @@ cd Backup
 cp .env.example .env
 ```
 
-Edit `.env` and set `ADMIN_PASSWORD` to a unique password of at least 16 characters. Then:
+Edit `.env` and set `ADMIN_PASSWORD` to a unique password of at least 8 characters. Then:
 
 ```sh
 docker compose up -d --build
@@ -55,9 +56,23 @@ Retention counts all completed manual, scheduled, and safety backups across conn
 
 During a restore, its source and safety copies are protected from retention. On success, normal retention resumes, keeping the newest safety backup even when retention is 1. After a failed or interrupted restore, protected files can temporarily exceed the configured retention limit, and scheduling pauses. Restore a protected backup to recover, or inspect the database and explicitly acknowledge recovery in the UI to release protection and resume scheduling.
 
+## Database tree and exclusions
+
+After connecting, click **Load tree**. Use the arrow beside a collection to see its documents, and the arrow beside a document to see its subcollections. Branches load on demand in pages of 100; **Load more** fetches the next page. The browser receives names, paths, and node types, not document fields. Missing parent documents are shown so their subcollections remain selectable. Browsing performs Firestore reads.
+
+Check a collection or document to **ignore its entire branch by default**, then click **Save exclusions**. For example, selecting `Playtime` skips all of `Playtime`; selecting `users/alex` skips that document and its subcollections. Matching uses full, case-sensitive path segments: `Playtime` does not exclude `Playtime2`. A checked parent covers all descendants. Uncheck the parent to choose individual descendants instead. You can remove saved paths from the **Ignored paths** list even if they no longer exist in the database. Exclusions are per connected project/database, persist across restarts, and cannot change during a backup or restore. Unsaved selections must be saved or discarded before starting a manual backup or restore.
+
+Clicking **Back up now** opens a popup asking whether to include excluded data. **Keep exclusions** uses your saved exclusions; **Include excluded data** takes a full copy for this one run. Neither choice changes your saved settings. Scheduled backups always honor saved exclusions.
+
+The restore popup asks whether to **restore excluded collections and documents too, when present in this backup**. This is unchecked by default. Leaving it unchecked preserves current exclusions; checking it includes those branches when they are available in the selected copy. Each backup records the paths it actually omitted in its header and metadata. **Recorded omissions always remain untouched**, even when you choose to include excluded data: a partial backup cannot restore data it never captured, and restoring it must not delete that live data. The pre-restore safety backup covers every branch that the chosen restore can change. Saved exclusions stay unchanged after either choice.
+
+By default, restores therefore use the union of current exclusions and that backup's recorded exclusions. With the one-run override, only the backup's recorded omissions remain excluded. Existing backups without exclusions remain compatible. Excluding a branch does not remove its data from previously created backups.
+
 ## What a backup contains
 
-All readable documents in the configured **Firestore Native mode** database, including every nested subcollection and documents beneath missing/deleted parent documents. Empty documents are included. Pagination and streamed files keep the full database out of application memory. Firestore REST Value objects preserve 64-bit integers, nanosecond timestamps, references, bytes, GeoPoints, arrays, maps, nulls, and special floating-point values. See [the document-list API](https://cloud.google.com/firestore/docs/reference/rest/v1/projects.databases.documents/list).
+All readable, non-excluded documents in the configured **Firestore Native mode** database, including nested subcollections and documents beneath missing/deleted parent documents. Empty documents are included. Pagination and streamed files keep the full database out of application memory. Firestore REST Value objects preserve 64-bit integers, nanosecond timestamps, references, bytes, GeoPoints, arrays, maps, nulls, and special floating-point values. See [the document-list API](https://cloud.google.com/firestore/docs/reference/rest/v1/projects.databases.documents/list).
+
+Subcollection discovery runs with up to 8 concurrent requests, and local writes are buffered in 256 KiB chunks. This reduces network waiting without skipping subcollections or changing backup format. Set `BACKUP_CONCURRENCY` in `.env` to a whole number from 1 to 32 and recreate the container to tune it; default 8 is a conservative starting point. Higher concurrency increases the request rate, not the number of documents or subcollections read. Firestore throttling and network latency still affect speed. Traversal maintains bounded page buffers and the same document order as the original sequential traversal.
 
 This is a document backup, not a managed Firestore export. It does not include indexes, security rules, IAM, TTL policies, database settings, Firebase Authentication users, Cloud Storage, other databases in the same project, or original document create/update times. Backups can be downloaded as fsbak NDJSON; this format is not a `gcloud firestore import` archive. The UI restores copies stored in its volume; it does not accept arbitrary uploaded archives.
 
@@ -67,8 +82,8 @@ The UI requires typing the target `project-id/database-id` before a restore. The
 
 1. Validates the chosen backup's identity, complete footer, document count, and SHA-256 checksum.
 2. Writes and verifies a complete immediate backup of the current database. If this fails, no database writes occur.
-3. Deletes current documents using that completed safety manifest.
-4. Recreates the chosen backup's documents using full-document writes in bounded batches.
+3. Deletes current included documents using that completed safety manifest.
+4. Recreates the chosen backup's included documents using full-document writes in bounded batches. Current exclusions remain untouched unless explicitly included for this restore. Branches omitted from the selected backup always remain untouched.
 
 **Pause all other database writers before backup and restore.** Collection traversal is not a transactionally consistent snapshot: writes during a backup can produce a mixed-time view. A restore is not atomic across the entire database, and concurrent writes can survive deletion or be overwritten. For transactional snapshot requirements, use Google's managed export/PITR facilities instead. Restores can trigger Cloud Functions, extensions, and TTL policies; account for those writers as well. Reads, deletes, and writes incur standard Firestore charges.
 
@@ -113,9 +128,12 @@ To run without Docker, use Node.js 22 or newer:
 npm ci
 npm run check
 npm test
+npm run benchmark
 ADMIN_PASSWORD='replace-with-a-long-password' npm start
 ```
 
-Environment variables: `ADMIN_USER` (default `admin`), required `ADMIN_PASSWORD`, `PORT` (default `8080`), and `DATA_DIR` (default `./data`, `/data` in Docker). Keep `DATA_DIR` outside any public web root. The server listens on all interfaces; Compose restricts the published port to localhost.
+Environment variables: `ADMIN_USER` (default `admin`), required `ADMIN_PASSWORD`, `PORT` (default `8080`), `BACKUP_CONCURRENCY` (default `8`, range `1–32`), and `DATA_DIR` (default `./data`, `/data` in Docker). Keep `DATA_DIR` outside any public web root. The server listens on all interfaces; Compose restricts the published port to localhost.
 
 Tests use temporary storage and a simulated Firestore service; they cover typed values, missing parents, pagination, batching, scheduling, restart recovery, authentication, checksums, safety failures, and retention. They do not modify a live Firestore database.
+
+`npm run benchmark` compares sequential and parallel discovery with simulated network latency and verifies identical documents and order. It never contacts Firestore. Its speedup is a synthetic measurement; actual times depend on database layout, latency, and throttling.

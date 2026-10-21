@@ -8,7 +8,8 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test",
-    "check": "node --check src/server.js && node --check src/engine.js && node --check src/firestore.js && node --check src/storage.js && node --check public/app.js && node --check public/login.js"
+    "benchmark": "node scripts/benchmark.js",
+    "check": "node --check src/server.js && node --check src/engine.js && node --check src/firestore.js && node --check src/storage.js && node --check src/exclusions.js && node --check public/app.js && node --check public/login.js"
   },
   "dependencies": { "google-auth-library": "11.3.1" }
 }

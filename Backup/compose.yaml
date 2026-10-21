@@ -11,6 +11,7 @@ services:
       DATA_DIR: /data
       ADMIN_USER: ${ADMIN_USER:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in Backup/.env}
+      BACKUP_CONCURRENCY: ${BACKUP_CONCURRENCY:-8}
     volumes:
       - backup-data:/data
     read_only: true

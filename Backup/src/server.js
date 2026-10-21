@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
 import { Storage } from './storage.js';
 import { Engine, idPattern } from './engine.js';
+import { Firestore } from './firestore.js';
 
 const publicDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
 const digest = value => createHash('sha256').update(value).digest();
@@ -81,11 +82,12 @@ export function createApp(engine, { user, password }) {
           return json(res, 200, { ok: true });
         }
         if (url.pathname === '/api/config') { await engine.configure(input); return json(res, 200, await engine.status()); }
-        if (url.pathname === '/api/backup') return json(res, 202, await engine.startJob('manual'));
+        if (url.pathname === '/api/exclusions') { await engine.setExclusions(input); return json(res, 200, await engine.status()); }
+        if (url.pathname === '/api/backup') return json(res, 202, await engine.startJob('manual', undefined, { includeExcluded: input.includeExcluded }));
         if (url.pathname === '/api/restore') {
           if (input.confirmation !== `${engine.config?.projectId}/${engine.config?.databaseId}`) throw new Error('Database confirmation does not match.');
           if (!idPattern.test(input.id || '')) throw new Error('Invalid backup ID.');
-          return json(res, 202, await engine.startJob('restore', input.id));
+          return json(res, 202, await engine.startJob('restore', input.id, { includeExcluded: input.includeExcluded }));
         }
         if (url.pathname === '/api/recovery/acknowledge') {
           if (input.confirmation !== 'RESUME') throw new Error('Type RESUME to acknowledge recovery.');
@@ -104,6 +106,7 @@ export function createApp(engine, { user, password }) {
           return deny();
         }
         if (url.pathname === '/api/status') return json(res, 200, await engine.status());
+        if (url.pathname === '/api/tree') return json(res, 200, await engine.tree(url.searchParams.get('path') || '', url.searchParams.get('pageToken') || undefined));
         const download = url.pathname.match(/^\/api\/backups\/([0-9a-f-]{36})\/download$/);
         if (download) {
           if (!(await engine.list()).some(b => b.id === download[1])) return json(res, 404, { error: 'Backup not found.' });
@@ -129,10 +132,12 @@ export function createApp(engine, { user, password }) {
 
 async function main() {
   const password = process.env.ADMIN_PASSWORD;
-  if (!password || password.length < 16) throw new Error('Set ADMIN_PASSWORD to a unique password with at least 16 characters.');
+  if (!password || password.length < 8) throw new Error('Set ADMIN_PASSWORD to a unique password with at least 8 characters.');
   const user = process.env.ADMIN_USER || 'admin';
   if (user.includes(':')) throw new Error('ADMIN_USER cannot contain a colon.');
-  const engine = new Engine(new Storage(resolve(process.env.DATA_DIR || './data')));
+  const concurrency = Number(process.env.BACKUP_CONCURRENCY || 8);
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 32) throw new Error('BACKUP_CONCURRENCY must be a whole number between 1 and 32.');
+  const engine = new Engine(new Storage(resolve(process.env.DATA_DIR || './data')), config => new Firestore(config, undefined, { concurrency }));
   await engine.init();
   const server = createApp(engine, { user, password });
   const timer = setInterval(() => engine.tick().catch(() => console.error('Scheduled backup could not start. Check the dashboard and data volume.')), 10000);
