@@ -1,5 +1,13 @@
 [
   {
+    "sha": "19b41bf87b47336aaaf0d4c16944eb183df06011",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/19b41bf87b47336aaaf0d4c16944eb183df06011",
+    "message": "slither.io: auto-connect",
+    "date": "2026-10-21T03:18:08Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "d1ce64e2730ebb832ab5cb9578a393641ea11002",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/d1ce64e2730ebb832ab5cb9578a393641ea11002",
     "message": "slither.io: safer resize patch",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/Knowwhere/commit/8be6cb8b6052e202e0f1b21a5d517563a26d0cd4",
     "message": "njksfrh",
     "date": "2026-07-17T02:32:01Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "5cdcefddc7ef4fb0100e2e5cf599ce02705ced69",
-    "url": "https://github.com/Kyguyog/Knowwhere/commit/5cdcefddc7ef4fb0100e2e5cf599ce02705ced69",
-    "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
-    "date": "2026-07-17T02:25:31Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
