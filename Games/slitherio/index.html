@@ -16,19 +16,11 @@
         for(var i=0;i<mu.addedNodes.length;i++){
           var n = mu.addedNodes[i];
           if(n.tagName === 'IFRAME'){
-            try{
-              var s = n.src||'';
-              if(s.indexOf('raw.githubusercontent.com')>=0){ n.remove(); continue; }
-            }catch(e){}
+            try{ var s=n.src||''; if(s.indexOf('raw.githubusercontent.com')>=0){n.remove();continue;} }catch(e){}
           }
           if(n.querySelectorAll){
-            var fs = n.querySelectorAll('iframe');
-            for(var j=0;j<fs.length;j++){
-              try{
-                var ss = fs[j].src||'';
-                if(ss.indexOf('raw.githubusercontent.com')>=0) fs[j].remove();
-              }catch(e){}
-            }
+            var fs=n.querySelectorAll('iframe');
+            for(var j=0;j<fs.length;j++){ try{ var ss=fs[j].src||''; if(ss.indexOf('raw.githubusercontent.com')>=0) fs[j].remove(); }catch(e){} }
           }
         }
       }
@@ -916,7 +908,7 @@ function getData (u, o) {
 
 </script>
 <script>
-var patch_pre = "try{ if(typeof window!=='undefined'){ window.svl_bg=window.svl_bg||document.getElementById('svl_bg'); window.svl=window.svl||document.getElementById('svl'); window.sbmc=window.sbmc||document.getElementById('sbmc'); window.ocho=window.ocho||document.getElementById('ocho'); window.mbi=window.mbi||null; window.svlww=window.svlww||0; window.svlhh=window.svlhh||0; window.lww=window.lww||0; window.lhh=window.lhh||0; } }catch(e){}\n(function(){ try{ var orig=window.resize; window.resize=function(){ try{ if(window.svl_bg&&window.svl_bg.style){ var ww=Math.ceil(window.innerWidth); var hh=Math.ceil(window.innerHeight); if(ww!=lww||hh!=lhh){ lww=ww; lhh=hh; try{svl_bg.style.width=ww+'px'; svl_bg.style.height=hh+'px';}catch(e){} try{ if(svl){ svl.style.left=Math.round(ww/2-(svlww||0)/2)+'px'; svl.style.top=Math.round(hh/2-(svlhh||0)/2)+'px'; }}catch(e){} try{sbmc.style.width=ww+'px'; sbmc.style.height=hh+'px';}catch(e){} var hsu=0; if(mbi){ try{var sc=ww/1245; mbi.width=1245*sc; hsu=Math.ceil(260*sc); mbi.height=hsu;}catch(e){} hh-=hsu;} ww-=(wsu||0); try{ocho.style.width=ww+'px'; ocho.style.height=hh+'px';}catch(e){} try{if(adsController&&adsController.resize)adsController.resize(ww,hh);}catch(e){} try{reposEnterCode();}catch(e){} } } else { if(orig) orig.apply(window,arguments); } }catch(e){ if(orig) orig.apply(window,arguments); } }; }catch(e){} })();\n";
+var patch_pre = "try{ if(typeof window!=='undefined'){ window.svl_bg=window.svl_bg||document.getElementById('svl_bg'); window.svl=window.svl||document.getElementById('svl'); window.sbmc=window.sbmc||document.getElementById('sbmc'); window.ocho=window.ocho||document.getElementById('ocho'); window.mbi=window.mbi||null; window.svlww=window.svlww||0; window.svlhh=window.svlhh||0; window.lww=window.lww||0; window.lhh=window.lhh||0; } }catch(e){}\n(function(){ try{ var orig=window.resize; window.resize=function(){ try{ if(window.svl_bg&&window.svl_bg.style){ var ww=Math.ceil(window.innerWidth); var hh=Math.ceil(window.innerHeight); if(ww!=lww||hh!=lhh){ lww=ww; lhh=hh; try{ if(svl_bg) svl_bg.style.width=ww+'px'; if(svl_bg) svl_bg.style.height=hh+'px'; }catch(e){} try{ if(svl){ svl.style.left=Math.round(ww/2-(svlww||0)/2)+'px'; svl.style.top=Math.round(hh/2-(svlhh||0)/2)+'px'; }}catch(e){} try{ if(sbmc){ sbmc.style.width=ww+'px'; sbmc.style.height=hh+'px'; }}catch(e){} var hsu=0; if(mbi){ try{var sc=ww/1245; mbi.width=1245*sc; hsu=Math.ceil(260*sc); mbi.height=hsu;}catch(e){} hh-=hsu;} ww-=(wsu||0); try{ if(ocho) ocho.style.width=ww+'px'; if(ocho) ocho.style.height=hh+'px'; }catch(e){} try{ if(typeof adsController!=='undefined'&&adsController&&adsController.resize) adsController.resize(ww,hh); }catch(e){} try{ if(typeof reposEnterCode==='function') reposEnterCode(); }catch(e){} } } else if(orig){ try{ orig.apply(window,arguments); }catch(ex){} } }catch(e){ if(orig) try{orig.apply(window,arguments);}catch(ex){} } }; }catch(e){} })();\n";
 (function(){
   fetch('s/game1107249518.js').then(function(r){return r.text();}).then(function(t){
     t = t.replace(/"\/s\//g,'"s/');
