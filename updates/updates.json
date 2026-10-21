@@ -1,5 +1,13 @@
 [
   {
+    "sha": "0e1c7eda938c9259add167a02a8615064ff300f4",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/0e1c7eda938c9259add167a02a8615064ff300f4",
+    "message": "slither.io: wrap resize to guard null DOM elements before init",
+    "date": "2026-10-21T00:49:40Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "a64cc306fbce6e5d3fc79079a4a3e15d36fd9419",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/a64cc306fbce6e5d3fc79079a4a3e15d36fd9419",
     "message": "Offline wrappers + game-assets for all titles; slither.io offline bot lobby with WS emulator and DOM safety patches",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/Knowwhere/commit/b871374109002c04df235d246e39d3e05663d513",
     "message": "Fix Bug",
     "date": "2026-07-17T02:10:04Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "7165d5a8b845c51fc6d7e47ebf29222cd5dd2ffb",
-    "url": "https://github.com/Kyguyog/Knowwhere/commit/7165d5a8b845c51fc6d7e47ebf29222cd5dd2ffb",
-    "message": "Update Firebase creds\n\nI accedentally deleted the old firebase project so i had to recreate it",
-    "date": "2026-06-05T23:30:35Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
