@@ -1,5 +1,13 @@
 [
   {
+    "sha": "e854ded1c470f304573821ceae6471a623933f0a",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/e854ded1c470f304573821ceae6471a623933f0a",
+    "message": "update db backuper",
+    "date": "2026-10-21T05:54:02Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "588e8073919ca45bf0c82d714007e572839d3c64",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/588e8073919ca45bf0c82d714007e572839d3c64",
     "message": "skip cloak on mobile, add firestore backups",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/Knowwhere/commit/0d84c97d11b80175cfcd1f7bf60c9534828bf91c",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
     "date": "2026-07-17T16:50:13Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "d479b040919f5b8db335d661ca31507bec16d829",
-    "url": "https://github.com/Kyguyog/Knowwhere/commit/d479b040919f5b8db335d661ca31507bec16d829",
-    "message": "hu",
-    "date": "2026-07-17T15:53:16Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
