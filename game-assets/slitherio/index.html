@@ -1,3 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>slither.io</title>
+<base href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/slitherio/">
+<meta property="og:description" content="Play snake online with bots in offline mode">
+<style>html,body{background:#161c22;margin:0;padding:0;overflow:hidden}</style>
+<script>
+(function(){
+  var obs = new MutationObserver(function(m){
+    m.forEach(function(mu){
+      if(mu.addedNodes){
+        for(var i=0;i<mu.addedNodes.length;i++){
+          var n = mu.addedNodes[i];
+          if(n.tagName === 'IFRAME'){
+            try{
+              var s = n.src||'';
+              if(s.indexOf('raw.githubusercontent.com')>=0){ n.remove(); continue; }
+            }catch(e){}
+          }
+          if(n.querySelectorAll){
+            var fs = n.querySelectorAll('iframe');
+            for(var j=0;j<fs.length;j++){
+              try{
+                var ss = fs[j].src||'';
+                if(ss.indexOf('raw.githubusercontent.com')>=0) fs[j].remove();
+              }catch(e){}
+            }
+          }
+        }
+      }
+    });
+  });
+  try{ obs.observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+})();
+</script>
+</head>
+<body>
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
   <title>slither.io</title>
@@ -273,7 +314,7 @@
  
  <div id='cskh' style='position: fixed; left: 20px; bottom: 16px; z-index: 50; display: none;'>
   <a class='btn btnt' draggable="false" id='csk' style='width:95px; height:89px;' href='#'>
-   <img class='nsi' border=0 draggable=false width=95 height=89 src='/s/changeskin2.png'>
+   <img class='nsi' border=0 draggable=false width=95 height=89 src='s/changeskin2.png'>
   </a>
  </div>
  
@@ -282,7 +323,7 @@
  
  <div id='csrvh' style='position: fixed; right: 20px; bottom: 16px; z-index: 50; display: none;'>
   <a class='btn btnt' draggable="false" id='csrv' style='width:107px; height:89px;' href='#'>
-   <img class='nsi' border=0 draggable=false width=107 height=89 src='/s/chooseserver.png'>
+   <img class='nsi' border=0 draggable=false width=107 height=89 src='s/chooseserver.png'>
   </a>
  </div>
  
@@ -290,21 +331,21 @@
  <!--
  <div id='trumpbtnh' style='position: fixed; z-index: 50; display: none;'>
   <a class='btn btnt' draggable="false" id='trumpbtn' style='width:202px; height:218px;' href='#'>
-   <img class='nsi' border=0 draggable=false width=202 height=218 src='/s/trumpbtn.png'>
+   <img class='nsi' border=0 draggable=false width=202 height=218 src='s/trumpbtn.png'>
   </a>
  </div>
  
  
  
  <div id='votetxth' style='position: fixed; z-index: 50; display: none;'>
-  <img class='nsi' border=0 draggable=false width=290 height=84 src='/s/votetxt2.png'>
+  <img class='nsi' border=0 draggable=false width=290 height=84 src='s/votetxt2.png'>
  </div>
  
  
  
  <div id='kamalabtnh' style='position: fixed; z-index: 50; display: none;'>
   <a class='btn btnt' draggable="false" id='kamalabtn' style='width:202px; height:218px;' href='#'>
-   <img class='nsi' border=0 draggable=false width=202 height=218 src='/s/kamalabtn.png'>
+   <img class='nsi' border=0 draggable=false width=202 height=218 src='s/kamalabtn.png'>
   </a>
  </div>
  -->
@@ -312,27 +353,27 @@
  
  <div id='etcoh' style='position: fixed; right: 20px; top: 16px; z-index: 50; display: none;'>
   <a class='btn btnt' draggable="false" id='etco' style='width:87px; height:77px;' href='#'>
-   <img class='nsi' border=0 draggable=false width=87 height=77 src='/s/entercode4.png'>
+   <img class='nsi' border=0 draggable=false width=87 height=77 src='s/entercode4.png'>
   </a>
  </div>
  
  
  <div id='bskh' style='position: fixed; right: 20px; bottom: 16px; z-index: 50; display: none;'>
   <a class='btn btnt' draggable="false" id='bsk' style='width:102px; height:89px;' href='#'>
-   <img class='nsi' border=0 draggable=false width=102 height=89 src='/s/buildskin.png'>
+   <img class='nsi' border=0 draggable=false width=102 height=89 src='s/buildskin.png'>
   </a>
  </div>
  
  <div id='scosh' style='position: fixed; right: 14px; bottom: 144px; z-index: 50; display: none;'>
   <a class='btn btnt' draggable="false" id='scos' style='width:119px; height:87px;' href='#'>
-   <img class='nsi' border=0 draggable=false width=119 height=87 src='/s/selectcosmetic2.png'>
+   <img class='nsi' border=0 draggable=false width=119 height=87 src='s/selectcosmetic2.png'>
   </a>
  </div>
 
  
  <div id='grqh' style='position: fixed; right: 20px; top: 16px; z-index: 50;'>
   <a class='btn btnt' draggable="false" id='grq' style='width:90px; height:87px;' href='#'>
-   <img id='grqi' class='nsi' border=0 draggable=false width=90 height=87 src='/s/highquality.png'>
+   <img id='grqi' class='nsi' border=0 draggable=false width=90 height=87 src='s/highquality.png'>
   </a>
  </div>
 
@@ -346,13 +387,13 @@
 
 <div id='pskh' style='display: none; opacity: 0; position: fixed; z-index: 52;'>
  <a class='btn btnt' draggable="false" id='psk' style='width:87px; height:88px;' href='#'>
-  <img class='nsi' border=0 draggable=false width=87 height=88 src='/s/prev3.png'>
+  <img class='nsi' border=0 draggable=false width=87 height=88 src='s/prev3.png'>
  </a>
 </div>
 
 <div id='nskh' style='display: none; opacity: 0; position: fixed; z-index: 52;'>
  <a class='btn btnt' draggable="false" id='nsk' style='width:87px; height:88px;' href='#'>
-  <img class='nsi' border=0 draggable=false width=87 height=88 src='/s/next3.png'>
+  <img class='nsi' border=0 draggable=false width=87 height=88 src='s/next3.png'>
  </a>
 </div>
 
@@ -494,9 +535,9 @@ function getData (u, o) {
 
 
 
-<!--<script src="/s/pixi.min.js"></script>-->
 
-<script type='text/javascript' src='/s/game1107249518.js'></script>
+
+<!--KW_GAME_SCRIPT-->
 
 
 
@@ -509,4 +550,386 @@ function getData (u, o) {
 
 
  </body>
+</html>
+<script>
+// inline slither emulator
+/* slither.io offline bot-only lobby emulator (in-page fake server).
+ *
+ * The scraped client (game1107249518.js) is client-only: it fetches a server
+ * list and talks to a remote server over WebSocket using slither.io's binary
+ * protocol. This script replaces window.WebSocket and the server-list XHR with
+ * an in-page implementation that speaks the same protocol and simulates a
+ * local lobby: the player snake (input handled by the client) plus AI bots and
+ * food. No network traffic leaves the page.
+ */
+(function () {
+  "use strict";
+
+  var VER = "1.0";
+  var PROTO = 17;              // protocol_version advertised in the "a" init packet
+  var GRD = 16000;             // world edge length
+  var SECTOR = 1600;           // sector size
+  var DEFAULT_MSL = 34;        // default max segment length-ish
+
+  // ---------------- byte writer ----------------
+  function W() { this.a = []; }
+  W.prototype.u8 = function (v) { this.a.push(v & 255); return this; };
+  W.prototype.i16 = function (v) { this.a.push((v >> 8) & 255, v & 255); return this; };
+  W.prototype.i24 = function (v) { this.a.push((v >> 16) & 255, (v >> 8) & 255, v & 255); return this; };
+  W.prototype.str = function (s) { for (var i = 0; i < s.length; i++) this.a.push(s.charCodeAt(i) & 255); return this; };
+  W.prototype.bytes = function (b) { for (var i = 0; i < b.length; i++) this.a.push(b[i] & 255); return this; };
+  W.prototype.out = function () { return new Uint8Array(this.a); };
+
+  var PI2 = Math.PI * 2;
+
+  // ---------------- world + bots ----------------
+  var NAMES = ["Noodle", "Slinky", "Wiggles", "Cobra", "Viper", "Python", "Boop", "Zigzag",
+    "Squirm", "Fang", "Mamba", "Krait", "Rattler", "Slyther", "Twister", "Curly", "Nibbler"];
+  function rname() { return NAMES[(Math.random() * NAMES.length) | 0] + (Math.random() < 0.5 ? "" : " " + (1 + (Math.random() * 8 | 0))); }
+
+  function Bot() {
+    this.id = Bot.nextId++;
+    this.xx = 600 + Math.random() * (GRD - 1200);
+    this.yy = 600 + Math.random() * (GRD - 1200);
+    this.ang = Math.random() * PI2;
+    this.sp = 4.4 + Math.random() * 2.2;
+    this.cv = (Math.random() * 40) | 0;
+    this.sct = 10 + ((Math.random() * 40) | 0);
+    this.nk = rname();
+    this.turn = (Math.random() < 0.5 ? -1 : 1) * (0.008 + Math.random() * 0.03);
+    this.t = 0; this.tt = 30 + ((Math.random() * 150) | 0);
+  }
+  Bot.nextId = 2;
+  Bot.prototype.step = function (dt) {
+    this.t++;
+    if (this.t > this.tt) { this.t = 0; this.tt = 30 + ((Math.random() * 180) | 0); this.turn = (Math.random() < 0.5 ? -1 : 1) * (0.006 + Math.random() * 0.035); }
+    this.ang += this.turn * dt * 60;
+    var d = this.sp * dt * 3;
+    this.xx += Math.cos(this.ang) * d;
+    this.yy += Math.sin(this.ang) * d;
+    if (this.xx < 100) { this.xx = 100; this.ang = Math.PI - this.ang; }
+    if (this.xx > GRD - 100) { this.xx = GRD - 100; this.ang = Math.PI - this.ang; }
+    if (this.yy < 100) { this.yy = 100; this.ang = -this.ang; }
+    if (this.yy > GRD - 100) { this.yy = GRD - 100; this.ang = -this.ang; }
+  };
+
+  // ---------------- packet builders ----------------
+  function pktInit(realSid) {
+    var w = new W();
+    w.u8(97);                          // 'a'
+    w.i24(GRD);
+    w.i16(300);                        // mscps
+    w.i16(SECTOR);
+    w.i16(Math.ceil(GRD / SECTOR));
+    w.u8(30);                          // spangdv/10 = 3.0
+    w.i16(537);                        // nsp1 = 5.37
+    w.i16(40);                         // nsp2 = 0.40
+    w.i16(60);                         // nsp3
+    w.i16(9);                          // mamu
+    w.i16(9);                          // mamu2
+    w.i16(10);                         // cst
+    w.u8(PROTO);                       // protocol_version
+    w.u8(DEFAULT_MSL);                 // default_msl
+    w.i16(realSid);                    // real_sid
+    w.i24(Math.floor(GRD * 0.98));     // flux_grd
+    w.u8(1);                           // game_mode (normal)
+    w.u8(0);
+    return w.out();
+  }
+
+  // 's' snake packet. Must have dlen > 6 to hit the full form.
+  function pktSnake(id, xx, yy, cv, nk, ang, sp, sct) {
+    var w = new W();
+    w.u8(115); // 's'
+    w.i16(id);
+    var a24 = ((Math.floor(ang / PI2 * 16777215) % 16777216) + 16777216) % 16777216;
+    w.i24(a24);                        // ang
+    w.u8(48);                          // dir '0'
+    w.i24(a24);                        // wang
+    w.i16(Math.floor(sp * 1000));      // speed
+    w.i24(300);                        // fam
+    w.u8(cv & 255);                    // cv
+    var n = Math.max(2, Math.min(80, Math.floor(sct)));
+    w.i24(Math.floor(xx * 5));         // snx
+    w.i24(Math.floor(yy * 5));         // sny
+    w.u8(nk.length); w.str(nk);
+    w.u8(0);                           // custom skin length (proto>=11)
+    w.u8(255);                         // cosmetic (proto>=12)
+    // points
+    var px = xx, py = yy;
+    for (var i = 0; i < n; i++) {
+      if (i === 0) { w.i24(Math.floor(px * 5)); w.i24(Math.floor(py * 5)); }
+      else {
+        var nx = px - Math.cos(ang) * DEFAULT_MSL;
+        var ny = py - Math.sin(ang) * DEFAULT_MSL;
+        if (i === n - 1 && PROTO >= 15) {
+          // final point uses 2-byte iang encoding
+          var iang = ((Math.floor(ang / PI2 * 65536) % 65536) + 65536) % 65536;
+          w.i16(iang);
+        } else {
+          w.u8(clamp(Math.round((nx - px) / 2) + 127));
+          w.u8(clamp(Math.round((ny - py) / 2) + 127));
+        }
+        px = nx; py = ny;
+      }
+    }
+    return w.out();
+  }
+  function clamp(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
+
+  // movement update: 'e' with id + ang + wang + speed (plen 6 path, proto>=14)
+  function pktMove(id, ang, sp) {
+    var w = new W();
+    w.u8(101); // 'e'
+    w.i16(id);
+    w.u8((Math.floor(ang / PI2 * 256) + 256) % 256);
+    w.u8((Math.floor(ang / PI2 * 256) + 256) % 256);
+    w.u8(clamp(Math.floor(sp * 18)));
+    return w.out();
+  }
+
+  // food burst (protocol>=4 form): 'F' then [cv][x16][y16][rad] per item? No:
+  // proto>=14 form is sector based. Use the proto>=4 branch instead since we set
+  // PROTO above -- but PROTO=17 selects the >=14 branch. So send >=14 form:
+  // 'F' sx sy then per item [cv][rx][ry][rad].
+  function pktFood(items) {
+    var w = new W();
+    w.u8(70); // 'F'
+    // group all in one sector-region by writing each item's own sx,sy (the
+    // >=14 parser uses the LAST sx,sy as base for following items, and each item
+    // is [cv][rx][ry][rad]). To keep it simple, emit one packet per item.
+    return null; // handled by pktFoodOne loop
+  }
+  // Food packet. proto>=14 sector form: 'F' sx sy then per item [cv][rx][ry][rad],
+  // where xx = sx*sector_size + rx*ssd256, yy = sy*sector_size + ry*ssd256, rad=a[m]/5.
+  // itemXxx/itemYyy are absolute world coords.
+  function pktFoodOne(xx, yy, rad, cv) {
+    var sx = Math.floor(xx / SECTOR);
+    var sy = Math.floor(yy / SECTOR);
+    var rx = Math.floor((xx - sx * SECTOR) / (SECTOR / 256)) & 255;
+    var ry = Math.floor((yy - sy * SECTOR) / (SECTOR / 256)) & 255;
+    var w = new W();
+    w.u8(70);                 // 'F'
+    w.u8(sx & 255); w.u8(sy & 255);
+    w.u8(cv & 255); w.u8(rx); w.u8(ry);
+    w.u8(clamp(Math.round(rad * 5)));
+    return w.out();
+  }
+
+  // Food packet with many items sharing one sector base (proto>=14).
+  function pktFoodMany(items) {
+    if (!items || !items.length) return null;
+    var base = items[0];
+    var sx = Math.floor(base.xx / SECTOR);
+    var sy = Math.floor(base.yy / SECTOR);
+    var w = new W();
+    w.u8(70);
+    w.u8(sx & 255); w.u8(sy & 255);
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var rx = Math.floor((it.xx - sx * SECTOR) / (SECTOR / 256)) & 255;
+      var ry = Math.floor((it.yy - sy * SECTOR) / (SECTOR / 256)) & 255;
+      w.u8(it.cv & 255); w.u8(rx); w.u8(ry); w.u8(clamp(Math.round(it.rad * 5)));
+    }
+    return w.out();
+  }
+
+  // ---------------- connection ----------------
+  function Sock(url) {
+    this.url = url;
+    this.readyState = 0;
+    this.binaryType = "arraybuffer";
+    this.onopen = this.onmessage = this.onerror = this.onclose = null;
+    this.isPtc = url.indexOf("/ptc") >= 0;
+    this.conn = null;
+    var self = this;
+    sockets.push(this);
+    window.__kwDiag = window.__kwDiag || { sos: 0, sockets: [], sends: [], sockCreated: 0 };
+    window.__kwDiag.sockCreated = (window.__kwDiag.sockCreated || 0) + 1;
+    setTimeout(function () {
+      self.readyState = 1;
+      if (self.onopen) self.onopen({});
+      if (self.isPtc) {
+        // ping socket: reply with 'p' three times, then it self-closes.
+        var n = 0;
+        var iv = setInterval(function () {
+          if (self.readyState !== 1) { clearInterval(iv); return; }
+          if (self.onmessage) self.onmessage({ data: new Uint8Array([112]).buffer });
+          if (++n >= 3) clearInterval(iv);
+        }, 20);
+      } else {
+        self.conn = new GameConn(self);
+      }
+    }, 0);
+  }
+  Sock.prototype.send = function (data) {
+    try {
+      if (this.conn) this.conn.client(data);
+      else if (this.isPtc) { /* ignore */ }
+    } catch (e) { console.error("[slither-emu] send", e); }
+  };
+  Sock.prototype.close = function () {
+    this.readyState = 3;
+    if (this.conn && this.conn.iv) clearInterval(this.conn.iv);
+    if (this.onclose) this.onclose({});
+  };
+  Sock.CONNECTING = 0; Sock.OPEN = 1; Sock.CLOSING = 2; Sock.CLOSED = 3;
+  Sock.prototype.CONNECTING = 0; Sock.prototype.OPEN = 1;
+
+  var sockets = [];
+
+  function GameConn(sock) {
+    this.sock = sock;
+    this.selfId = 1;
+    this.started = false;
+    this.iv = null;
+    this.bots = [];
+    this.food = [];
+    this.seedFood();
+  }
+  GameConn.prototype.emit = function (bytes) {
+    if (this.sock.readyState === 1 && this.sock.onmessage) {
+      this.sock.onmessage({ data: bytes.buffer });
+    }
+  };
+  GameConn.prototype.seedFood = function () {
+    this.food.length = 0;
+    for (var i = 0; i < 500; i++) {
+      this.food.push({ xx: 20 + Math.random() * (GRD - 40), yy: 20 + Math.random() * (GRD - 40), rad: 1 + Math.random() * 3, cv: (Math.random() * 9) | 0 });
+    }
+  };
+  GameConn.prototype.client = function (data) {
+    var a = new Uint8Array(data);
+    var c = a[0];
+    if (c === 115) {                 // 's' login
+      if (!this.started) this.start();
+    } else if (c >= 97 && c <= 122 && a.length >= 20 && !this.gotId) {
+      // random 27-char id -> reply with init
+      this.gotId = true;
+      this.emit(pktInit(this.selfId));
+    } else if (c === 112) {          // 'p' client ping -> 'p' reply
+      this.emit(new Uint8Array([112]));
+    }
+  };
+  GameConn.prototype.start = function () {
+    if (this.started) return;
+    this.started = true;
+    // self snake
+    this.emit(pktSnake(this.selfId, GRD / 2, GRD / 2, 0, "", 0, 5, 12));
+    // bots
+    var n = 14;
+    for (var i = 0; i < n; i++) {
+      var b = new Bot(); this.bots.push(b);
+      this.emit(pktSnake(b.id, b.xx, b.yy, b.cv, b.nk, b.ang, b.sp, b.sct));
+    }
+    // food
+    var foodPkts = [];
+    for (var f = 0; f < this.food.length; f++) {
+      var fo = this.food[f];
+      foodPkts.push(pktFoodOne(fo.xx, fo.yy, fo.rad, fo.cv));
+    }
+    // emit in chunks to keep packets small
+    for (var fi = 0; fi < foodPkts.length; fi++) this.emit(foodPkts[fi]);
+    var self = this, last = Date.now();
+    this.iv = setInterval(function () {
+      var t = Date.now(); var dt = Math.min(0.2, (t - last) / 1000); last = t;
+      for (var i = 0; i < self.bots.length; i++) {
+        var b = self.bots[i]; b.step(dt);
+        self.emit(pktMove(b.id, b.ang, b.sp));
+      }
+    }, 100);
+  };
+
+  // ---------------- server list ----------------
+  function encodeSos(entries) {
+    var bytes = [];
+    function push16(x, n) { for (var i = n - 1; i >= 0; i--) bytes.push((x >> (i * 8)) & 255); }
+    bytes.push(1); // active
+    for (var e = 0; e < entries.length; e++) {
+      var s = entries[e];
+      var p = s.ip.split(".").map(Number);
+      bytes.push(p[0], p[1], p[2], p[3]);
+      for (var k = 0; k < 16; k++) bytes.push(0); // ip6
+      push16(s.po, 2); push16(s.ac, 2); bytes.push(0); push16(0, 2);
+    }
+    var out = "b", cav = 0;
+    for (var i = 0; i < bytes.length; i++) {
+      var hi = (bytes[i] >> 4) & 15, lo = bytes[i] & 15;
+      out += String.fromCharCode(((hi + cav) % 26) + 97); cav += 7;
+      out += String.fromCharCode(((lo + cav) % 26) + 97); cav += 7;
+    }
+    return out;
+  }
+  var SOS_TEXT = encodeSos([{ ip: "127.0.0.1", po: 80, ac: 999 }]);
+
+  // ---------------- install ----------------
+  window.WebSocket = Sock;
+
+  var RXHR = window.XMLHttpRequest;
+  var open0 = RXHR && RXHR.prototype ? RXHR.prototype.open : null;
+  var send0 = RXHR && RXHR.prototype ? RXHR.prototype.send : null;
+  if (RXHR && RXHR.prototype) {
+  RXHR.prototype.open = function (m, u) {
+    this.__kwSos = typeof u === "string" && u.indexOf("i80124") >= 0;
+    return open0.apply(this, arguments);
+  };
+  RXHR.prototype.send = function () {
+    if (this.__kwSos) {
+      window.__kwDiag = window.__kwDiag || { sos: 0, sockets: [], sends: [] };
+      window.__kwDiag.sos++;
+      var self = this;
+      setTimeout(function () {
+        try {
+          self.readyState = 4; self.status = 200; self.responseText = SOS_TEXT;
+          if (self.onreadystatechange) self.onreadystatechange();
+        } catch (e) {}
+      }, 0);
+      return;
+    }
+    return send0.apply(this, arguments);
+  };
+  }
+
+  // fetch (in case the client uses fetch for sos)
+  if (window.fetch) {
+    var rf = window.fetch;
+    window.fetch = function (u) {
+      if (typeof u === "string" && u.indexOf("i80124") >= 0) {
+        return Promise.resolve(new Response(SOS_TEXT, { status: 200, headers: { "Content-Type": "text/plain" } }));
+      }
+      return rf.apply(this, arguments);
+    };
+  }
+
+  window.__kwDiag = window.__kwDiag || { sos: 0, sockets: [], sends: [] };
+  var _hw = window.WebSocket;
+  window.WebSocket = function (u) {
+    window.__kwDiag.sockets.push(u);
+    return new _hw(u);
+  };
+  window.WebSocket.prototype = _hw.prototype;
+  for (var kk in _hw) window.WebSocket[kk] = _hw[kk];
+  window.WebSocket.CONNECTING = 0; window.WebSocket.OPEN = 1; window.WebSocket.CLOSING = 2; window.WebSocket.CLOSED = 3;
+
+  console.log("[slither-emu] installed; proto", PROTO, "grid", GRD);
+})();
+
+</script>
+<script>
+(function(){
+  fetch('s/game1107249518.js').then(function(r){return r.text();}).then(function(t){
+    t = t.replace(/"\/s\//g,'"s/');
+    t = t.replace(/svl_bg\.style/g, '(svl_bg&&svl_bg.style)');
+    t = t.replace(/svl\.style/g, '(svl&&svl.style)');
+    t = t.replace(/sbmc\.style/g, '(sbmc&&sbmc.style)');
+    t = t.replace(/ocho\.style/g, '(ocho&&ocho.style)');
+    try{ localStorage.setItem('edttsg','1'); }catch(e){}
+    var blob = new Blob([t], {type:'application/javascript'});
+    var s = document.createElement('script');
+    s.src = URL.createObjectURL(blob);
+    document.body.appendChild(s);
+  }).catch(function(e){console.error('load err',e);});
+})();
+</script>
+</body>
 </html>

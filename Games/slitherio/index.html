@@ -8,6 +8,35 @@
 <base href="https://raw.githubusercontent.com/Kyguyog/Knowwhere/main/game-assets/slitherio/">
 <meta property="og:description" content="Play snake online with bots in offline mode">
 <style>html,body{background:#161c22;margin:0;padding:0;overflow:hidden}</style>
+<script>
+(function(){
+  var obs = new MutationObserver(function(m){
+    m.forEach(function(mu){
+      if(mu.addedNodes){
+        for(var i=0;i<mu.addedNodes.length;i++){
+          var n = mu.addedNodes[i];
+          if(n.tagName === 'IFRAME'){
+            try{
+              var s = n.src||'';
+              if(s.indexOf('raw.githubusercontent.com')>=0){ n.remove(); continue; }
+            }catch(e){}
+          }
+          if(n.querySelectorAll){
+            var fs = n.querySelectorAll('iframe');
+            for(var j=0;j<fs.length;j++){
+              try{
+                var ss = fs[j].src||'';
+                if(ss.indexOf('raw.githubusercontent.com')>=0) fs[j].remove();
+              }catch(e){}
+            }
+          }
+        }
+      }
+    });
+  });
+  try{ obs.observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+})();
+</script>
 </head>
 <body>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -887,16 +916,19 @@ function getData (u, o) {
 
 </script>
 <script>
-// load client via blob to avoid ORB
 (function(){
-  fetch('s/game1107249518.js').then(r=>r.text()).then(t=>{
+  fetch('s/game1107249518.js').then(function(r){return r.text();}).then(function(t){
     t = t.replace(/"\/s\//g,'"s/');
-    try { localStorage.setItem('edttsg','1'); } catch(e){}
+    t = t.replace(/svl_bg\.style/g, '(svl_bg&&svl_bg.style)');
+    t = t.replace(/svl\.style/g, '(svl&&svl.style)');
+    t = t.replace(/sbmc\.style/g, '(sbmc&&sbmc.style)');
+    t = t.replace(/ocho\.style/g, '(ocho&&ocho.style)');
+    try{ localStorage.setItem('edttsg','1'); }catch(e){}
     var blob = new Blob([t], {type:'application/javascript'});
     var s = document.createElement('script');
     s.src = URL.createObjectURL(blob);
     document.body.appendChild(s);
-  }).catch(e=>{console.error('load err',e);});
+  }).catch(function(e){console.error('load err',e);});
 })();
 </script>
 </body>
