@@ -1,5 +1,13 @@
 [
   {
+    "sha": "d1ce64e2730ebb832ab5cb9578a393641ea11002",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/d1ce64e2730ebb832ab5cb9578a393641ea11002",
+    "message": "slither.io: safer resize patch",
+    "date": "2026-10-21T02:47:16Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "33fb171bc8d4f60e2da3e91134671f148618c0cb",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/33fb171bc8d4f60e2da3e91134671f148618c0cb",
     "message": "slither.io: fix patch_pre scope",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/Knowwhere/commit/5cdcefddc7ef4fb0100e2e5cf599ce02705ced69",
     "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
     "date": "2026-07-17T02:25:31Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "f43ff9f00e9f3a70f7c3aaebc2ac4c8d7368c8c1",
-    "url": "https://github.com/Kyguyog/Knowwhere/commit/f43ff9f00e9f3a70f7c3aaebc2ac4c8d7368c8c1",
-    "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
-    "date": "2026-07-17T02:19:40Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
