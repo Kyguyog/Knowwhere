@@ -1,0 +1,861 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+  <base href="http://localhost:8099/Kyguyog/Knowwhere/main/game-assets/slitherio/">
+  <title>slither.io</title>
+
+  <style type='text/css'>
+  
+  input.sumsginp:focus {
+   outline: none;
+   background: none !important;
+  }
+  
+  .sumsginp {
+   font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+   font-size: 15px;
+   word-wrap: break-word;
+   color: #e0e0ff;
+   background: none;
+   resize: none;
+   border: 0px;
+   height: 23px;
+   opacity: 1;
+   position: absolute;
+   left: 12px;
+   top: 10px;
+   vertical-align: middle;
+   display: inline-block;
+  }
+  
+  .taho {
+   position: relative;
+   height: 43px;
+   border-radius: 29px;
+   border: 2px solid rgba(0, 0, 0, 1);
+   overflow: hidden;
+   display: inline-block;
+  }
+  
+  input[id="nick"]::-webkit-input-placeholder {
+    color: #7070B0;
+    opacity:  1;
+  }
+  input[id="nick"]:-moz-placeholder {
+    color: #7070B0;
+    opacity:  1;
+  }
+  input[id="nick"]::-moz-placeholder {
+    color: #7070B0;
+    opacity:  1;
+  }
+  input[id="nick"]:-ms-input-placeholder {
+    color: #7070B0;
+    opacity:  1;
+  }
+
+  
+  input[id="victory"]::-webkit-input-placeholder {
+    color: #80C8FF;
+    opacity:  1;
+  }
+  input[id="victory"]:-moz-placeholder {
+    color: #80C8FF;
+    opacity:  1;
+  }
+  input[id="victory"]::-moz-placeholder {
+    color: #80C8FF;
+    opacity:  1;
+  }
+  input[id="victory"]:-ms-input-placeholder {
+    color: #80C8FF;
+    opacity:  1;
+  }
+  
+  .nsi {
+   -webkit-user-select: none;
+   -khtml-user-select: none;
+   -moz-user-select: none;
+   -o-user-select: none;
+   user-select: none;
+  }
+  
+  .btnt {
+   outline:none;
+  }
+  
+  .shbtn { background: #e9b032; text-decoration: none; } .shbtn:link { background: #e9b032; text-decoration: none; } .shbtn:visited { background: #e9b032; text-decoration: none; } .shbtn:hover { background: #ffce63; text-decoration: none; } .shbtn:active { background: #c48700; text-decoration: none; }
+  
+  
+  .btn:link {
+   opacity: .7;
+   text-decoration: none;
+  }
+  .btn:visited {
+   opacity: .7;
+   text-decoration: none;
+  }
+  .btn:hover {
+   opacity: 1;
+   text-decoration: none;
+  }
+  .btn:active {
+   opacity: .5;
+   text-decoration: none;
+  }
+  
+
+  
+  
+  .btn_disabled:link {
+   opacity: .7;
+   text-decoration: none;
+   cursor: default;
+  }
+  .btn_disabled:visited {
+   opacity: .7;
+   text-decoration: none;
+   cursor: default;
+  }
+  .btn_disabled:hover {
+   opacity: .7;
+   text-decoration: none;
+   cursor: default;
+  }
+  .btn_disabled:active {
+   opacity: .7;
+   text-decoration: none;
+   cursor: default;
+  }
+  
+  
+  
+  
+  .svi {
+   opacity: .75;
+   text-decoration: none;
+   cursor: pointer;
+  }
+  .svi:hover {
+   opacity: 1;
+   text-decoration: none;
+   cursor: pointer;
+  }
+  .svi:active {
+   opacity: .5;
+   text-decoration: none;
+   cursor: pointer;
+  }
+  
+  
+  
+  
+  
+  .lq:link {
+   opacity: .8;
+   color: #80FF80;
+  }
+  .lq:visited {
+   opacity: .8;
+   color: #80FF80;
+  }
+  .lq:hover {
+   opacity: 1;
+   color: #80FF80;
+  }
+  .lq:active {
+   opacity: .5;
+   color: #80FF80;
+  }
+  
+  
+  .lq2:link {
+   opacity: .8;
+   color: #8058D0;
+   text-decoration: none;
+  }
+  .lq2:visited {
+   opacity: .8;
+   color: #8058D0;
+   text-decoration: none;
+  }
+  .lq2:hover {
+   opacity: 1;
+   color: #8058D0;
+   text-decoration: underline;
+  }
+  .lq2:active {
+   opacity: .5;
+   color: #8058D0;
+   text-decoration: underline;
+  }
+  
+  
+  </style>
+	</head>
+
+
+<!-- Google tag (gtag.js) -->
+
+<!--
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ME0XFCWNJ0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-ME0XFCWNJ0');
+</script>
+-->
+
+
+ <body style='background: #161c22;'>
+
+
+
+<div id='nbg' style='position: fixed; left: 0px; top: 0px;'>
+</div>
+
+
+<div id='login' style='position: fixed; left: 0px; top: 0px; width: 100%; height: 100%; z-index: 20; margin-top: 64px;'>
+  <div id='logo' style='margin-left: auto; margin-right: auto; text-align: center; width: 450px; height: 115px; margin-top: 50px;'>
+   <div style='position: absolute; z-index: 999999;' id='logoih'>
+    
+   </div>
+  </div>
+  
+  <div id='lastscore' style="margin-left: auto; margin-right: auto; text-align: center; margin-top: 44px; font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif; font-size: 15px; color: #FFFFFF;">
+   &nbsp;
+  </div>
+  
+  <div id='tips' class='nsi' style="margin-left: auto; margin-right: auto; width: 360px; height: 30px; color: #8068C0; text-align: center; font-size: 14px; font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif; opacity: 0;">
+   &nbsp;
+  </div>
+  
+  <div style='margin-left: auto; margin-right: auto; text-align: center;'>
+   <div class='taho' id='nick_holder' style='width: 244px; margin-top: 34px; background: #4C447c; box-shadow: 0px 6px 50px rgba(0,0,0,1); opacity: 0;'>
+    <input class='sumsginp' id='nick' style='width: 220px; height: 24px;' placeholder="Nickname" maxlength=24></input>
+   </div>
+   <div id='victory_holder' style='display: none; font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif; font-size: 18px; color: #FFFFFF; margin-top: 22px;'>
+    <div style='font-size: 24px; margin-top: 12px;'><b>You are the new champion!</b></div>
+    <div style='opacity: .6; margin-top: 12px;'>Enter a victory message that you would like all other players to see!</div>
+    <div class='taho' id='victory_bg' style='width: 444px; margin-top: 50px; background: #00A4CF; box-shadow: 0px 0px 50px rgba(64,64,255,1);'>
+     <input class='sumsginp' id='victory' style='width: 420px; height: 24px; color:#FFFFFF;' placeholder="Your message" maxlength=140></input>
+    </div>
+   </div>
+  </div>
+  
+  <div id='playh' style='margin-left: auto; margin-right: auto; text-align: center;'></div>
+  <div id='saveh' style='margin-left: auto; margin-right: auto; text-align: center; display: none;'></div>
+  
+</div>
+
+
+
+<div id='smh' style='opacity: 0; position: fixed; left: 0px; top: 0px; z-index: 21;'>
+ 
+ 
+ <img id='cstx' style='display: none;'>
+ 
+ 
+ <div id='fbh' style='display: none;'>
+  <a id='fb' style='display: none;'>
+   &nbsp;
+  </a>
+ </div>
+ 
+ 
+ <div id='twth' style='display: none;'>
+  <a id='twt' style='display: none;'>
+   &nbsp;
+  </a>
+ </div>
+ 
+ 
+ 
+ <div id='cskh' style='position: fixed; left: 20px; bottom: 16px; z-index: 50; display: none;'>
+  <a class='btn btnt' draggable="false" id='csk' style='width:95px; height:89px;' href='#'>
+   <img class='nsi' border=0 draggable=false width=95 height=89 src='s/changeskin2.png'>
+  </a>
+ </div>
+ 
+ 
+ 
+ 
+ <div id='csrvh' style='position: fixed; right: 20px; bottom: 16px; z-index: 50; display: none;'>
+  <a class='btn btnt' draggable="false" id='csrv' style='width:107px; height:89px;' href='#'>
+   <img class='nsi' border=0 draggable=false width=107 height=89 src='s/chooseserver.png'>
+  </a>
+ </div>
+ 
+ 
+ <!--
+ <div id='trumpbtnh' style='position: fixed; z-index: 50; display: none;'>
+  <a class='btn btnt' draggable="false" id='trumpbtn' style='width:202px; height:218px;' href='#'>
+   <img class='nsi' border=0 draggable=false width=202 height=218 src='s/trumpbtn.png'>
+  </a>
+ </div>
+ 
+ 
+ 
+ <div id='votetxth' style='position: fixed; z-index: 50; display: none;'>
+  <img class='nsi' border=0 draggable=false width=290 height=84 src='s/votetxt2.png'>
+ </div>
+ 
+ 
+ 
+ <div id='kamalabtnh' style='position: fixed; z-index: 50; display: none;'>
+  <a class='btn btnt' draggable="false" id='kamalabtn' style='width:202px; height:218px;' href='#'>
+   <img class='nsi' border=0 draggable=false width=202 height=218 src='s/kamalabtn.png'>
+  </a>
+ </div>
+ -->
+ 
+ 
+ <div id='etcoh' style='position: fixed; right: 20px; top: 16px; z-index: 50; display: none;'>
+  <a class='btn btnt' draggable="false" id='etco' style='width:87px; height:77px;' href='#'>
+   <img class='nsi' border=0 draggable=false width=87 height=77 src='s/entercode4.png'>
+  </a>
+ </div>
+ 
+ 
+ <div id='bskh' style='position: fixed; right: 20px; bottom: 16px; z-index: 50; display: none;'>
+  <a class='btn btnt' draggable="false" id='bsk' style='width:102px; height:89px;' href='#'>
+   <img class='nsi' border=0 draggable=false width=102 height=89 src='s/buildskin.png'>
+  </a>
+ </div>
+ 
+ <div id='scosh' style='position: fixed; right: 14px; bottom: 144px; z-index: 50; display: none;'>
+  <a class='btn btnt' draggable="false" id='scos' style='width:119px; height:87px;' href='#'>
+   <img class='nsi' border=0 draggable=false width=119 height=87 src='s/selectcosmetic2.png'>
+  </a>
+ </div>
+
+ 
+ <div id='grqh' style='position: fixed; right: 20px; top: 16px; z-index: 50;'>
+  <a class='btn btnt' draggable="false" id='grq' style='width:90px; height:87px;' href='#'>
+   <img id='grqi' class='nsi' border=0 draggable=false width=90 height=87 src='s/highquality.png'>
+  </a>
+ </div>
+
+
+ <div id='plq' style='position: fixed; font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif; font-size: 13px; color: #408040; right: 10px; top: 10px; width: 260px; height: 400px; text-align: right; display: none;'>
+  <a class='lq' href='http://poal.me/klpijd' target='_blank'></a>
+ </div>
+
+</div>
+
+
+<div id='pskh' style='display: none; opacity: 0; position: fixed; z-index: 52;'>
+ <a class='btn btnt' draggable="false" id='psk' style='width:87px; height:88px;' href='#'>
+  <img class='nsi' border=0 draggable=false width=87 height=88 src='s/prev3.png'>
+ </a>
+</div>
+
+<div id='nskh' style='display: none; opacity: 0; position: fixed; z-index: 52;'>
+ <a class='btn btnt' draggable="false" id='nsk' style='width:87px; height:88px;' href='#'>
+  <img class='nsi' border=0 draggable=false width=87 height=88 src='s/next3.png'>
+ </a>
+</div>
+
+<div id='etcod' style='position: fixed; left: 0px; top: 0px; background: rgba(32, 40, 48, 1); z-index: 53; display: none; opacity: 0;'>
+</div>
+
+<script type='text/javascript'>
+if (!window.console) window.console = {};
+if (!window.console.log) window.console.log = function (a) { };
+
+
+var ua = (navigator.userAgent+'').toLowerCase();
+var uua = (navigator.userAgent+'');
+var is_android = (ua.indexOf("android") >= 0);
+var is_ios = (uua.indexOf("iPad") >= 0) || (uua.indexOf("iPhone") >= 0) || (uua.indexOf("iPod") >= 0);
+
+/*
+if ((window.location.href+'').indexOf('666') >= 0) {
+ alert(is_android);
+}
+*/
+
+/*
+if (is_android) {
+ window.location = 'https://play.google.com/store/apps/details?id=air.com.hypah.io.slither';
+} else if (is_ios) {
+ window.location = 'https://itunes.apple.com/us/app/slither.io/id1091944550';
+} else if (((window.location.href+'').toLowerCase()).indexOf('https:') == 0) {
+ if ((window.location.href+'').indexOf('/?6') == -1) {
+  window.location = 'http:'+window.location.href.substr(6);
+ }
+}
+*/
+
+var country = 'US'; // no!
+
+/*
+
+window.onerror = function(message, url, lineNumber) {  
+  var ii = document.createElement('img');
+  ii.src = '/error.jpg?m='+encodeURIComponent(message)+'&u='+encodeURIComponent(url)+'&ln='+encodeURIComponent(lineNumber);
+  return false;
+};
+*/
+
+function forceServer (a, b) {
+ sos = [];
+ forcing = true;
+ bso = {};
+ bso.ip = a;
+ bso.po = b;
+ bso.ac = 999;
+ sos.push(bso);
+}
+
+var rmsos = [];
+// rmsos.push( {a:[76,84,79, 445]} );
+
+var wsu = 0;
+</script>
+
+
+
+
+<script type='text/javascript'>
+
+var xhrqs = [];
+
+
+function getDataHandler (xmlhttp) {
+ var o = null;
+ var cur_tm = Date.now();
+ for (var i = xhrqs.length-1; i>=0; i--) {
+  if (xhrqs[i].xmlhttp == xmlhttp) {
+   o = xhrqs[i];
+  } else if ((cur_tm - xhrqs[i].creation_tm) > 60000) { // clean up failed/hanged requests
+   xhrqs.splice(i, 1);
+  }
+ }
+ return o;
+}
+
+
+function removeDataHandler (xmlhttp) {
+ var cur_tm = Date.now();
+ for (var i = xhrqs.length-1; i>=0; i--) {
+  if (xhrqs[i].xmlhttp == xmlhttp) {
+   xhrqs.splice(i, 1); // remove the target handler
+  } else if ((cur_tm - xhrqs[i].creation_tm) > 60000) {
+   xhrqs.splice(i, 1); // clean up failed/hanged requests/handlers too, as long as we're here.
+  }
+ }
+}
+
+
+function getData (u, o) {
+ var xmlhttp;
+ 
+ if (window.XMLHttpRequest) {
+  xmlhttp = new XMLHttpRequest();
+ } else {
+  xmlhttp = new ActiveXObject('Microsoft.XMLHTTP');
+ };
+
+ o.xmlhttp = xmlhttp;
+ o.done = false;
+ o.creation_tm = Date.now();
+ xhrqs.push(o);
+ 
+ xmlhttp.onreadystatechange = function () {
+  var o = getDataHandler(this);
+  if (o != null) {
+   if (this.readyState == 4 ) {
+    if (!o.done) {
+     o.done = true;
+     if (this.status == 200) {
+      o.f(this.responseText, 'success', o);
+     } else {
+      o.f('', 'error', o);
+     };
+     removeDataHandler(this);
+    };
+   };
+  };
+ };
+ 
+ xmlhttp.open('GET', u, true);
+ xmlhttp.send();
+};
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+/* slither.io offline bot-only lobby emulator (in-page fake server).
+ *
+ * The scraped client (game1107249518.js) is client-only: it fetches a server
+ * list and talks to a remote server over WebSocket using slither.io's binary
+ * protocol. This script replaces window.WebSocket and the server-list XHR with
+ * an in-page implementation that speaks the same protocol and simulates a
+ * local lobby: the player snake (input handled by the client) plus AI bots and
+ * food. No network traffic leaves the page.
+ */
+(function () {
+  "use strict";
+
+  var VER = "1.0";
+  var PROTO = 17;              // protocol_version advertised in the "a" init packet
+  var GRD = 16000;             // world edge length
+  var SECTOR = 1600;           // sector size
+  var DEFAULT_MSL = 34;        // default max segment length-ish
+
+  // ---------------- byte writer ----------------
+  function W() { this.a = []; }
+  W.prototype.u8 = function (v) { this.a.push(v & 255); return this; };
+  W.prototype.i16 = function (v) { this.a.push((v >> 8) & 255, v & 255); return this; };
+  W.prototype.i24 = function (v) { this.a.push((v >> 16) & 255, (v >> 8) & 255, v & 255); return this; };
+  W.prototype.str = function (s) { for (var i = 0; i < s.length; i++) this.a.push(s.charCodeAt(i) & 255); return this; };
+  W.prototype.bytes = function (b) { for (var i = 0; i < b.length; i++) this.a.push(b[i] & 255); return this; };
+  W.prototype.out = function () { return new Uint8Array(this.a); };
+
+  var PI2 = Math.PI * 2;
+
+  // ---------------- world + bots ----------------
+  var NAMES = ["Noodle", "Slinky", "Wiggles", "Cobra", "Viper", "Python", "Boop", "Zigzag",
+    "Squirm", "Fang", "Mamba", "Krait", "Rattler", "Slyther", "Twister", "Curly", "Nibbler"];
+  function rname() { return NAMES[(Math.random() * NAMES.length) | 0] + (Math.random() < 0.5 ? "" : " " + (1 + (Math.random() * 8 | 0))); }
+
+  function Bot() {
+    this.id = Bot.nextId++;
+    this.xx = 600 + Math.random() * (GRD - 1200);
+    this.yy = 600 + Math.random() * (GRD - 1200);
+    this.ang = Math.random() * PI2;
+    this.sp = 4.4 + Math.random() * 2.2;
+    this.cv = (Math.random() * 40) | 0;
+    this.sct = 10 + ((Math.random() * 40) | 0);
+    this.nk = rname();
+    this.turn = (Math.random() < 0.5 ? -1 : 1) * (0.008 + Math.random() * 0.03);
+    this.t = 0; this.tt = 30 + ((Math.random() * 150) | 0);
+  }
+  Bot.nextId = 2;
+  Bot.prototype.step = function (dt) {
+    this.t++;
+    if (this.t > this.tt) { this.t = 0; this.tt = 30 + ((Math.random() * 180) | 0); this.turn = (Math.random() < 0.5 ? -1 : 1) * (0.006 + Math.random() * 0.035); }
+    this.ang += this.turn * dt * 60;
+    var d = this.sp * dt * 3;
+    this.xx += Math.cos(this.ang) * d;
+    this.yy += Math.sin(this.ang) * d;
+    if (this.xx < 100) { this.xx = 100; this.ang = Math.PI - this.ang; }
+    if (this.xx > GRD - 100) { this.xx = GRD - 100; this.ang = Math.PI - this.ang; }
+    if (this.yy < 100) { this.yy = 100; this.ang = -this.ang; }
+    if (this.yy > GRD - 100) { this.yy = GRD - 100; this.ang = -this.ang; }
+  };
+
+  // ---------------- packet builders ----------------
+  function pktInit(realSid) {
+    var w = new W();
+    w.u8(97);                          // 'a'
+    w.i24(GRD);
+    w.i16(300);                        // mscps
+    w.i16(SECTOR);
+    w.i16(Math.ceil(GRD / SECTOR));
+    w.u8(30);                          // spangdv/10 = 3.0
+    w.i16(537);                        // nsp1 = 5.37
+    w.i16(40);                         // nsp2 = 0.40
+    w.i16(60);                         // nsp3
+    w.i16(9);                          // mamu
+    w.i16(9);                          // mamu2
+    w.i16(10);                         // cst
+    w.u8(PROTO);                       // protocol_version
+    w.u8(DEFAULT_MSL);                 // default_msl
+    w.i16(realSid);                    // real_sid
+    w.i24(Math.floor(GRD * 0.98));     // flux_grd
+    w.u8(1);                           // game_mode (normal)
+    w.u8(0);
+    return w.out();
+  }
+
+  // 's' snake packet. Must have dlen > 6 to hit the full form.
+  function pktSnake(id, xx, yy, cv, nk, ang, sp, sct) {
+    var w = new W();
+    w.u8(115); // 's'
+    w.i16(id);
+    var a24 = ((Math.floor(ang / PI2 * 16777215) % 16777216) + 16777216) % 16777216;
+    w.i24(a24);                        // ang
+    w.u8(48);                          // dir '0'
+    w.i24(a24);                        // wang
+    w.i16(Math.floor(sp * 1000));      // speed
+    w.i24(300);                        // fam
+    w.u8(cv & 255);                    // cv
+    var n = Math.max(2, Math.min(80, Math.floor(sct)));
+    w.i24(Math.floor(xx * 5));         // snx
+    w.i24(Math.floor(yy * 5));         // sny
+    w.u8(nk.length); w.str(nk);
+    w.u8(0);                           // custom skin length (proto>=11)
+    w.u8(255);                         // cosmetic (proto>=12)
+    // points
+    var px = xx, py = yy;
+    for (var i = 0; i < n; i++) {
+      if (i === 0) { w.i24(Math.floor(px * 5)); w.i24(Math.floor(py * 5)); }
+      else {
+        var nx = px - Math.cos(ang) * DEFAULT_MSL;
+        var ny = py - Math.sin(ang) * DEFAULT_MSL;
+        w.u8(clamp(Math.round((nx - px) / 2) + 127));
+        w.u8(clamp(Math.round((ny - py) / 2) + 127));
+        px = nx; py = ny;
+      }
+    }
+    return w.out();
+  }
+  function clamp(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
+
+  // movement update: 'e' with id + ang + wang + speed (plen 6 path, proto>=14)
+  function pktMove(id, ang, sp) {
+    var w = new W();
+    w.u8(101); // 'e'
+    w.i16(id);
+    w.u8((Math.floor(ang / PI2 * 256) + 256) % 256);
+    w.u8((Math.floor(ang / PI2 * 256) + 256) % 256);
+    w.u8(clamp(Math.floor(sp * 18)));
+    return w.out();
+  }
+
+  // food burst (protocol>=4 form): 'F' then [cv][x16][y16][rad] per item? No:
+  // proto>=14 form is sector based. Use the proto>=4 branch instead since we set
+  // PROTO above -- but PROTO=17 selects the >=14 branch. So send >=14 form:
+  // 'F' sx sy then per item [cv][rx][ry][rad].
+  function pktFood(items) {
+    var w = new W();
+    w.u8(70); // 'F'
+    // group all in one sector-region by writing each item's own sx,sy (the
+    // >=14 parser uses the LAST sx,sy as base for following items, and each item
+    // is [cv][rx][ry][rad]). To keep it simple, emit one packet per item.
+    return null; // handled by pktFoodOne loop
+  }
+  function pktFoodOne(sx, sy, rx, ry, rad, cv) {
+    var w = new W();
+    w.u8(70);
+    w.u8(sx & 255); w.u8(sy & 255);
+    w.u8(rx & 255); w.u8(ry & 255);
+    w.u8(clamp(Math.floor(rad * 5)));
+    w.u8(cv & 255);
+    return w.out();
+  }
+
+  // ---------------- connection ----------------
+  function Sock(url) {
+    this.url = url;
+    this.readyState = 0;
+    this.binaryType = "arraybuffer";
+    this.onopen = this.onmessage = this.onerror = this.onclose = null;
+    this.isPtc = url.indexOf("/ptc") >= 0;
+    this.conn = null;
+    var self = this;
+    sockets.push(this);
+    window.__kwDiag = window.__kwDiag || { sos: 0, sockets: [], sends: [], sockCreated: 0 };
+    window.__kwDiag.sockCreated = (window.__kwDiag.sockCreated || 0) + 1;
+    setTimeout(function () {
+      self.readyState = 1;
+      if (self.onopen) self.onopen({});
+      if (self.isPtc) {
+        // ping socket: reply with 'p' three times, then it self-closes.
+        var n = 0;
+        var iv = setInterval(function () {
+          if (self.readyState !== 1) { clearInterval(iv); return; }
+          if (self.onmessage) self.onmessage({ data: new Uint8Array([112]).buffer });
+          if (++n >= 3) clearInterval(iv);
+        }, 20);
+      } else {
+        self.conn = new GameConn(self);
+      }
+    }, 0);
+  }
+  Sock.prototype.send = function (data) {
+    try {
+      if (this.conn) this.conn.client(data);
+      else if (this.isPtc) { /* ignore */ }
+    } catch (e) { console.error("[slither-emu] send", e); }
+  };
+  Sock.prototype.close = function () {
+    this.readyState = 3;
+    if (this.conn && this.conn.iv) clearInterval(this.conn.iv);
+    if (this.onclose) this.onclose({});
+  };
+  Sock.CONNECTING = 0; Sock.OPEN = 1; Sock.CLOSING = 2; Sock.CLOSED = 3;
+  Sock.prototype.CONNECTING = 0; Sock.prototype.OPEN = 1;
+
+  var sockets = [];
+
+  function GameConn(sock) {
+    this.sock = sock;
+    this.selfId = 1;
+    this.started = false;
+    this.iv = null;
+    this.bots = [];
+    this.food = [];
+    this.seedFood();
+  }
+  GameConn.prototype.emit = function (bytes) {
+    if (this.sock.readyState === 1 && this.sock.onmessage) {
+      this.sock.onmessage({ data: bytes.buffer });
+    }
+  };
+  GameConn.prototype.seedFood = function () {
+    this.food.length = 0;
+    for (var i = 0; i < 500; i++) {
+      this.food.push({ xx: 20 + Math.random() * (GRD - 40), yy: 20 + Math.random() * (GRD - 40), rad: 1 + Math.random() * 3, cv: (Math.random() * 9) | 0 });
+    }
+  };
+  GameConn.prototype.client = function (data) {
+    var a = new Uint8Array(data);
+    var c = a[0];
+    if (c === 115) {                 // 's' login
+      if (!this.started) this.start();
+    } else if (c >= 97 && c <= 122 && a.length >= 20 && !this.gotId) {
+      // random 27-char id -> reply with init
+      this.gotId = true;
+      this.emit(pktInit(this.selfId));
+    } else if (c === 112) {          // 'p' client ping -> 'p' reply
+      this.emit(new Uint8Array([112]));
+    }
+  };
+  GameConn.prototype.start = function () {
+    if (this.started) return;
+    this.started = true;
+    // self snake
+    this.emit(pktSnake(this.selfId, GRD / 2, GRD / 2, 0, "", 0, 5, 12));
+    // bots
+    var n = 14;
+    for (var i = 0; i < n; i++) {
+      var b = new Bot(); this.bots.push(b);
+      this.emit(pktSnake(b.id, b.xx, b.yy, b.cv, b.nk, b.ang, b.sp, b.sct));
+    }
+    // food
+    for (var f = 0; f < this.food.length; f++) {
+      var fo = this.food[f];
+      var sx = clamp(Math.floor(fo.xx / SECTOR)); var sy = clamp(Math.floor(fo.yy / SECTOR));
+      var rx = clamp(Math.floor((fo.xx - sx * SECTOR) / (SECTOR / 256)));
+      var ry = clamp(Math.floor((fo.yy - sy * SECTOR) / (SECTOR / 256)));
+      this.emit(pktFoodOne(sx, sy, rx, ry, fo.rad, fo.cv));
+    }
+    var self = this, last = Date.now();
+    this.iv = setInterval(function () {
+      var t = Date.now(); var dt = Math.min(0.2, (t - last) / 1000); last = t;
+      for (var i = 0; i < self.bots.length; i++) {
+        var b = self.bots[i]; b.step(dt);
+        self.emit(pktMove(b.id, b.ang, b.sp));
+      }
+    }, 100);
+  };
+
+  // ---------------- server list ----------------
+  function encodeSos(entries) {
+    var bytes = [];
+    function push16(x, n) { for (var i = n - 1; i >= 0; i--) bytes.push((x >> (i * 8)) & 255); }
+    bytes.push(1); // active
+    for (var e = 0; e < entries.length; e++) {
+      var s = entries[e];
+      var p = s.ip.split(".").map(Number);
+      bytes.push(p[0], p[1], p[2], p[3]);
+      for (var k = 0; k < 16; k++) bytes.push(0); // ip6
+      push16(s.po, 2); push16(s.ac, 2); bytes.push(0); push16(0, 2);
+    }
+    var out = "b", cav = 0;
+    for (var i = 0; i < bytes.length; i++) {
+      var hi = (bytes[i] >> 4) & 15, lo = bytes[i] & 15;
+      out += String.fromCharCode(((hi + cav) % 26) + 97); cav += 7;
+      out += String.fromCharCode(((lo + cav) % 26) + 97); cav += 7;
+    }
+    return out;
+  }
+  var SOS_TEXT = encodeSos([{ ip: "127.0.0.1", po: 80, ac: 999 }]);
+
+  // ---------------- install ----------------
+  window.WebSocket = Sock;
+
+  var RXHR = window.XMLHttpRequest;
+  var open0 = RXHR.prototype.open, send0 = RXHR.prototype.send;
+  RXHR.prototype.open = function (m, u) {
+    this.__kwSos = typeof u === "string" && u.indexOf("i80124") >= 0;
+    return open0.apply(this, arguments);
+  };
+  RXHR.prototype.send = function () {
+    if (this.__kwSos) {
+      window.__kwDiag = window.__kwDiag || { sos: 0, sockets: [], sends: [] };
+      window.__kwDiag.sos++;
+      var self = this;
+      setTimeout(function () {
+        try {
+          self.readyState = 4; self.status = 200; self.responseText = SOS_TEXT;
+          if (self.onreadystatechange) self.onreadystatechange();
+        } catch (e) {}
+      }, 0);
+      return;
+    }
+    return send0.apply(this, arguments);
+  };
+
+  // fetch (in case the client uses fetch for sos)
+  if (window.fetch) {
+    var rf = window.fetch;
+    window.fetch = function (u) {
+      if (typeof u === "string" && u.indexOf("i80124") >= 0) {
+        return Promise.resolve(new Response(SOS_TEXT, { status: 200, headers: { "Content-Type": "text/plain" } }));
+      }
+      return rf.apply(this, arguments);
+    };
+  }
+
+  window.__kwDiag = window.__kwDiag || { sos: 0, sockets: [], sends: [] };
+  var _hw = window.WebSocket;
+  window.WebSocket = function (u) {
+    window.__kwDiag.sockets.push(u);
+    return new _hw(u);
+  };
+  window.WebSocket.prototype = _hw.prototype;
+  for (var kk in _hw) window.WebSocket[kk] = _hw[kk];
+  window.WebSocket.CONNECTING = 0; window.WebSocket.OPEN = 1; window.WebSocket.CLOSING = 2; window.WebSocket.CLOSED = 3;
+
+  console.log("[slither-emu] installed; proto", PROTO, "grid", GRD);
+})();
+
+</script>
+<script>
+(function () {
+  var BASE = "http://localhost:8099/Kyguyog/Knowwhere/main/game-assets/slitherio/";
+  fetch(BASE + "s/game1107249518.js")
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(function (text) {
+      text = text.replace(/"\/s\//g, '"s/');
+      var url = URL.createObjectURL(new Blob([text], { type: "application/javascript" }));
+      var s = document.createElement("script");
+      s.src = url;
+      s.onload = function () { URL.revokeObjectURL(url); };
+      s.onerror = function () { console.error("[slither] failed to execute client"); };
+      document.body.appendChild(s);
+    })
+    .catch(function (e) { console.error("[slither]", e); });
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+ </body>
+</html>
