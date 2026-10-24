@@ -1,10 +1,23 @@
 (function(root) {
   const policy = {
-    limits(settings = {}) {
-      const max = Math.floor(Number(settings.rateLimitMessages));
-      const minutes = Math.floor(Number(settings.rateLimitMinutes));
+    limits(settings = {}, model) {
+      const selected = settings.modelLimits?.[model] || {};
+      const max = Math.floor(Number(selected.rateLimitMessages ?? settings.rateLimitMessages));
+      const minutes = Math.floor(Number(selected.rateLimitMinutes ?? settings.rateLimitMinutes));
       return {max: Number.isFinite(max) ? Math.min(10000, Math.max(0,max)) : 20,
         windowMs: (Number.isFinite(minutes) ? Math.min(10080, Math.max(1,minutes)) : 60) * 60000};
+    },
+    allowedModels(settings = {}) {
+      return [...new Set([settings.model || 'gemini-2.5-flash-lite',...(Array.isArray(settings.allowedModels)?settings.allowedModels:[])].filter(policy.modelId))];
+    },
+    usageByModel(user = {}, settings = {}) {
+      const byModel = {...(user?.aiUsageByModel || {})};
+      const defaultModel = settings.model || 'gemini-2.5-flash-lite';
+      if (!user?.aiUsageMigrated && user?.aiUsage && !byModel[defaultModel]) byModel[defaultModel] = user.aiUsage;
+      return byModel;
+    },
+    modelUsage(user = {}, model, settings = {}) {
+      return policy.usageByModel(user, settings)[model] ?? null;
     },
     usage(previous, limits, now = Date.now()) {
       const valid = previous && previous.windowMs === limits.windowMs && Number.isFinite(previous.startedAt) && previous.startedAt <= now && now < previous.startedAt + limits.windowMs;

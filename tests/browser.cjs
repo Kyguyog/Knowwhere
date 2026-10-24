@@ -9,7 +9,7 @@ const fs=require('node:fs');
  const fixture={
   'users/test@example.com':{email:'test@example.com',username:'Tester',fullName:'Test User',admin:true,paid:true,active:true},
   'users/other@example.com':{email:'other@example.com',username:'Other',fullName:'Other User',paid:true,banType:'permanent'},
-  'siteContent/main':{games:{E:[{name:'Example',url:'/Games/example.html',openInPopup:true,description:'A fixture game'}]},sites:[{name:'Example Site',url:'/Sites/example.html'}],banned:['Manual label','Other User','Manual label'],aiSettings:{aiEnabled:true,apiKeys:['test-key'],model:'gemini-2.5-flash-lite',allowedModels:['gemini-test'],rateLimitMessages:2,rateLimitMinutes:60}},
+  'siteContent/main':{games:{E:[{name:'Example',url:'/Games/example.html',openInPopup:true,description:'A fixture game'}]},sites:[{name:'Example Site',url:'/Sites/example.html'}],banned:['Manual label','Other User','Manual label'],aiSettings:{aiEnabled:true,apiKeys:['test-key'],model:'gemini-2.5-flash-lite',allowedModels:['gemini-test'],rateLimitMessages:2,rateLimitMinutes:60,modelLimits:{'gemini-test':{rateLimitMessages:1,rateLimitMinutes:60},'gemini-2.5-flash-lite':{rateLimitMessages:2,rateLimitMinutes:60}}}},
   'conversations/test@example.com__other@example.com':{participants:['test@example.com','other@example.com'],lastMessage:'hello'},
   'conversations/test@example.com__other@example.com/messages/image':{senderEmail:'other@example.com',text:'Image caption',fileType:'image',fileUrl:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aD1sAAAAASUVORK5CYII=',fileName:'test.png'}
  };
@@ -19,11 +19,12 @@ const fs=require('node:fs');
  const snap=(path)=>({id:path.split('/').pop(),exists:()=>!!store[path],data:()=>store[path]||{}});
  const docs=path=>Object.keys(store).filter(key=>key.startsWith(path+'/')&&key.slice(path.length+1).indexOf('/')<0).map(snap);
  const stamp=()=>({toMillis:()=>Date.now(),toDate:()=>new Date()});
+ const patch=(path,data)=>{store[path] ||= {};for(const [key,value] of Object.entries(data)){const parts=key.split('.');let target=store[path];for(const part of parts.slice(0,-1))target=target[part] ||= {};target[parts.at(-1)]=value;}};
  const impl={initializeApp:()=>({}),getApps:()=>[{}],getApp:()=>({}),getAnalytics:()=>({}),getAuth:()=>auth,getFirestore:()=>db,
  doc:ref,collection:ref,getDoc:async r=>snap(r.path),getDocs:async r=>({docs:docs(r.path)}),query:r=>r,where:()=>null,orderBy:()=>null,
  onAuthStateChanged:(a,cb)=>{setTimeout(()=>cb(user),0);return()=>{}},onSnapshot:(r,cb)=>{setTimeout(()=>{const ds=docs(r.path);cb(r.path.split('/').length%2===0?snap(r.path):{docs:ds,docChanges:()=>ds.map(doc=>({type:'added',doc})),forEach:fn=>ds.forEach(fn),empty:!ds.length,size:ds.length});},0);return()=>{}},
  serverTimestamp:stamp,Timestamp:{now:stamp},increment:n=>n,
- setDoc:async(r,d)=>{store[r.path]={...store[r.path],...d}},updateDoc:async(r,d)=>{store[r.path]={...store[r.path],...d}},addDoc:async(r,d)=>{const id='added-'+Math.random();store[r.path+'/'+id]=d;return{id}},
+ setDoc:async(r,d)=>{store[r.path]={...store[r.path],...d}},updateDoc:async(r,d)=>patch(r.path,d),addDoc:async(r,d)=>{const id='added-'+Math.random();store[r.path+'/'+id]=d;return{id}},
  runTransaction:async(db,fn)=>fn({get:async r=>snap(r.path),update:(r,d)=>{store[r.path]={...store[r.path],...d}},set:(r,d)=>{store[r.path]={...store[r.path],...d}}})};
  ${[...names].map(n=>`export const ${n}=impl.${n}||(()=>{});`).join('\n')}`;
  await context.addInitScript(data=>{if(window.top!==window)return;window.__fixture=data;localStorage.setItem('kw_cloak_skip','1');localStorage.setItem('kw_cloak_skipped','1');localStorage.setItem('kw_skip_cloak','1');},fixture);
@@ -44,15 +45,45 @@ const fs=require('node:fs');
  await page.setViewportSize({width:390,height:844});console.log('Loading page');await page.goto('http://127.0.0.1:8765/msg.html');await page.waitForTimeout(700);
  await page.evaluate(()=>openAiConversation());await page.waitForTimeout(100);
  assert.equal(await page.locator('#ai-model-picker option').count(),2);
- await page.selectOption('#ai-model-picker','gemini-test');
+ assert.equal(await page.locator('#ai-model-picker').isVisible(),false);
+ async function personalModel(model){
+  await page.locator('#chat-settings-btn').click();await page.waitForTimeout(30);
+  assert.equal(await page.locator('#ai-model-picker').getAttribute('aria-label'),'Personal model');
+  await page.selectOption('#ai-model-picker',model);
+  await page.locator('#ai-settings-modal .modal-cancel-btn').click();
+ }
+ await personalModel('gemini-test');
  await page.locator('#emoji-btn').click();await page.locator('#emoji-picker button').first().click();assert.equal(await page.locator('#msg-input').inputValue(),'😀');
  assert.ok(await page.locator('#emoji-picker').isVisible());assert.equal(await page.locator('#emoji-btn').getAttribute('aria-expanded'),'true');
  await page.locator('#emoji-picker button').first().click();assert.equal(await page.locator('#msg-input').inputValue(),'😀😀');
  await page.locator('#msg-input').click();await page.keyboard.press('Escape');assert.ok(await page.locator('#emoji-picker').isVisible());
  await page.locator('#emoji-btn').click();assert.equal(await page.locator('#emoji-picker').isVisible(),false);assert.equal(await page.locator('#emoji-btn').getAttribute('aria-expanded'),'false');
- for(let i=0;i<2;i++){if(i===1)await page.selectOption('#ai-model-picker','gemini-2.5-flash-lite');await page.locator('#msg-input').fill('Prompt '+i);await page.locator('#send-btn').click();await page.waitForTimeout(100);}
+ await page.locator('#msg-input').fill('Test model prompt');await page.locator('#send-btn').click();await page.waitForTimeout(100);
+ assert.match(await page.locator('#ai-usage').textContent(),/1 \/ 1/);
+ await page.locator('#msg-input').fill('Over test model quota');await page.locator('#send-btn').click();await page.waitForTimeout(100);assert.match(await page.locator('#ai-notice').textContent(),/limit reached/);
+ await personalModel('gemini-2.5-flash-lite');assert.match(await page.locator('#ai-usage').textContent(),/0 \/ 2/);
+ for(let i=0;i<2;i++){await page.locator('#msg-input').fill('Default model prompt '+i);await page.locator('#send-btn').click();await page.waitForTimeout(100);}
  assert.match(await page.locator('#ai-usage').textContent(),/2 \/ 2/);
  await page.locator('#msg-input').fill('Over quota');await page.locator('#send-btn').click();await page.waitForTimeout(100);assert.match(await page.locator('#ai-notice').textContent(),/limit reached/);assert.equal(await page.locator('#msg-input').inputValue(),'Over quota');
+ await personalModel('gemini-test');assert.match(await page.locator('#ai-usage').textContent(),/1 \/ 1/);
+ await page.locator('#chat-settings-btn').click();await page.waitForTimeout(30);
+ assert.match(await page.locator('#ai-model-usage [data-model="gemini-test"]').textContent(),/1 \/ 1/);
+ assert.match(await page.locator('#ai-model-usage [data-model="gemini-2.5-flash-lite"]').textContent(),/2 \/ 2/);
+ await page.locator('#ai-admin-settings summary').click();
+ await page.locator('#s-allowed-models').fill('gemini-test\ngemini-extra');
+ await page.locator('#s-model-limits [data-model="gemini-test"] [data-messages]').fill('3');
+ await page.locator('#s-model-limits [data-model="gemini-extra"] [data-messages]').fill('1');
+ await page.locator('#s-model-limits [data-model="gemini-extra"] [data-minutes]').fill('5');
+ await page.locator('#s-model-limits [data-model="gemini-extra"] [data-messages]').fill('-1');
+ await page.locator('#save-ai-admin-settings').click();assert.match(await page.locator('#settings-error').textContent(),/Each model needs/);
+ assert.equal(await page.evaluate(()=>window.__fixture['siteContent/main'].aiSettings.modelLimits['gemini-test'].rateLimitMessages),1,'invalid settings cannot partially save');
+ await page.locator('#s-model-limits [data-model="gemini-extra"] [data-messages]').fill('1');
+ await page.locator('#save-ai-admin-settings').click();await page.waitForTimeout(50);
+ assert.match(await page.locator('#settings-success').textContent(),/saved/);
+ assert.equal(await page.evaluate(()=>window.__fixture['siteContent/main'].aiSettings.modelLimits['gemini-test'].rateLimitMessages),3);
+ assert.equal(await page.locator('#ai-model-picker option').count(),3);
+ assert.match(await page.locator('#ai-model-usage [data-model="gemini-test"]').textContent(),/1 \/ 3/);
+ await page.locator('#ai-settings-modal .modal-cancel-btn').click();
  await page.evaluate(()=>openConversation('test@example.com__other@example.com'));await page.waitForTimeout(100);
  await page.locator('#messages-area img[data-fv-url]').click();assert.ok(await page.locator('#file-viewer-modal').isVisible());assert.equal(await page.locator('#fv-body img').count(),1);await page.keyboard.press('Escape');
  await page.locator('#file-input').setInputFiles({name:'hello.txt',mimeType:'text/plain',buffer:Buffer.from('Hello')});await page.waitForTimeout(50);assert.match(await page.locator('#file-preview-strip').textContent(),/hello.txt/);
@@ -105,6 +136,33 @@ const fs=require('node:fs');
  await page.evaluate(async()=>{const now=Date.now();Date.now=()=>now+18000000;await window._checkpointPopupPlaytime();closeGamePopup();});
  externalSeconds=await page.evaluate(()=>JSON.parse(localStorage.getItem('kw_playtime_outbox_test@example.com')).filter(j=>j.gameName==='External fixture').reduce((sum,j)=>sum+j.seconds,0));
  assert.equal(externalSeconds,14400,'cross-origin play caps at four hours');
+ // Ordinary users have personal settings and usage, without admin controls.
+ await context.addInitScript(()=>{
+  if(window.top===window&&location.pathname==='/msg.html'&&location.search==='?personal-test'){
+   window.__fixture['users/test@example.com'].admin=false;
+   window.__fixture['users/test@example.com'].aiUsageByModel={
+    'gemini-test':{startedAt:Date.now(),windowMs:3600000,count:1},
+    'gemini-2.5-flash-lite':{startedAt:Date.now(),windowMs:3600000,count:0}
+   };
+  }
+ });
+ await page.goto('http://127.0.0.1:8765/msg.html?personal-test');await page.waitForTimeout(300);await page.evaluate(()=>openAiConversation());
+ await page.locator('#chat-settings-btn').click();await page.waitForTimeout(30);
+ assert.ok(await page.locator('#ai-model-picker').isVisible());assert.equal(await page.locator('#ai-admin-settings').isVisible(),false);
+ assert.match(await page.locator('#ai-model-usage [data-model="gemini-test"]').textContent(),/1 \/ 1/);
+ await page.selectOption('#ai-model-picker','gemini-2.5-flash-lite');await page.locator('#ai-settings-modal .modal-cancel-btn').click();
+ await page.locator('#msg-input').fill('Available model');await page.locator('#send-btn').click();await page.waitForTimeout(50);assert.match(await page.locator('#ai-usage').textContent(),/1 \/ 2/);
+ // Removed models cannot submit via a stale selection, and rejected requests do not count.
+ await personalModel('gemini-test');
+ await page.evaluate(()=>{window.__fixture['siteContent/main'].aiSettings.allowedModels=[];});
+ await page.locator('#msg-input').fill('Removed model');await page.locator('#send-btn').click();await page.waitForTimeout(50);
+ assert.match(await page.locator('#ai-notice').textContent(),/no longer available/);
+ assert.equal(await page.evaluate(()=>window.__fixture['users/test@example.com'].aiUsageByModel['gemini-test'].count),1);
+ await page.locator('#chat-settings-btn').click();await page.waitForTimeout(30);assert.equal(await page.locator('#ai-model-picker option').count(),1);await page.locator('#ai-settings-modal .modal-cancel-btn').click();
+ // Unlimited policies still record usage. Simultaneous submit attempts reserve once.
+ await page.evaluate(()=>{window.__fixture['siteContent/main'].aiSettings.modelLimits['gemini-2.5-flash-lite'].rateLimitMessages=0;document.getElementById('msg-input').value='Count unlimited usage';return Promise.all([sendMessage(),sendMessage()]);});
+ assert.equal(await page.evaluate(()=>window.__fixture['users/test@example.com'].aiUsageByModel['gemini-2.5-flash-lite'].count),2);
+ assert.match(await page.locator('#ai-usage').textContent(),/2 messages used; unlimited/);
  // Root bootstrap must retain ZIP runtime interception after the implementation moves.
  await context.route('http://127.0.0.1:8765/__zip-worker-check',route=>route.fulfill({contentType:'text/html',body:'ZIP worker scope check'}));
  await page.goto('http://127.0.0.1:8765/__zip-worker-check');

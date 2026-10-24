@@ -1182,7 +1182,6 @@
   <button class="reply-cancel-btn" onclick="cancelReply()" title="Cancel reply">✕</button>
 </div>
 <div id="ai-user-controls" hidden style="padding:.5rem 1rem;font-size:.8rem">
-<label>Model <select id="ai-model-picker" aria-label="AI model" style="max-width:100%;background:var(--card);color:var(--text)"></select></label>
 <div id="ai-usage" role="status"></div><div id="ai-notice" role="alert"></div></div>
 <!-- File preview strip -->
 <div class="file-preview-strip" id="file-preview-strip"></div>
@@ -1273,11 +1272,19 @@
 <div style="display:flex;align-items:center;justify-content:space-between;">
 <div class="modal-title" style="display:flex;align-items:center;gap:0.5rem;">
 <svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        Admin Settings
+        AI Settings
       </div>
 <button onclick="closeSettingsModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0.25rem;line-height:1;font-size:1.2rem;" title="Close">×</button>
 </div>
 
+<div class="settings-section">
+<label class="settings-section-title" for="ai-model-picker">Personal model</label>
+<select id="ai-model-picker" class="modal-input" aria-label="Personal model"></select>
+<p style="font-size:.75rem;color:var(--muted)">Your selection is saved automatically. Each model has its own message allowance.</p>
+<div id="ai-model-usage" style="display:grid;gap:.6rem" aria-live="polite"></div>
+</div>
+<details id="ai-admin-settings" hidden>
+<summary class="settings-section-title" style="cursor:pointer;padding:.75rem 0">Admin settings</summary>
 <div class="settings-section">
 <div class="settings-section-title">AI Assistant</div>
 <div class="settings-row">
@@ -1290,7 +1297,7 @@
 </div>
 
 <div class="settings-section">
-<div class="settings-section-title">Model</div>
+<div class="settings-section-title">Default model</div>
 <div style="position:relative;">
 <div class="modal-input" id="s-model-display" onclick="toggleModelDropdown()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;">
 <span id="s-model-label" style="font-family:monospace;font-size:0.85rem;color:var(--text);">Click to select a model...</span>
@@ -1308,10 +1315,12 @@
 </div>
 
 <div class="settings-section">
-<label>Messages per user <input class="modal-input" id="s-rate-messages" type="number" min="0" max="10000" value="20"></label>
-<label>Window in minutes <input class="modal-input" id="s-rate-minutes" type="number" min="1" max="10080" value="60"></label>
-<p style="font-size:.75rem;color:var(--muted)">0 messages disables the usage limit. Each submitted prompt counts once, including failed requests.</p>
-<label>Allowed models (one ID per line; blank loads available Gemini text models)<textarea class="modal-input" id="s-allowed-models" rows="3"></textarea></label>
+<label>Default messages per user <input class="modal-input" id="s-rate-messages" type="number" min="0" max="10000" value="20"></label>
+<label>Default window in minutes <input class="modal-input" id="s-rate-minutes" type="number" min="1" max="10080" value="60"></label>
+<p style="font-size:.75rem;color:var(--muted)">Defaults initialize newly added models. Edit existing models below. 0 messages means unlimited; usage is still counted. Each accepted prompt counts once, including failed requests.</p>
+<label>Additional models users can use (one ID per line; the default model is always included)<textarea class="modal-input" id="s-allowed-models" rows="3"></textarea></label>
+<div class="settings-section-title" style="margin-top:.75rem">Limits per model</div>
+<div id="s-model-limits"></div>
 <div class="settings-section-title">System Prompt</div>
 <textarea class="modal-input" id="s-system-prompt" placeholder="Enter system prompt..." rows="4" style="resize:vertical;line-height:1.5;"></textarea>
 </div>
@@ -1323,23 +1332,24 @@
 </div>
 <div id="s-api-keys-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
 </div>
+<button id="save-ai-admin-settings" class="auth-submit" onclick="saveSettings()" style="width:100%;padding:.65rem;font-size:.6rem">Save admin settings</button>
+</details>
 <div id="settings-error" style="font-size:0.78rem;color:var(--danger);display:none;"></div>
 <div id="settings-success" style="font-size:0.78rem;color:#22c55e;display:none;"></div>
 <div class="modal-actions" style="margin-top:0.5rem;">
-<button class="modal-cancel-btn" onclick="closeSettingsModal()">Cancel</button>
-<button class="auth-submit" onclick="saveSettings()" style="flex:1;padding:0.65rem;font-size:0.6rem;">Save Changes</button>
+<button class="modal-cancel-btn" onclick="closeSettingsModal()">Close</button>
 </div>
 </div>
 </div>
 <script type="module">import{initializeApp}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";import{getFirestore,doc,getDoc,setDoc,updateDoc,collection,getDocs,addDoc,query,where,orderBy,onSnapshot,serverTimestamp,Timestamp,runTransaction}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";const firebaseConfig={apiKey:"AIzaSyB_7DGpmrVotodTuPJDXoZrKrKbkzPhWDw",authDomain:"knowwhere-firebase.firebaseapp.com",projectId:"knowwhere-firebase",storageBucket:"knowwhere-firebase.firebasestorage.app",messagingSenderId:"389831660515",appId:"1:389831660515:web:0bcd3292610b1be0af86d6",measurementId:"G-9LMCC5TS1J"};const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);let currentUser=null;let currentUserData=null;let allConversations=[];let activeConvId=null;let messagesUnsubscribe=null;let convsUnsubscribe=null;let accountStatusUnsubscribe=null;let allUsers=[];let selectedGroupUsers=new Set();const userNameCache={};const userPfpCache={};let dmSending=false;let aiSending=false;let aiUsageUnsubscribe=null;let aiUsage=null;let aiSiteContext={};let aiAvailableModels=[];let aiModelLoadVersion=0;let aiConfig=null;let aiApiKeys=[];let aiMessages=[];let aiConvActive=false;let aiHistoryDocId=null;function normalizePfp(data){if(!data)return'';return data.pfp||'';}function renderNavUserChip(name,pfp){const chip=document.getElementById('nav-username');if(!chip)return;const safeName=escapeHtml(name||'');const initial=((name||'?')[0]||'?').toUpperCase();const avatar=pfp?`<img src="${escapeHtml(pfp)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:escapeHtml(initial);chip.innerHTML=`<span style="width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.35);font-size:0.58rem;font-weight:700;">${avatar}</span><span>${safeName}</span>`;chip.dataset.username=name||'';chip.style.display='inline-flex';chip.style.alignItems='center';chip.style.gap='0.4rem';}async function fetchUserByEmail(email){const raw=String(email||'').trim();if(!raw)return null;const ids=[raw];const lower=raw.toLowerCase();if(lower!==raw)ids.push(lower);for(const id of ids){try{const snap=await getDoc(doc(db,'users',id));if(snap.exists())return{...(snap.data()||{}),__docId:id};}catch(_){}}return null;}/* __kwSignIn provided by auth-flows.js */window.handleSignOut=async function(){if(convsUnsubscribe)convsUnsubscribe();if(messagesUnsubscribe)messagesUnsubscribe();if(accountStatusUnsubscribe)accountStatusUnsubscribe();await signOut(auth);};let _forcedSignout=false;async function checkPendingApproval(email){if(!email)return false;try{const q=query(collection(db,'signupRequests'),where('email','==',email));const snap=await getDocs(q);return snap.docs.some(d=>d.data().status==='pending');}catch(e){return false;}}function _restrictedMessenger(){return !!(currentUserData&&(currentUserData.__banned||currentUserData.__pending||currentUserData.__unpaid));}function _allowedRecipients(){return _restrictedMessenger()?allUsers.filter(u=>u.admin===true||u.editor===true):allUsers;}onAuthStateChanged(auth,async(user)=>{const wall=document.getElementById('auth-wall');const appEl=document.getElementById('app');const errEl=document.getElementById('auth-error');if(!user&&_forcedSignout){_forcedSignout=false;currentUser=null;currentUserData=null;wall.classList.remove('hidden');appEl.classList.remove('visible');if(errEl){errEl.textContent=window._forcedSignoutMsg||'Your account has been disabled. Contact an admin for help.';errEl.classList.add('show');}window._forcedSignoutMsg=null;return;}function userBanUntil(u){if(!u||!u.banUntil)return null;const raw=u.banUntil;let t=null;if(typeof raw==='string')t=new Date(raw);else if(raw&&typeof raw.toDate==='function')t=raw.toDate();else if(raw instanceof Date)t=raw;return(t&&!isNaN(t.getTime()))?t:null;}function userIsBanned(u){if(!u)return false;if(u.banType==='permanent')return true;if(u.banType==='temporary'){const t=userBanUntil(u);if(t&&t>new Date())return true;}return false;}if(user){currentUser=user;try{const d=await fetchUserByEmail(user.email);const pending=await checkPendingApproval(user.email);if(!d&&!pending){currentUser=null;currentUserData=null;if(convsUnsubscribe){convsUnsubscribe();convsUnsubscribe=null;}if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}window._forcedSignoutMsg='Your account hasn\'t been approved yet. An admin must approve you before you can send messages.';await signOut(auth);return;}currentUserData=d||{email:user.email,username:user.email,__docId:user.email,__pending:!d};if(currentUserData.active===false){_forcedSignout=true;currentUser=null;currentUserData=null;if(convsUnsubscribe){convsUnsubscribe();convsUnsubscribe=null;}if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}await signOut(auth);return;}currentUserData.__banned=userIsBanned(currentUserData);currentUserData.__unpaid=!(currentUserData.admin===true||(currentUserData.editor===true&&currentUserData.paid!==false)||currentUserData.paid===true);currentUserData.pfp=normalizePfp(currentUserData);if(accountStatusUnsubscribe)accountStatusUnsubscribe();accountStatusUnsubscribe=onSnapshot(doc(db,'users',currentUserData.__docId||user.email),async(snap)=>{const data=snap.exists()?snap.data():null;if(data&&data.active===false&&auth.currentUser){_forcedSignout=true;if(convsUnsubscribe){convsUnsubscribe();convsUnsubscribe=null;}if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}await signOut(auth);}});}catch(e){console.warn('Could not verify account status — signing out for safety:',e);_forcedSignout=true;currentUser=null;currentUserData=null;if(convsUnsubscribe){convsUnsubscribe();convsUnsubscribe=null;}if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}await signOut(auth);return;}
 wall.classList.add('hidden');appEl.classList.add('visible');
-const displayName=currentUserData.username||user.email;renderNavUserChip(displayName,normalizePfp(currentUserData));await loadAllUsers();loadAiConfig();subscribeToConversations();}else{currentUser=null;currentUserData=null;aiModelLoadVersion++;aiConfig=null;if(aiUsageUnsubscribe){aiUsageUnsubscribe();aiUsageUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}wall.classList.remove('hidden');appEl.classList.remove('visible');document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';document.getElementById('auth-error').classList.remove('show');}});async function loadAiConfig(){try{const snap=await getDoc(doc(db,'siteContent','main'));if(!snap.exists())return;const data=snap.data();const ai=data.aiSettings||{};aiSiteContext={games:Object.values(data.games||{}).flat().map(g=>({name:g.name,description:g.description||''})),sites:(data.sites||[]).map(s=>({name:s.name,url:s.url})),notice:data.notice||{}};const admin=currentUserData?.admin===true;const item=document.getElementById('ai-conv-item');if(!ai.aiEnabled){aiConfig=null;if(item)item.style.display='none';if(admin&&item){item.style.display='flex';item.style.opacity='0.45';item.title='AI is disabled — open settings to re-enable';}
+const displayName=currentUserData.username||user.email;renderNavUserChip(displayName,normalizePfp(currentUserData));await loadAllUsers();loadAiConfig();subscribeToConversations();}else{currentUser=null;currentUserData=null;aiModelLoadVersion++;aiConfig=null;if(aiUsageUnsubscribe){aiUsageUnsubscribe();aiUsageUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}wall.classList.remove('hidden');appEl.classList.remove('visible');document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';document.getElementById('auth-error').classList.remove('show');}});async function loadAiConfig(){try{const snap=await getDoc(doc(db,'siteContent','main'));if(!snap.exists())return;const data=snap.data();const ai=data.aiSettings||{};aiSiteContext={games:Object.values(data.games||{}).flat().map(g=>({name:g.name,description:g.description||''})),sites:(data.sites||[]).map(s=>({name:s.name,url:s.url})),notice:data.notice||{}};const admin=currentUserData?.admin===true;const item=document.getElementById('ai-conv-item');if(!ai.aiEnabled){aiConfig=null;clearPersonalAiControls('AI is currently disabled.');if(item)item.style.display='none';if(admin&&item){item.style.display='flex';item.style.opacity='0.45';item.title='AI is disabled — open settings to re-enable';}
 return;}
 if(item){item.style.display='flex';item.style.opacity='';item.title='';}
-const keys=(ai.apiKeys||[]).map(k=>String(k||'').trim()).filter(Boolean);if(keys.length===0){aiConfig=null;return;}aiApiKeys=keys;const apiKey=keys[Math.floor(Math.random()*keys.length)];aiConfig={aiEnabled:true,apiKey,model:ai.model||'gemini-2.5-flash-lite',systemPrompt:ai.systemPrompt||'You are a helpful assistant.',limits:KWAIPolicy.limits(ai),allowedModels:Array.isArray(ai.allowedModels)?ai.allowedModels.filter(KWAIPolicy.modelId):[]};await setupUserAiControls();}catch(e){console.warn('Could not load AI config:',e);}}
+const keys=(ai.apiKeys||[]).map(k=>String(k||'').trim()).filter(Boolean);if(keys.length===0){aiConfig=null;clearPersonalAiControls('AI is not configured yet.');return;}aiApiKeys=keys;const apiKey=keys[Math.floor(Math.random()*keys.length)];aiConfig={aiEnabled:true,apiKey,model:ai.model||'gemini-2.5-flash-lite',systemPrompt:ai.systemPrompt||'You are a helpful assistant.',settings:ai};await setupUserAiControls();}catch(e){console.warn('Could not load AI config:',e);}}
 window.openAiConversation=async function(){if(aiSending||dmSending||filesReading>0)return;if(!aiConfig?.aiEnabled&&currentUserData?.admin===true){openSettingsModal();return;}
 if(!aiConfig?.aiEnabled)return;fileSelectionVersion++;pendingFiles=[];renderFileStrip();if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}
-activeConvId=null;aiConvActive=true;document.getElementById('ai-user-controls').hidden=false;renderAiUsage();const attachBtn=document.getElementById('attach-btn');if(attachBtn)attachBtn.style.display='none';document.querySelectorAll('.conv-item').forEach(el=>el.classList.remove('active'));document.getElementById('ai-conv-item').classList.add('active');const modelLabel=aiConfig?.model||'AI';document.getElementById('chat-header-avatar').textContent='✦';document.getElementById('chat-header-avatar').style.color='var(--secondary)';const headerName=document.getElementById('chat-header-name');headerName.textContent='KnowWhere AI';headerName.style.cursor='default';headerName.title='';document.getElementById('chat-header-sub').textContent=modelLabel;document.getElementById('chat-empty').style.display='none';const activeChat=document.getElementById('active-chat');activeChat.style.display='flex';activeChat.style.flexDirection='column';activeChat.style.flex='1';activeChat.style.overflow='hidden';openChatMobile();await loadAiHistory();aiMessages=aiMessages.filter(m=>m.content!=="Sorry, I couldn't generate a response.");renderAiMessages();const settingsBtn=document.getElementById('chat-settings-btn');if(settingsBtn&&currentUserData?.admin===true)settingsBtn.style.display='flex';const copyLinkBtn=document.getElementById('copy-link-btn');if(copyLinkBtn){copyLinkBtn.style.display='flex';copyLinkBtn.title='Delete AI History';copyLinkBtn.onclick=deleteAiHistory;copyLinkBtn.innerHTML='<svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';}
+activeConvId=null;aiConvActive=true;document.getElementById('ai-user-controls').hidden=false;renderAiUsage();const attachBtn=document.getElementById('attach-btn');if(attachBtn)attachBtn.style.display='none';document.querySelectorAll('.conv-item').forEach(el=>el.classList.remove('active'));document.getElementById('ai-conv-item').classList.add('active');const modelLabel=aiConfig?.model||'AI';document.getElementById('chat-header-avatar').textContent='✦';document.getElementById('chat-header-avatar').style.color='var(--secondary)';const headerName=document.getElementById('chat-header-name');headerName.textContent='KnowWhere AI';headerName.style.cursor='default';headerName.title='';document.getElementById('chat-header-sub').textContent=modelLabel;document.getElementById('chat-empty').style.display='none';const activeChat=document.getElementById('active-chat');activeChat.style.display='flex';activeChat.style.flexDirection='column';activeChat.style.flex='1';activeChat.style.overflow='hidden';openChatMobile();await loadAiHistory();aiMessages=aiMessages.filter(m=>m.content!=="Sorry, I couldn't generate a response.");renderAiMessages();const settingsBtn=document.getElementById('chat-settings-btn');if(settingsBtn)settingsBtn.style.display='flex';const copyLinkBtn=document.getElementById('copy-link-btn');if(copyLinkBtn){copyLinkBtn.style.display='flex';copyLinkBtn.title='Delete AI History';copyLinkBtn.onclick=deleteAiHistory;copyLinkBtn.innerHTML='<svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';}
 setTimeout(()=>document.getElementById('msg-input').focus(),100);};;function renderAiMessages(){const area=document.getElementById('messages-area');if(aiMessages.length===0){const greeting=aiConfig?.systemPrompt?.includes('KnowWhere')?'Hi! I\'m the KnowWhere AI assistant. How can I help you today?':'Hi! How can I help you today?';area.innerHTML=`<div class="msg-row ai-msg theirs" style="max-width:75%;align-self:flex-start;">
         <div class="msg-avatar-sm">✦</div>
         <div><div class="msg-bubble">${escapeHtml(greeting)}<span class="msg-time">now</span></div></div>
@@ -1361,59 +1371,105 @@ async function callGeminiWithRetry(payload){const keys=(aiApiKeys&&aiApiKeys.len
 async function saveAiHistory(){if(!currentUser)return;try{const historyData={email:currentUser.email,username:currentUserData?.username||currentUser.email,messages:aiMessages,updatedAt:serverTimestamp(),hidden:false};if(aiHistoryDocId){await setDoc(doc(db,'aiHistory',aiHistoryDocId),historyData,{merge:true});}else{const newDoc=await addDoc(collection(db,'aiHistory'),historyData);aiHistoryDocId=newDoc.id;}}catch(e){console.warn('Failed to save AI history:',e);}}
  async function loadAiHistory(){if(!currentUser)return;try{const q=query(collection(db,'aiHistory'),where('email','==',currentUser.email));const snap=await getDocs(q);if(snap.docs.length>0){const histories=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>new Date(b.updatedAt||b.createdAt||0)-new Date(a.updatedAt||a.createdAt||0));const mostRecent=histories[0];aiHistoryDocId=mostRecent.id;aiMessages=mostRecent.messages||[];}}catch(e){console.warn('Failed to load AI history:',e);}}
 window.deleteAiHistory=async function(){if(aiSending)return;if(!aiHistoryDocId||!currentUser)return;if(!confirm('Are you sure? Your AI history will be hidden (but retained for admins).'))return;try{await setDoc(doc(db,'aiHistory',aiHistoryDocId),{hidden:true},{merge:true});aiMessages=[];aiHistoryDocId=null;renderAiMessages();}catch(e){console.error('Failed to delete AI history:',e);alert('Failed to delete history.');}}
-async function sendAiMessage(text){if(!aiConfig?.aiEnabled||aiSending||dmSending||!text.trim())return false;aiSending=true;document.getElementById('send-btn').disabled=true;try{await reserveAiMessage();}catch(e){showAiNotice(e.message);aiSending=false;document.getElementById('send-btn').disabled=false;return false;}document.getElementById('ai-model-picker').disabled=true;const input=document.getElementById('msg-input');input.value='';input.style.height='auto';const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});aiMessages.push({role:'user',content:text,time:now});renderAiMessages();showAiTyping();const contents=aiMessages.filter(m=>!m.error&&(m.role==='user'||m.role==='model')).map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.content}]}));const payload={system_instruction:{parts:[{text:KWAIPolicy.prompt(aiConfig.systemPrompt,aiSiteContext)}]},contents};function extractGeminiReply(data){return(data?.candidates||[]).map(c=>(c?.content?.parts||[]).map(p=>p.text||'').join('').trim()).find(Boolean)||'';}function emptyGeminiReason(data){if(window._lastGeminiHadRateLimit)return'Rate limit reached. Gemini is throttling that API key right now. Please wait a minute and try again.';const block=data?.promptFeedback?.blockReason;if(block)return`Response was blocked (${block}). Try rephrasing that.`;const finish=data?.candidates?.[0]?.finishReason;if(finish&&finish!=='STOP')return`The AI stopped without text (${finish}). Try sending it again.`;return'Sorry, the AI returned an empty response. Try sending it again.';}try{let data=await callGeminiWithRetry(payload);let reply=extractGeminiReply(data);if(!reply&&!window._lastGeminiHadRateLimit){await delay(900);data=await callGeminiWithRetry(payload);reply=extractGeminiReply(data);}const emptyReply=!reply;reply=reply||emptyGeminiReason(data);const replyTime=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});aiMessages.push({role:'model',content:reply,time:replyTime,error:emptyReply});document.getElementById('ai-conv-preview').textContent=reply.slice(0,40)+(reply.length>40?'…':'');}catch(e){const msg=(e&&e.status===429)?'Rate limit reached. I retried automatically but all keys are currently throttled. Please wait a minute and try again.':'Sorry, something went wrong connecting to the AI.';aiMessages.push({role:'model',content:msg,time:now,error:true});console.error('AI request failed:',e);}
+async function sendAiMessage(text){if(!aiConfig?.aiEnabled||aiSending||dmSending||!text.trim())return false;aiSending=true;document.getElementById('send-btn').disabled=true;document.getElementById('ai-model-picker').disabled=true;try{await reserveAiMessage();}catch(e){if(e.aiSettings){aiConfig.settings=e.aiSettings;if(e.aiUserData)aiUsage=e.aiUserData;await setupUserAiControls();}showAiNotice(e.message);aiSending=false;document.getElementById('send-btn').disabled=false;document.getElementById('ai-model-picker').disabled=false;return false;}document.getElementById('ai-model-picker').disabled=true;const input=document.getElementById('msg-input');input.value='';input.style.height='auto';const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});aiMessages.push({role:'user',content:text,time:now});renderAiMessages();showAiTyping();const contents=aiMessages.filter(m=>!m.error&&(m.role==='user'||m.role==='model')).map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.content}]}));const payload={system_instruction:{parts:[{text:KWAIPolicy.prompt(aiConfig.systemPrompt,aiSiteContext)}]},contents};function extractGeminiReply(data){return(data?.candidates||[]).map(c=>(c?.content?.parts||[]).map(p=>p.text||'').join('').trim()).find(Boolean)||'';}function emptyGeminiReason(data){if(window._lastGeminiHadRateLimit)return'Rate limit reached. Gemini is throttling that API key right now. Please wait a minute and try again.';const block=data?.promptFeedback?.blockReason;if(block)return`Response was blocked (${block}). Try rephrasing that.`;const finish=data?.candidates?.[0]?.finishReason;if(finish&&finish!=='STOP')return`The AI stopped without text (${finish}). Try sending it again.`;return'Sorry, the AI returned an empty response. Try sending it again.';}try{let data=await callGeminiWithRetry(payload);let reply=extractGeminiReply(data);if(!reply&&!window._lastGeminiHadRateLimit){await delay(900);data=await callGeminiWithRetry(payload);reply=extractGeminiReply(data);}const emptyReply=!reply;reply=reply||emptyGeminiReason(data);const replyTime=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});aiMessages.push({role:'model',content:reply,time:replyTime,error:emptyReply});document.getElementById('ai-conv-preview').textContent=reply.slice(0,40)+(reply.length>40?'…':'');}catch(e){const msg=(e&&e.status===429)?'Rate limit reached. I retried automatically but all keys are currently throttled. Please wait a minute and try again.':'Sorry, something went wrong connecting to the AI.';aiMessages.push({role:'model',content:msg,time:now,error:true});console.error('AI request failed:',e);}
 hideAiTyping();renderAiMessages();await saveAiHistory();aiSending=false;document.getElementById('send-btn').disabled=false;document.getElementById('ai-model-picker').disabled=false;return true;}
+function clearPersonalAiControls(message){
+  aiAvailableModels=[];const select=document.getElementById('ai-model-picker');select.replaceChildren();select.disabled=true;
+  document.getElementById('ai-model-usage').textContent=message;document.getElementById('ai-usage').textContent=message;
+}
 function showAiNotice(message){document.getElementById('ai-notice').textContent=message;}
 function renderAiUsage(){
-  const el=document.getElementById('ai-usage');if(!el||!aiConfig)return;
-  const show=localStorage.getItem('kw_ai_show_usage')!=='0';
-  el.hidden=!show;
-  const limits=aiConfig.limits, usage=KWAIPolicy.usage(aiUsage,limits);
-  el.textContent=limits.max?`${usage.count} / ${limits.max} messages used. ${Math.max(0,limits.max-usage.count)} remaining. Resets ${new Date(usage.startedAt+limits.windowMs).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}.`:'No site message limit.';
+  if(!aiConfig)return;
+  const summary=document.getElementById('ai-usage');
+  const list=document.getElementById('ai-model-usage');
+  list.replaceChildren();
+  for(const model of aiAvailableModels){
+    const limits=KWAIPolicy.limits(aiConfig.settings,model);
+    const usage=KWAIPolicy.usage(KWAIPolicy.modelUsage(aiUsage,model,aiConfig.settings),limits);
+    const minutes=limits.windowMs/60000;
+    const used=limits.max?`${usage.count} / ${limits.max} messages used; ${Math.max(0,limits.max-usage.count)} remaining`:`${usage.count} messages used; unlimited messages`;
+    const windowText=`per ${minutes} minute${minutes===1?'':'s'}`;
+    const reset=`Resets ${new Date(usage.startedAt+limits.windowMs).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}`;
+    const card=document.createElement('div');card.dataset.model=model;card.style.cssText='padding:.75rem;border:1px solid var(--border);border-radius:8px;overflow-wrap:anywhere';
+    const title=document.createElement('strong');title.textContent=model+(model===aiConfig.model?' (selected)':'');
+    const details=document.createElement('div');details.textContent=`${used} ${windowText}. ${reset}.`;details.style.cssText='font-size:.78rem;color:var(--muted);margin-top:.35rem';
+    card.append(title,details);
+    if(limits.max){const progress=document.createElement('progress');progress.max=limits.max;progress.value=Math.min(usage.count,limits.max);progress.setAttribute('aria-label',model+' message usage');progress.style.width='100%';card.appendChild(progress);}
+    list.appendChild(card);
+    if(model===aiConfig.model){summary.textContent=`${model}: ${used} ${windowText}. ${reset}.`;summary.hidden=localStorage.getItem('kw_ai_show_usage')==='0';}
+  }
 }
 window.addEventListener('kw-ai-usage-preference',renderAiUsage);
 setInterval(()=>{if(aiConvActive)renderAiUsage();},15000);
 async function reserveAiMessage(){
   if(!currentUser)throw new Error('Sign in to use AI.');
-  const limits=aiConfig.limits;if(!limits.max)return;
+  const model=aiConfig.model;
   const ref=doc(db,'users',currentUserData.__docId||currentUser.email);
-  aiUsage=await runTransaction(db,async transaction=>{
-    const snap=await transaction.get(ref);
-    const usage=KWAIPolicy.usage(snap.data()?.aiUsage,limits);
-    if(usage.count>=limits.max)throw new Error(`Message limit reached. Try again after ${new Date(usage.startedAt+limits.windowMs).toLocaleTimeString()}.`);
-    const next={...usage,count:usage.count+1};transaction.update(ref,{aiUsage:next});return next;
+  const result=await runTransaction(db,async transaction=>{
+    // Read current policy before reserving so stale settings cannot allow a removed model.
+    const policySnap=await transaction.get(doc(db,'siteContent','main'));
+    const settings=policySnap.data()?.aiSettings||{};
+    if(!settings.aiEnabled)throw new Error('AI is currently disabled.');
+    if(!KWAIPolicy.allowedModels(settings).includes(model))throw Object.assign(new Error('This model is no longer available. Choose another Personal model in AI settings.'),{aiSettings:settings});
+    const snap=await transaction.get(ref),userData=snap.data()||{};
+    const limits=KWAIPolicy.limits(settings,model);
+    const usage=KWAIPolicy.usage(KWAIPolicy.modelUsage(userData,model,settings),limits);
+    if(limits.max&&usage.count>=limits.max)throw Object.assign(new Error(`${model}: message limit reached (${usage.count} / ${limits.max}). Try again after ${new Date(usage.startedAt+limits.windowMs).toLocaleTimeString()}.`),{aiSettings:settings,aiUserData:userData});
+    const next={...usage,count:usage.count+1};
+    const aiUsageByModel={...KWAIPolicy.usageByModel(userData,settings),[model]:next};
+    transaction.update(ref,{aiUsageByModel,aiUsageMigrated:true});return{settings,userData:{...userData,aiUsageByModel,aiUsageMigrated:true}};
   });
+  aiUsage=result.userData;aiConfig.settings=result.settings;
+  aiAvailableModels=KWAIPolicy.allowedModels(result.settings);
   showAiNotice('');renderAiUsage();
 }
 async function setupUserAiControls(){
-  const version=++aiModelLoadVersion;
-  const defaultModel=aiConfig.model;
-  aiAvailableModels=[...new Set([defaultModel,...aiConfig.allowedModels].filter(KWAIPolicy.modelId))];
+  ++aiModelLoadVersion;
+  const defaultModel=aiConfig.settings.model||'gemini-2.5-flash-lite';
+  aiAvailableModels=KWAIPolicy.allowedModels(aiConfig.settings);
   const select=document.getElementById('ai-model-picker');
-  function render(){
-    const saved=localStorage.getItem('kw_ai_model_'+currentUser.email);
-    aiConfig.model=aiAvailableModels.includes(saved)?saved:defaultModel;
-    select.replaceChildren(...aiAvailableModels.map(id=>new Option(id,id,false,id===aiConfig.model)));
-    if(aiConvActive)document.getElementById('chat-header-sub').textContent=aiConfig.model;
-  }
-  render();
-  select.onchange=()=>{if(aiSending||dmSending)return;aiConfig.model=select.value;localStorage.setItem('kw_ai_model_'+currentUser.email,select.value);document.getElementById('chat-header-sub').textContent=select.value;};
-  if(aiUsageUnsubscribe)aiUsageUnsubscribe();
-  aiUsageUnsubscribe=onSnapshot(doc(db,'users',currentUserData.__docId||currentUser.email),snap=>{aiUsage=snap.data()?.aiUsage||null;renderAiUsage();},()=>showAiNotice('Could not load AI usage.'));
-  if(aiConfig.allowedModels.length)return;
-  try{
-    let pageToken='';const models=[];
-    do{
-      const params=new URLSearchParams({key:aiConfig.apiKey,pageSize:'100'});if(pageToken)params.set('pageToken',pageToken);
-      const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models?'+params);
-      const data=await res.json();if(!res.ok)throw new Error('Could not load available models.');
-      models.push(...(data.models||[]).filter(m=>m.supportedGenerationMethods?.includes('generateContent')).map(m=>m.name.replace('models/','')).filter(id=>KWAIPolicy.modelId(id)&&!/(image|tts|robotics|computer-use|embedding)/i.test(id)));
-      pageToken=data.nextPageToken||'';
-    }while(pageToken);
-    if(version!==aiModelLoadVersion||aiSending)return;
-    aiAvailableModels=[...new Set([defaultModel,...models])].sort();render();
-  }catch(e){if(version===aiModelLoadVersion)showAiNotice('Model list unavailable; the configured model is still available.');}
+  const saved=localStorage.getItem('kw_ai_model_'+currentUser.email);
+  const previous=aiConfig.model;
+  aiConfig.model=aiAvailableModels.includes(saved)?saved:aiAvailableModels.includes(previous)?previous:defaultModel;
+  select.replaceChildren(...aiAvailableModels.map(id=>new Option(id,id,false,id===aiConfig.model)));
+  select.disabled=aiSending;
+  if(aiConvActive)document.getElementById('chat-header-sub').textContent=aiConfig.model;
+  select.onchange=()=>{
+    if(aiSending||dmSending){select.value=aiConfig.model;return;}
+    if(!aiAvailableModels.includes(select.value))return;
+    aiConfig.model=select.value;localStorage.setItem('kw_ai_model_'+currentUser.email,select.value);
+    document.getElementById('chat-header-sub').textContent=select.value;showAiNotice('');renderAiUsage();
+  };
+  if(!aiUsageUnsubscribe)aiUsageUnsubscribe=onSnapshot(doc(db,'users',currentUserData.__docId||currentUser.email),snap=>{aiUsage=snap.data()||{};renderAiUsage();},()=>showAiNotice('Could not load AI usage.'));
+  renderAiUsage();
 }
+let aiAdminModelLimits={};
+function editorModels(){
+  return [...new Set([document.getElementById('s-model').value.trim(),...document.getElementById('s-allowed-models').value.split(/[,\s]+/)].filter(KWAIPolicy.modelId))];
+}
+function aiNumericValue(input){return input.value.trim()===''?NaN:Number(input.value);}
+function captureModelLimitEdits(){
+  document.querySelectorAll('#s-model-limits [data-model]').forEach(row=>{
+    aiAdminModelLimits[row.dataset.model]={rateLimitMessages:aiNumericValue(row.querySelector('[data-messages]')),rateLimitMinutes:aiNumericValue(row.querySelector('[data-minutes]'))};
+  });
+}
+function renderModelLimitEditor(capture=true){
+  if(capture)captureModelLimitEdits();
+  const list=document.getElementById('s-model-limits');list.replaceChildren();
+  for(const model of editorModels()){
+    const configured=aiAdminModelLimits[model];
+    const fallback=KWAIPolicy.limits({rateLimitMessages:document.getElementById('s-rate-messages').value,rateLimitMinutes:document.getElementById('s-rate-minutes').value});
+    const limits=configured||{rateLimitMessages:fallback.max,rateLimitMinutes:fallback.windowMs/60000};
+    const fieldset=document.createElement('fieldset');fieldset.dataset.model=model;fieldset.style.cssText='border:1px solid var(--border);border-radius:8px;padding:.65rem;margin:.5rem 0;min-width:0';
+    const legend=document.createElement('legend');legend.textContent=model;legend.style.cssText='font-size:.75rem;overflow-wrap:anywhere';fieldset.appendChild(legend);
+    for(const [attribute,labelText,value,min,max] of [['messages','Messages',limits.rateLimitMessages,0,10000],['minutes','Window (minutes)',limits.rateLimitMinutes,1,10080]]){
+      const label=document.createElement('label');label.textContent=labelText;
+      const input=document.createElement('input');input.type='number';input.className='modal-input';input.dataset[attribute]='';input.value=value;input.min=min;input.max=max;input.step='1';input.setAttribute('aria-label',model+' '+labelText);label.appendChild(input);fieldset.appendChild(label);
+    }
+    list.appendChild(fieldset);
+  }
+}
+['s-allowed-models','s-rate-messages','s-rate-minutes'].forEach(id=>document.getElementById(id).addEventListener('input',()=>renderModelLimitEditor()));
 
 async function loadAllUsers(){try{const snap=await getDocs(collection(db,'users'));allUsers=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.email!==currentUser.email).map(u=>({...u,pfp:normalizePfp(u)}));}catch(e){console.warn('Could not load users:',e);}
 handleDeepLink();}
@@ -1496,7 +1552,28 @@ window.startConversation=async function(otherEmail){const errEl=document.getElem
 const convId=getConvId(currentUser.email,otherEmail);const convRef=doc(db,'conversations',convId);const convSnap=await getDoc(convRef);if(!convSnap.exists()){await setDoc(convRef,{participants:[currentUser.email,otherEmail],createdAt:serverTimestamp(),lastMessageAt:serverTimestamp(),lastMessage:'',unreadBy:[]});}
 closeNewConvModal();setTimeout(()=>openConversation(convId),300);};window.openSelectedConversation=async function(){const errEl=document.getElementById('modal-error');errEl.classList.remove('show');if(_selectedUsers.size===0){errEl.textContent='Select at least one person.';errEl.classList.add('show');return;}if(_restrictedMessenger()){const targets=_allowedRecipients().filter(u=>_selectedUsers.has(u.email));if(targets.length!==_selectedUsers.size){errEl.textContent='You can only message staff right now.';errEl.classList.add('show');return;}if(_selectedUsers.size>1){errEl.textContent='You can only message one admin at a time right now.';errEl.classList.add('show');return;}}
 if(_selectedUsers.size===1){const otherEmail=[..._selectedUsers.keys()][0];const convId=getConvId(currentUser.email,otherEmail);const convRef=doc(db,'conversations',convId);const convSnap=await getDoc(convRef);if(!convSnap.exists()){await setDoc(convRef,{participants:[currentUser.email,otherEmail],createdAt:serverTimestamp(),lastMessageAt:serverTimestamp(),lastMessage:'',unreadBy:[]});}closeNewConvModal();setTimeout(()=>openConversation(convId),300);}else{const selected=[..._selectedUsers.keys()];const participants=[currentUser.email,...selected];const groupTitle=[..._selectedUsers.values()].map(u=>u.name).slice(0,3).join(', ');const ref=await addDoc(collection(db,'conversations'),{participants,group:true,groupTitle,createdAt:serverTimestamp(),lastMessageAt:serverTimestamp(),lastMessage:'',unreadBy:[]});closeNewConvModal();setTimeout(()=>openConversation(ref.id),300);}};window.createGroupConversation=openSelectedConversation;function isAdmin(){return currentUserData&&currentUserData.admin===true;}
-window.openSettingsModal=async function(){if(!isAdmin())return;const modal=document.getElementById('ai-settings-modal');modal.classList.add('open');document.getElementById('settings-error').style.display='none';document.getElementById('settings-success').style.display='none';try{const snap=await getDoc(doc(db,'siteContent','main'));if(!snap.exists())return;const data=snap.data();const ai=data.aiSettings||{};document.getElementById('s-ai-enabled').checked=!!ai.aiEnabled;const limits=KWAIPolicy.limits(ai);document.getElementById('s-rate-messages').value=limits.max;document.getElementById('s-rate-minutes').value=limits.windowMs/60000;document.getElementById('s-allowed-models').value=(ai.allowedModels||[]).join('\n');const currentModel=ai.model||'';document.getElementById('s-model').value=currentModel;document.getElementById('s-model-label').textContent=currentModel||'Click to select a model...';document.getElementById('s-model-label').style.color=currentModel?'var(--text)':'var(--muted)';document.getElementById('s-system-prompt').value=ai.systemPrompt||'';const keysList=document.getElementById('s-api-keys-list');keysList.innerHTML='';const keys=ai.apiKeys||[];keys.forEach(k=>addApiKeyField(k));if(keys.length===0)addApiKeyField('');if(keys.length>0)fetchGeminiModels(keys[0]);}catch(e){console.error('Failed to load settings:',e);}};document.addEventListener('click',e=>{const dd=document.getElementById('s-model-dropdown');const display=document.getElementById('s-model-display');if(dd&&!dd.contains(e.target)&&!display.contains(e.target)){dd.style.display='none';document.getElementById('s-model-arrow').style.transform='';}});window.toggleModelDropdown=function(){const dd=document.getElementById('s-model-dropdown');const arrow=document.getElementById('s-model-arrow');const isOpen=dd.style.display!=='none';if(isOpen){dd.style.display='none';arrow.style.transform='';}else{dd.style.display='block';arrow.style.transform='rotate(180deg)';const list=document.getElementById('s-model-list');if(!list.querySelector('.model-option')){const keys=Array.from(document.querySelectorAll('#s-api-keys-list .api-key-row input')).map(i=>i.value.trim()).filter(Boolean);if(keys.length>0)fetchGeminiModels(keys[0]);}}};window.selectModel=function(modelId){document.getElementById('s-model').value=modelId;document.getElementById('s-model-label').textContent=modelId;document.getElementById('s-model-label').style.color='var(--text)';document.getElementById('s-model-dropdown').style.display='none';document.getElementById('s-model-arrow').style.transform='';};async function fetchGeminiModels(apiKey){const list=document.getElementById('s-model-list');list.innerHTML=`<div style="padding:0.75rem 1rem;color:var(--muted);font-size:0.78rem;display:flex;align-items:center;gap:0.5rem;"><div class="spinner" style="width:12px;height:12px;"></div> Loading models...</div>`;try{const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}&pageSize=100`);const data=await res.json();if(!res.ok)throw new Error(data.error?.message||'API error');const models=(data.models||[]).filter(m=>m.supportedGenerationMethods?.includes('generateContent')).map(m=>m.name.replace('models/','')).sort();if(models.length===0){list.innerHTML=`<div style="padding:0.75rem 1rem;color:var(--muted);font-size:0.78rem;">No models found.</div>`;return;}
+window.openSettingsModal=async function(){
+  if(!currentUser)return;
+  const modal=document.getElementById('ai-settings-modal');modal.classList.add('open');
+  document.getElementById('ai-admin-settings').hidden=!isAdmin();
+  document.getElementById('settings-error').style.display='none';document.getElementById('settings-success').style.display='none';
+  try{
+    if(!aiSending)await loadAiConfig();renderAiUsage();
+    if(!isAdmin())return;
+    const snap=await getDoc(doc(db,'siteContent','main'));const ai=snap.data()?.aiSettings||{};
+    document.getElementById('s-ai-enabled').checked=!!ai.aiEnabled;
+    const limits=KWAIPolicy.limits(ai);
+    document.getElementById('s-rate-messages').value=limits.max;document.getElementById('s-rate-minutes').value=limits.windowMs/60000;
+    document.getElementById('s-allowed-models').value=(ai.allowedModels||[]).join('\n');
+    const currentModel=ai.model||'gemini-2.5-flash-lite';document.getElementById('s-model').value=currentModel;
+    document.getElementById('s-model-label').textContent=currentModel;document.getElementById('s-model-label').style.color='var(--text)';
+    document.getElementById('s-system-prompt').value=ai.systemPrompt||'';
+    aiAdminModelLimits=structuredClone(ai.modelLimits||{});renderModelLimitEditor(false);
+    const keysList=document.getElementById('s-api-keys-list');keysList.replaceChildren();
+    const keys=ai.apiKeys||[];keys.forEach(k=>addApiKeyField(k));if(!keys.length)addApiKeyField('');if(keys.length)fetchGeminiModels(keys[0]);
+  }catch(e){const err=document.getElementById('settings-error');err.textContent='Could not load settings: '+e.message;err.style.display='block';}
+};
+document.addEventListener('click',e=>{const dd=document.getElementById('s-model-dropdown');const display=document.getElementById('s-model-display');if(dd&&!dd.contains(e.target)&&!display.contains(e.target)){dd.style.display='none';document.getElementById('s-model-arrow').style.transform='';}});window.toggleModelDropdown=function(){const dd=document.getElementById('s-model-dropdown');const arrow=document.getElementById('s-model-arrow');const isOpen=dd.style.display!=='none';if(isOpen){dd.style.display='none';arrow.style.transform='';}else{dd.style.display='block';arrow.style.transform='rotate(180deg)';const list=document.getElementById('s-model-list');if(!list.querySelector('.model-option')){const keys=Array.from(document.querySelectorAll('#s-api-keys-list .api-key-row input')).map(i=>i.value.trim()).filter(Boolean);if(keys.length>0)fetchGeminiModels(keys[0]);}}};window.selectModel=function(modelId){document.getElementById('s-model').value=modelId;document.getElementById('s-model-label').textContent=modelId;document.getElementById('s-model-label').style.color='var(--text)';document.getElementById('s-model-dropdown').style.display='none';document.getElementById('s-model-arrow').style.transform='';renderModelLimitEditor();};async function fetchGeminiModels(apiKey){const list=document.getElementById('s-model-list');list.innerHTML=`<div style="padding:0.75rem 1rem;color:var(--muted);font-size:0.78rem;display:flex;align-items:center;gap:0.5rem;"><div class="spinner" style="width:12px;height:12px;"></div> Loading models...</div>`;try{const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}&pageSize=100`);const data=await res.json();if(!res.ok)throw new Error(data.error?.message||'API error');const models=(data.models||[]).filter(m=>m.supportedGenerationMethods?.includes('generateContent')).map(m=>m.name.replace('models/','')).sort();if(models.length===0){list.innerHTML=`<div style="padding:0.75rem 1rem;color:var(--muted);font-size:0.78rem;">No models found.</div>`;return;}
 const current=document.getElementById('s-model').value;list.innerHTML=models.map(m=>`
         <div class="model-option ${m === current ? 'selected' : ''}" onclick="selectModel('${m}')">
           <span style="font-family:monospace;font-size:0.8rem;">${m}</span>
@@ -1505,8 +1582,29 @@ const current=document.getElementById('s-model').value;list.innerHTML=models.map
 window.closeSettingsModal=function(){document.getElementById('ai-settings-modal').classList.remove('open');};document.getElementById('ai-settings-modal').addEventListener('click',e=>{if(e.target===document.getElementById('ai-settings-modal'))closeSettingsModal();});window.addApiKeyField=function(value=''){const list=document.getElementById('s-api-keys-list');const row=document.createElement('div');row.className='api-key-row';row.innerHTML=`
       <input class="modal-input" type="text" value="${escapeHtml(value)}" placeholder="AIza..." style="font-family:monospace;font-size:0.78rem;" />
       <button class="api-key-del" onclick="this.parentElement.remove()" title="Remove">&times;</button>
-    `;list.appendChild(row);};window.saveSettings=async function(){if(!isAdmin()||aiSending)return;const errEl=document.getElementById('settings-error');const okEl=document.getElementById('settings-success');errEl.style.display='none';okEl.style.display='none';const aiEnabled=document.getElementById('s-ai-enabled').checked;const model=document.getElementById('s-model').value.trim();const systemPrompt=document.getElementById('s-system-prompt').value.trim();const keyInputs=document.querySelectorAll('#s-api-keys-list .api-key-row input');const apiKeys=Array.from(keyInputs).map(i=>i.value.trim()).filter(Boolean);if(!KWAIPolicy.modelId(model)){errEl.textContent='Choose a valid Gemini model ID.';errEl.style.display='block';return;}
-const rateLimitMessages=Number(document.getElementById('s-rate-messages').value);const rateLimitMinutes=Number(document.getElementById('s-rate-minutes').value);const allowedModels=document.getElementById('s-allowed-models').value.split(/[,\s]+/).filter(Boolean);if(!Number.isInteger(rateLimitMessages)||rateLimitMessages<0||rateLimitMessages>10000||!Number.isInteger(rateLimitMinutes)||rateLimitMinutes<1||rateLimitMinutes>10080||allowedModels.some(m=>!KWAIPolicy.modelId(m))){errEl.textContent='Use 0–10000 messages, 1–10080 minutes, and valid Gemini model IDs.';errEl.style.display='block';return;}try{await updateDoc(doc(db,'siteContent','main'),{'aiSettings.rateLimitMessages':rateLimitMessages,'aiSettings.rateLimitMinutes':rateLimitMinutes,'aiSettings.allowedModels':allowedModels,'aiSettings.aiEnabled':aiEnabled,'aiSettings.model':model,'aiSettings.systemPrompt':systemPrompt,'aiSettings.apiKeys':apiKeys});aiApiKeys=apiKeys;aiConfig={aiEnabled,apiKey:apiKeys[0]||'',model,systemPrompt,limits:KWAIPolicy.limits({rateLimitMessages,rateLimitMinutes}),allowedModels};await loadAiConfig();okEl.textContent='Settings saved successfully!';okEl.style.display='block';setTimeout(()=>{okEl.style.display='none';},3000);}catch(e){console.error('Save error:',e);errEl.textContent='Failed to save: '+(e.message||e.code||'Unknown error');errEl.style.display='block';}};window.copyConvLink=function(){const btn=document.getElementById('copy-link-btn');const username=btn._convUsername;if(!username)return;const base=window.location.origin+window.location.pathname;const url=base+'?'+encodeURIComponent(username);navigator.clipboard.writeText(url).then(()=>{btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';setTimeout(()=>{btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';},1500);}).catch(()=>{prompt('Copy this link:',url);});};window.copyUsername=function(){const chip=document.getElementById('nav-username');const username=(chip.dataset.username||'').trim();if(!username)return;const base=window.location.origin+window.location.pathname;const url=base+'?'+encodeURIComponent(username);navigator.clipboard.writeText(url).then(()=>{const origHtml=chip.innerHTML;chip.innerHTML='Link Copied!';chip.style.color='var(--secondary)';chip.style.borderColor='rgba(34,211,238,0.5)';setTimeout(()=>{chip.innerHTML=origHtml;chip.style.color='';chip.style.borderColor='';},1500);}).catch(()=>{prompt('Your contact link:',url);});};window.closeMsgProfile=function(){document.getElementById('msg-profile-modal').style.display='none';};
+    `;list.appendChild(row);};window.saveSettings=async function(){
+  if(!isAdmin()||aiSending)return;
+  const errEl=document.getElementById('settings-error'),okEl=document.getElementById('settings-success');
+  errEl.style.display='none';okEl.style.display='none';
+  const aiEnabled=document.getElementById('s-ai-enabled').checked;
+  const model=document.getElementById('s-model').value.trim();
+  const systemPrompt=document.getElementById('s-system-prompt').value.trim();
+  const apiKeys=Array.from(document.querySelectorAll('#s-api-keys-list .api-key-row input')).map(i=>i.value.trim()).filter(Boolean);
+  const rateLimitMessages=aiNumericValue(document.getElementById('s-rate-messages')),rateLimitMinutes=aiNumericValue(document.getElementById('s-rate-minutes'));
+  const allowedModels=[...new Set(document.getElementById('s-allowed-models').value.split(/[,\s]+/).filter(Boolean))];
+  const validLimits=limits=>Number.isInteger(limits.rateLimitMessages)&&limits.rateLimitMessages>=0&&limits.rateLimitMessages<=10000&&Number.isInteger(limits.rateLimitMinutes)&&limits.rateLimitMinutes>=1&&limits.rateLimitMinutes<=10080;
+  if(!KWAIPolicy.modelId(model)||allowedModels.some(m=>!KWAIPolicy.modelId(m))||!validLimits({rateLimitMessages,rateLimitMinutes})){
+    errEl.textContent='Use valid Gemini model IDs, 0–10000 messages, and 1–10080 minutes.';errEl.style.display='block';return;
+  }
+  renderModelLimitEditor();captureModelLimitEdits();
+  const modelLimits=Object.fromEntries(editorModels().map(id=>[id,aiAdminModelLimits[id]]));
+  if(Object.values(modelLimits).some(limits=>!validLimits(limits))){errEl.textContent='Each model needs 0–10000 messages and a 1–10080 minute window.';errEl.style.display='block';return;}
+  try{
+    await updateDoc(doc(db,'siteContent','main'),{'aiSettings.aiEnabled':aiEnabled,'aiSettings.model':model,'aiSettings.systemPrompt':systemPrompt,'aiSettings.apiKeys':apiKeys,'aiSettings.allowedModels':allowedModels,'aiSettings.rateLimitMessages':rateLimitMessages,'aiSettings.rateLimitMinutes':rateLimitMinutes,'aiSettings.modelLimits':modelLimits});
+    await loadAiConfig();okEl.textContent='Model access and limits saved.';okEl.style.display='block';
+  }catch(e){errEl.textContent='Failed to save: '+e.message;errEl.style.display='block';}
+};
+window.copyConvLink=function(){const btn=document.getElementById('copy-link-btn');const username=btn._convUsername;if(!username)return;const base=window.location.origin+window.location.pathname;const url=base+'?'+encodeURIComponent(username);navigator.clipboard.writeText(url).then(()=>{btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';setTimeout(()=>{btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';},1500);}).catch(()=>{prompt('Copy this link:',url);});};window.copyUsername=function(){const chip=document.getElementById('nav-username');const username=(chip.dataset.username||'').trim();if(!username)return;const base=window.location.origin+window.location.pathname;const url=base+'?'+encodeURIComponent(username);navigator.clipboard.writeText(url).then(()=>{const origHtml=chip.innerHTML;chip.innerHTML='Link Copied!';chip.style.color='var(--secondary)';chip.style.borderColor='rgba(34,211,238,0.5)';setTimeout(()=>{chip.innerHTML=origHtml;chip.style.color='';chip.style.borderColor='';},1500);}).catch(()=>{prompt('Your contact link:',url);});};window.closeMsgProfile=function(){document.getElementById('msg-profile-modal').style.display='none';};
 let _msgProfileEmail=null;
 window.openMsgProfile=function(){if(aiConvActive)return;const conv=allConversations.find(c=>c.id===activeConvId);if(!conv)return;openMsgProfileByEmail(conv.otherEmail,conv.otherName,conv.otherPfp);};
 window.openMsgProfileByEmail=async function(email,knownName,knownPfp){_msgProfileEmail=email;const modal=document.getElementById('msg-profile-modal');modal.style.display='flex';document.getElementById('msg-profile-username').textContent=knownName||email;document.getElementById('msg-profile-fullname').textContent='';document.getElementById('msg-profile-email').textContent=email;document.getElementById('msg-profile-phone').textContent='Loading...';document.getElementById('msg-profile-bio').textContent='Loading...';document.getElementById('msg-profile-lunch-a').textContent='—';document.getElementById('msg-profile-lunch-b').textContent='—';const rolesRowReset=document.getElementById('msg-profile-roles-row');if(rolesRowReset)rolesRowReset.style.display='none';const avatarEl=document.getElementById('msg-profile-avatar');if(knownPfp){avatarEl.innerHTML=`<img src="${escapeHtml(knownPfp)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}else{avatarEl.textContent=((knownName||email||'?')[0]||'?').toUpperCase();}
