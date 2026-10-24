@@ -25,3 +25,8 @@ This is a game site that i made last year with one of my friends, it as of right
 - [ ] Add Proxy
 - [ ] Add Touch Controller for touchscreen devices
 - [ ] add ez way to reload the about:blank page
+
+
+Local utilities live in [`tools/`](tools/README.md): the [Firestore backup dashboard](tools/Backup/README.md) and [Image Selector](<tools/Image Selector/photo_picker.py>).
+
+The [`tests/`](tests/README.md) folder contains development checks for the website. It is not needed to run the site.

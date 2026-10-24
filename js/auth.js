@@ -70,7 +70,7 @@
           '<button class="auth-submit" id="auth-submit" type="submit">Login</button>' +
         '</form></div>';
     }
-    var logo = '<div class="auth-logo"><img alt="KnowWhere" src="KnowWhere-Logo-Trans.png"/><div class="auth-logo-name">KNOW<span>WHERE</span></div></div>';
+    var logo = '<div class="auth-logo"><img alt="KnowWhere" src="/img/KnowWhere-Logo-Trans.png"/><div class="auth-logo-name">KNOW<span>WHERE</span></div></div>';
     var subtitle = _opts.subtitle
       ? '<div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--secondary);text-transform:uppercase;margin-bottom:0.5rem;">' + esc(_opts.subtitle) + '</div>'
       : '';

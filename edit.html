@@ -504,21 +504,21 @@
   </style>
 </head>
 <body>
-<script src="cloak.js?v=2"></script>
+<script src="/js/cloak.js?v=2"></script>
 
 
 <div id="auth-wall"></div>
 <script>window.KW_AUTH_OPTS = { allowUsername: true, signup: true };</script>
-<script src="auth.js"></script>
+<script src="/js/auth.js"></script>
 
 
 <div id="main-content">
 
-<script src="nav.js"></script>
-<script type="module" src="user-menu.js?v=3"></script>
-  <script type="module" src="notifications.js"></script>
-  <script type="module" src="auth-flows.js"></script>
-  <script type="module" src="payment-wall.js"></script>
+<script src="/js/nav.js"></script>
+<script type="module" src="/js/user-menu.js?v=3"></script>
+  <script type="module" src="/js/notifications.js"></script>
+  <script type="module" src="/js/auth-flows.js"></script>
+  <script type="module" src="/js/payment-wall.js"></script>
 
 
 </div>
@@ -1525,7 +1525,7 @@ function makeCardInput(cls, placeholder, val) {
 function renderGameRow(g = {}) {
   const openInPopup = g.openInPopup === true;
   const gameUrl = g.url || '';
-  const isSwf = /\.swf($|\?)/i.test(gameUrl);
+  const isSwf = /\.swf($|[?#])/i.test(gameUrl);
   const popupChecked = isSwf || openInPopup;
   const popupDisabled = isSwf ? 'disabled' : '';
   const toggleDim = isSwf ? 'opacity:0.5;' : '';
@@ -1569,7 +1569,7 @@ function renderGameRow(g = {}) {
 window.adminHandleGameUrlInput = function(input) {
   const container = input.closest('.admin-row-item, .admin-card-item');
   if (!container) return;
-  const isSwf = /\.swf($|\?)/i.test(input.value.trim());
+  const isSwf = /\.swf($|[?#])/i.test(input.value.trim());
   const popupInput = container.querySelector('.game-popup-input, .site-popup-input');
   const toggleLabel = container.querySelector('.toggle-label');
   const toggleWrap = container.querySelector('.toggle-wrap');
@@ -1651,7 +1651,7 @@ function mergeGameEditorChanges(latestGamesObj, originalGamesObj, rows) {
   const normalizedRows = rows.map(row => {
     const name = row.querySelector('.game-name-input').value.trim();
     const alias = row.querySelector('.game-alias-input').value.trim();
-    const url = row.querySelector('.game-url-input').value.trim();
+    const url = window.normalizeEditorUrl(row.querySelector('.game-url-input').value, 'Games');
     const screenshot = row.querySelector('.game-screenshot-input').value.trim();
     const originalName = (row.dataset.originalName || '').trim();
     const domain = getDomainFromUrl(url);
@@ -1803,7 +1803,7 @@ document.addEventListener('change', function(e) {
 function renderSitesEditor(items) {
   document.getElementById('ae-sites-list').innerHTML = items.map(s => {
     const url = s.url || '';
-    const isSwf = /\.swf($|\?)/i.test(url);
+    const isSwf = /\.swf($|[?#])/i.test(url);
     const popupChecked = isSwf || s.openInPopup === true;
     const popupDisabled = isSwf ? 'disabled' : '';
     const toggleDim = isSwf ? 'opacity:0.5;' : '';
@@ -1946,7 +1946,7 @@ window.adminSave = async function(section) {
         const inputs = row.querySelectorAll('input');
         const n = inputs[0], u = inputs[1];
         const name = n.value.trim();
-        const url = u.value.trim();
+        const url = window.normalizeEditorUrl(u.value, 'Sites');
         const site = { name, url, openInPopup: !!row.querySelector('.site-popup-input')?.checked };
         const brokenInput = row.querySelector('.site-broken-input');
         const prior = findPrior(name, url, (row.dataset.originalName || '').trim());
@@ -2015,5 +2015,6 @@ window.closeAdminPanel    = function() { window.location.href = '/'; };
 window.closeApprovalsPanel = function() { window.location.href = '/'; };
 </script>
 
+<script src="/js/editor-tools.js"></script>
 </body>
 </html>

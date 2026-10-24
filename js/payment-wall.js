@@ -26,7 +26,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const isMessagesPage = /\/msg(\.html)?$/.test(window.location.pathname);
-const VENMO_IMG = "/MyVenmoQRCode.png";
+const VENMO_IMG = "/img/MyVenmoQRCode.png";
 const VENMO_LINK = "https://venmo.com/code?user_id=4304463569356602729&created=1789615061.810669";
 const MESSAGES_LINK = "/msg.html";
 

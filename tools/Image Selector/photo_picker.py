@@ -15,7 +15,7 @@ FIREBASE_PROJECT = "knowwhere-firebase"
 FIREBASE_API_KEY = "AIzaSyB_7DGpmrVotodTuPJDXoZrKrKbkzPhWDw"
 FIRESTORE_BASE = f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT}/databases/(default)/documents"
 DOC_PATH = f"{FIRESTORE_BASE}/siteContent/main"
-SITE_BASE_URL = "https://knowwhere-site.uc.r.appspot.com"
+SITE_BASE_URL = "http://knowwhere.atwebpages.com"
 
 
 def firestore_to_python(value):

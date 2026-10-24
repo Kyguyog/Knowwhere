@@ -1,6 +1,6 @@
 # fsbak
 
-A self-hosted Firestore backup dashboard, built for Docker. Everything for this service lives in `Backup/`; it runs independently of the main website.
+A self-hosted Firestore backup dashboard, built for Docker. Everything for this service lives in `tools/Backup/`; it runs independently of the main website.
 
 - Configure a Firestore service-account key in the web UI.
 - Schedule a backup every N minutes, hours, or days, or back up immediately.
@@ -15,7 +15,7 @@ A self-hosted Firestore backup dashboard, built for Docker. Everything for this 
 From the repository root:
 
 ```sh
-cd Backup
+cd tools/Backup
 cp .env.example .env
 ```
 

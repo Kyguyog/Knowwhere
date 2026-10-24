@@ -67,7 +67,7 @@ export function createApp(engine, { user, password }) {
           if (previous?.count >= 15) return json(res, 429, { error: 'Too many login attempts. Try again in a minute.' });
           if (input.username !== user || typeof input.password !== 'string' || !credentialsMatch(`${input.username}:${input.password}`)) {
             attempts.set(address, { count: (previous?.count || 0) + 1, until: previous?.until || now + 60000 });
-            return json(res, 401, { error: 'Incorrect username or password. Use the ADMIN_USER and ADMIN_PASSWORD values from Backup/.env.' });
+            return json(res, 401, { error: 'Incorrect username or password. Use the ADMIN_USER and ADMIN_PASSWORD values from tools/Backup/.env.' });
           }
           attempts.delete(address);
           const token = randomBytes(32).toString('base64url');

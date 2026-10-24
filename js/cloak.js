@@ -49,7 +49,7 @@
     overlay.id = OVERLAY_ID;
     overlay.innerHTML =
       '<div class="kw-cloak-box">' +
-      '<img alt="" src="KnowWhere-Logo-Trans.png">' +
+      '<img alt="" src="/img/KnowWhere-Logo-Trans.png">' +
       '<div class="kw-cloak-title">KNOW<span>WHERE</span></div>' +
       '<p class="kw-cloak-sub">Open the site in a <strong>new tab</strong> for the best experience.</p>' +
       '<div class="kw-cloak-count" id="kw-cloak-count">Opening automatically in 10s…</div>' +

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KnowWhere Playtime</title>
-<link rel="icon" href="favicon.png" type="image/x-icon">
+<link rel="icon" href="/img/favicon.png" type="image/x-icon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -110,22 +110,22 @@
 </style>
 </head>
 <body>
-<script src="cloak.js?v=2"></script>
+<script src="/js/cloak.js?v=2"></script>
 <div id="auth-wall"></div>
 <script>window.KW_AUTH_OPTS = { allowUsername: true, signup: true };</script>
-<script src="auth.js"></script>
+<script src="/js/auth.js"></script>
 
-<script src="nav.js"></script>
-<script type="module" src="user-menu.js?v=3"></script>
-<script type="module" src="notifications.js"></script>
-<script type="module" src="auth-flows.js"></script>
-<script type="module" src="payment-wall.js"></script>
+<script src="/js/nav.js"></script>
+<script type="module" src="/js/user-menu.js?v=3"></script>
+<script type="module" src="/js/notifications.js"></script>
+<script type="module" src="/js/auth-flows.js"></script>
+<script type="module" src="/js/payment-wall.js"></script>
 
 <main class="wrap">
   <div class="heading">
     <div>
       <h1>Playtime <span>Leaderboard</span></h1>
-      <p class="sub">Popup-mode game sessions are counted here. The By Game tab lists every game by total playtime — pick one to break it down by player.</p>
+      <p class="sub">Entries last played 14 days ago or earlier are hidden. Older records remain stored. Pick a game or player to view their breakdown.</p>
     </div>
   </div>
 
@@ -144,6 +144,7 @@
   </div>
 </main>
 
+<script src="/js/playtime-visibility.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
@@ -302,6 +303,7 @@ window.backFromDrill = function () {
   renderCurrentView();
 };
 window.renderCurrentView = function () {
+  const visibleRows = window.KWPlaytimeVisibility.recent(playtimeRows);
   const input = document.getElementById("game-search");
   const toolbar = document.getElementById("game-toolbar");
   if (input) input.style.display = currentView === "game" ? "" : "none";
@@ -310,17 +312,17 @@ window.renderCurrentView = function () {
   let rows, mode;
   if (currentView === "total") {
     if (selectedPlayer) {
-      rows = aggregatePlayerGames(playtimeRows, selectedPlayer);
+      rows = aggregatePlayerGames(visibleRows, selectedPlayer);
       mode = "player-games";
     } else {
-      rows = aggregateTotal(playtimeRows);
+      rows = aggregateTotal(visibleRows);
       mode = "total";
     }
   } else if (selectedGameName) {
-    rows = aggregateGame(playtimeRows, selectedGameName);
+    rows = aggregateGame(visibleRows, selectedGameName);
     mode = "game";
   } else {
-    rows = aggregateGames(playtimeRows);
+    rows = aggregateGames(visibleRows);
     if (currentInput) rows = rows.filter(row => String(row.gameName || "").toLowerCase().includes(currentInput));
     mode = "game-all";
   }
@@ -341,13 +343,16 @@ window.setView = function (view) {
 async function loadPlaytime() {
   const snap = await getDocs(collection(db, "playtime"));
   playtimeRows = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  allGameNames = [...new Set(playtimeRows.map(row => row.gameName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  allGameNames = [...new Set(window.KWPlaytimeVisibility.recent(playtimeRows).map(row => row.gameName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const input = document.getElementById("game-search");
   selectedGameName = "";
   selectedPlayer = "";
   input.value = "";
   renderCurrentView();
 }
+// Recheck age locally; no extra Firebase reads or writes.
+setInterval(() => renderCurrentView(), 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) renderCurrentView(); });
 /* __kwSignIn provided by auth-flows.js */
 onAuthStateChanged(auth, async user => {
   if (!user) return;
