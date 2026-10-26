@@ -2503,6 +2503,44 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
 
   const searchInputEl = document.getElementById('search-input');
   buildArchive(searchInputEl ? searchInputEl.value : '');
+  let queryGameOpened = false;
+  function normalizeGameQuery(value) { return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+  function requestedGameName() {
+    const raw = location.search.slice(1);
+    if (!raw) return '';
+    try {
+      const params = new URLSearchParams(raw);
+      return decodeURIComponent((params.get('game') || (raw.includes('=') ? '' : raw)).replace(/\+/g, ' '));
+    } catch (_) { return raw; }
+  }
+  function openRequestedGame() {
+    if (queryGameOpened) return;
+    const wanted = normalizeGameQuery(requestedGameName());
+    if (!wanted) return;
+    const game = Object.values(GAMES).flat().find(item => normalizeGameQuery(item.name) === wanted || normalizeGameQuery(item.alias) === wanted);
+    if (!game) return;
+    queryGameOpened = true;
+    setTimeout(() => openGamePopup(game.name, gameLaunchUrl(game), true), 80);
+  }
+  new MutationObserver(openRequestedGame).observe(document.getElementById('archive'), {childList:true});
+  openRequestedGame();
+  let querySiteOpened = false;
+  function openRequestedSite() {
+    if (querySiteOpened) return;
+    const wanted = new URLSearchParams(location.search).get('site')?.trim().toLowerCase();
+    if (!wanted) return;
+    const site = [...document.querySelectorAll('#sites-list .site-pill')]
+      .find(item => (item.dataset.name || '').trim().toLowerCase() === wanted);
+    if (!site) return;
+    querySiteOpened = true;
+    if (!site.hasAttribute('data-popup-launch')) {
+      location.replace(site.href);
+      return;
+    }
+    setTimeout(() => openGamePopup(site.dataset.name || 'Site', site.dataset.launchUrl || site.href, site.dataset.trackPlaytime === '1'), 80);
+  }
+  new MutationObserver(openRequestedSite).observe(document.getElementById('sites-list'), {childList:true});
+  openRequestedSite();
 })();
 </script>
 
