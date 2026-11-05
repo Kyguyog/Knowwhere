@@ -1051,6 +1051,33 @@ window.updatePaywallLabel = function() {
 
 
 // ── Admin: render notice popup editor ──
+function noticePopupHash(value) {
+  let hash = 5381;
+  const text = String(value || '');
+  for (let i = 0; i < text.length; i++) hash = ((hash << 5) + hash) ^ text.charCodeAt(i);
+  return 'kwn' + (hash >>> 0).toString(36);
+}
+
+function noticePopupSignature(np) {
+  np = np || {};
+  return noticePopupHash(JSON.stringify({
+    enabled: np.enabled === true,
+    remember: np.remember !== false,
+    title: String(np.title || '').trim(),
+    text: String(np.text || '')
+  }));
+}
+
+function updateNoticeReplayButton(np) {
+  const button = document.getElementById('ae-noticepopup-replay');
+  if (!button) return;
+  const saved = np || window._siteData?.noticePopup || {};
+  const changedSinceBroadcast = noticePopupSignature(saved) !== String(saved.broadcastContentHash || noticePopupSignature(saved));
+  button.disabled = !changedSinceBroadcast;
+  button.style.opacity = changedSinceBroadcast ? '1' : '0.45';
+  button.title = changedSinceBroadcast ? 'Show this saved update to everyone again' : 'Update and save the notice before showing it again';
+}
+
 function renderNoticePopupEditor(np) {
   np = np || {};
   const input = document.getElementById('ae-noticepopup-enabled');
@@ -1063,6 +1090,7 @@ function renderNoticePopupEditor(np) {
   if (text) text.value = np.text || '';
   updateNoticePopupLabel();
   updateNoticePopupRememberLabel();
+  updateNoticeReplayButton(np);
 }
 
 window.updateNoticePopupLabel = function() {
@@ -1081,6 +1109,43 @@ window.updateNoticePopupRememberLabel = function() {
   const on = input.checked;
   lbl.textContent = on ? 'On' : 'Off';
   lbl.style.color = on ? '#22c55e' : 'var(--muted)';
+};
+
+window.replayNoticePopup = async function() {
+  if (!window._isAdmin) return;
+  const button = document.getElementById('ae-noticepopup-replay');
+  const status = document.getElementById('status-noticepopup');
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
+  if (status) { status.textContent = 'Checking saved notice...'; status.className = 'admin-status'; }
+  try {
+    const latest = await window._firestoreGetSiteContent();
+    const notice = latest.noticePopup || {};
+    const signature = noticePopupSignature(notice);
+    if (signature === String(notice.broadcastContentHash || signature)) {
+      if (status) { status.textContent = 'No saved update to show again.'; status.className = 'admin-status err'; }
+      updateNoticeReplayButton(notice);
+      return;
+    }
+    if (notice.enabled !== true) {
+      if (status) { status.textContent = 'Enable and save the notice first.'; status.className = 'admin-status err'; }
+      updateNoticeReplayButton(notice);
+      return;
+    }
+    const replayed = Object.assign({}, notice, {
+      broadcastId: 'notice-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8),
+      broadcastContentHash: signature
+    });
+    await window._firestoreUpdate({noticePopup: replayed});
+    window._siteData = Object.assign({}, latest, {noticePopup: replayed});
+    if (window._adminOriginalData) window._adminOriginalData.noticePopup = JSON.parse(JSON.stringify(replayed));
+    updateNoticeReplayButton(replayed);
+    if (status) { status.textContent = '✓ Will show to everyone again'; status.className = 'admin-status ok'; }
+  } catch (error) {
+    console.error('Notice replay error:', error);
+    if (status) { status.textContent = '✗ ' + (error.message || 'Could not replay notice'); status.className = 'admin-status err'; }
+    if (button) button.disabled = false;
+  }
 };
 
 
@@ -1143,6 +1208,14 @@ window.adminSave = async function(section) {
           };
         }).filter(l => l.title)
       });
+      patch.messageSettings = {
+        maxMessageLength: Math.max(1, Math.min(12000, Number(document.getElementById('ae-message-max-length').value) || 12000)),
+        allowSendingMessages: document.getElementById('ae-message-send').checked,
+        allowAttachments: document.getElementById('ae-message-attachments').checked,
+        allowEmojis: document.getElementById('ae-message-emojis').checked,
+        allowDeleteChats: document.getElementById('ae-message-delete').checked,
+        allowNotifications: document.getElementById('ae-message-notifications').checked
+      };
     } else if (section === 'staffform') {
       const latest = await window._firestoreGetSiteContent();
       patch.command = Object.assign({}, latest.command || window._siteData?.command || {}, { staffForm });
@@ -1157,11 +1230,16 @@ window.adminSave = async function(section) {
       };
       renderPaywallEditor(patch.paywall);
     } else if (section === 'noticepopup') {
+      const previousNotice = window._siteData?.noticePopup || {};
       patch.noticePopup = {
         enabled: document.getElementById('ae-noticepopup-enabled').checked,
         remember: document.getElementById('ae-noticepopup-remember').checked,
         title: document.getElementById('ae-noticepopup-title').value.trim(),
-        text: document.getElementById('ae-noticepopup-text').value
+        text: document.getElementById('ae-noticepopup-text').value,
+        // Seed legacy notices with the key users already dismissed. Future
+        // edits preserve it until the explicit replay action changes it.
+        broadcastId: previousNotice.broadcastId || noticePopupHash(String(previousNotice.title || '').trim() + '\n' + String(previousNotice.text || '')),
+        broadcastContentHash: previousNotice.broadcastContentHash || noticePopupSignature(previousNotice)
       };
       renderNoticePopupEditor(patch.noticePopup);
     }
@@ -1213,6 +1291,13 @@ window.openAdminPanel = function() {
   document.getElementById('ae-hiring-desc').value = h.description || '';
   document.getElementById('ae-hiring-url').value = h.url || '';
   renderCommandLinksEditor(data.command?.links || []);
+  const messageSettings = Object.assign({maxMessageLength:12000,allowSendingMessages:true,allowAttachments:true,allowEmojis:true,allowDeleteChats:true,allowNotifications:true}, data.messageSettings || {});
+  document.getElementById('ae-message-max-length').value = messageSettings.maxMessageLength;
+  document.getElementById('ae-message-send').checked = messageSettings.allowSendingMessages !== false;
+  document.getElementById('ae-message-attachments').checked = messageSettings.allowAttachments !== false;
+  document.getElementById('ae-message-emojis').checked = messageSettings.allowEmojis !== false;
+  document.getElementById('ae-message-delete').checked = messageSettings.allowDeleteChats !== false;
+  document.getElementById('ae-message-notifications').checked = messageSettings.allowNotifications !== false;
   renderStaffFormEditor(data.command?.staffForm);
   renderPaywallEditor(data.paywall);
   renderNoticePopupEditor(data.noticePopup);
@@ -1372,6 +1457,17 @@ window.closeAdminPanel = function() {
         <div class="admin-sublabel">Links</div>
         <div id="ae-command-links-list"></div>
         <button class="admin-add-btn" onclick="adminAddCommandLink()">+ Add Link</button>
+        <hr class="admin-divider">
+        <div class="admin-sublabel">Messages</div>
+        <p class="admin-hint" style="margin-bottom:0.9rem;">Site-wide controls for direct messages and group chats. Existing messages and chats remain visible.</p>
+        <div class="admin-field"><label>Maximum message length</label><input class="admin-input" id="ae-message-max-length" type="number" min="1" max="12000" value="12000" /><p class="admin-hint">Characters per normal chat message (1–12,000).</p></div>
+        <div class="admin-card-item" style="display:flex;flex-direction:column;gap:0.8rem;">
+          <label class="toggle-wrap"><span class="toggle-switch admin-toggle"><input type="checkbox" id="ae-message-send" checked><span class="toggle-track"></span></span><span class="toggle-label">Allow sending messages</span></label>
+          <label class="toggle-wrap"><span class="toggle-switch admin-toggle"><input type="checkbox" id="ae-message-attachments" checked><span class="toggle-track"></span></span><span class="toggle-label">Allow file attachments</span></label>
+          <label class="toggle-wrap"><span class="toggle-switch admin-toggle"><input type="checkbox" id="ae-message-emojis" checked><span class="toggle-track"></span></span><span class="toggle-label">Allow emojis</span></label>
+          <label class="toggle-wrap"><span class="toggle-switch admin-toggle"><input type="checkbox" id="ae-message-delete" checked><span class="toggle-track"></span></span><span class="toggle-label">Allow deleting chats</span></label>
+          <label class="toggle-wrap"><span class="toggle-switch admin-toggle"><input type="checkbox" id="ae-message-notifications" checked><span class="toggle-track"></span></span><span class="toggle-label">Enable message notifications (Uses a lot of Firestore reads)</span></label>
+        </div>
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('command')">Save Command</button><span class="admin-status" id="status-command"></span></div>
       </div>
       <div class="admin-section" id="admin-staffform">
@@ -1421,7 +1517,7 @@ window.closeAdminPanel = function() {
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('paywall')">Save Paywall</button><span class="admin-status" id="status-paywall"></span></div>
       </div>
       <div class="admin-section" id="admin-noticepopup">
-        <p class="admin-hint" style="margin-bottom:1rem;">Show a popup to everyone when the page loads. With <b>Auto-hide once closed</b> on, visitors dismiss it once and it stays dismissed until you change the content; turn it off to show the popup on every page load. Leave the main toggle disabled to hide it. HTML is allowed in the message.</p>
+        <p class="admin-hint" style="margin-bottom:1rem;">Show a popup when the page loads. With <b>Auto-hide once closed</b> on, visitors dismiss it once and it stays dismissed when you edit or save. After saving an update, use <b>Show to Everyone Again</b> to replay it. The replay button does nothing until a saved update exists. HTML is allowed in the message.</p>
         <div class="admin-card-item">
           <div class="admin-field" style="margin-bottom:0;">
             <label>Notice Popup</label>
@@ -1448,7 +1544,7 @@ window.closeAdminPanel = function() {
         </div>
         <div class="admin-field"><label>Title</label><input class="admin-input" id="ae-noticepopup-title" placeholder="Site Notice" /></div>
         <div class="admin-field"><label>Message</label><textarea class="admin-input" id="ae-noticepopup-text" rows="5" style="resize:vertical;font-family:var(--font-body);min-height:120px;" placeholder="Write the notice visitors will see…"></textarea></div>
-        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('noticepopup')">Save Notice Popup</button><span class="admin-status" id="status-noticepopup"></span></div>
+        <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('noticepopup')">Save Notice Popup</button><button class="admin-add-btn" id="ae-noticepopup-replay" onclick="replayNoticePopup()" disabled style="margin:0;opacity:.45;">Show to Everyone Again</button><span class="admin-status" id="status-noticepopup"></span></div>
       </div>
     </div>
   </div>

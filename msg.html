@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&amp;display=swap" rel="stylesheet"/>
 <style>
     @font-face{font-family:'Orbitron';font-style:normal;font-weight:400 900;font-display:swap;src:url('https://fonts.gstatic.com/s/orbitron/v35/yMJRMIlzdpvBhQQL_Qq7dy0.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1087,6 +1088,9 @@
       white-space: nowrap;
     }
     .group-member-chip:hover { background: rgba(168,85,247,0.25); }
+    .group-participant { display:flex;align-items:center;gap:.75rem;width:100%;padding:.7rem;border:0;border-radius:8px;background:transparent;color:var(--text);cursor:pointer;text-align:left; }
+    .group-participant:hover, .group-participant:focus-visible { background:var(--primary-dim);outline:none; }
+    .group-participant-avatar { width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;background:linear-gradient(135deg,rgba(168,85,247,.3),rgba(34,211,238,.3));color:var(--primary);font:700 .75rem var(--font-display); }
 
     /* ── IMAGE LIGHTBOX ── */
     #img-lightbox {
@@ -1289,6 +1293,18 @@
 </div>
 </div>
 
+<!-- Group Participants Modal -->
+<div class="modal-overlay" id="group-participants-modal" onclick="if(event.target===this)closeGroupParticipants()">
+  <div class="modal-box" style="max-width:480px;max-height:80vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+      <div><div class="modal-title" style="margin-bottom:.2rem;">Group participants</div><div id="group-participants-count" style="font-size:.72rem;color:var(--muted);"></div></div>
+      <button type="button" onclick="closeGroupParticipants()" aria-label="Close" style="background:none;border:0;color:var(--muted);font-size:1.25rem;cursor:pointer;">×</button>
+    </div>
+    <input class="modal-input" id="group-participants-search" oninput="filterGroupParticipants(this.value)" placeholder="Search participants..." type="search" />
+    <div id="group-participants-list" style="overflow-y:auto;min-height:100px;"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="new-conv-modal">
 <div class="modal-box">
 <div class="modal-title">New Message</div>
@@ -1354,6 +1370,7 @@
 <div class="settings-section">
 <label>Default messages per user <input class="modal-input" id="s-rate-messages" type="number" min="0" max="10000" value="20"></label>
 <label>Default window in minutes <input class="modal-input" id="s-rate-minutes" type="number" min="1" max="10080" value="60"></label>
+<label>Maximum prompt length <input class="modal-input" id="s-ai-max-length" type="number" min="1" max="12000" value="12000"></label>
 <p style="font-size:.75rem;color:var(--muted)">Defaults initialize newly added models. Edit existing models below. 0 messages means unlimited; usage is still counted. Each accepted prompt counts once, including failed requests.</p>
 <label>Additional models users can use (one ID per line; the default model is always included)<textarea class="modal-input" id="s-allowed-models" rows="3"></textarea></label>
 <div class="settings-section-title" style="margin-top:.75rem">Limits per model</div>
@@ -1379,6 +1396,7 @@
 </div>
 </div>
 </div>
+<script>window.kwMessageSettings={maxMessageLength:12000,allowSendingMessages:true,allowAttachments:true,allowEmojis:true,allowDeleteChats:true,allowNotifications:true};window.kwUserPfpLoaded=new Set();</script>
 <script type="module">import{initializeApp}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";import{getFirestore,doc,getDoc,setDoc,updateDoc,collection,getDocs,addDoc,query,where,orderBy,onSnapshot,serverTimestamp,Timestamp,runTransaction}from"https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";const firebaseConfig={apiKey:"AIzaSyB_7DGpmrVotodTuPJDXoZrKrKbkzPhWDw",authDomain:"knowwhere-firebase.firebaseapp.com",projectId:"knowwhere-firebase",storageBucket:"knowwhere-firebase.firebasestorage.app",messagingSenderId:"389831660515",appId:"1:389831660515:web:0bcd3292610b1be0af86d6",measurementId:"G-9LMCC5TS1J"};const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);let currentUser=null;let currentUserData=null;let allConversations=[];let activeConvId=null;let messagesUnsubscribe=null;let convsUnsubscribe=null;let accountStatusUnsubscribe=null;let allUsers=[];let selectedGroupUsers=new Set();const userNameCache={};const userPfpCache={};let dmSending=false;let aiSending=false;let aiUsageUnsubscribe=null;let aiUsage=null;let aiSiteContext={};let aiAvailableModels=[];let aiModelLoadVersion=0;let aiConfig=null;let aiApiKeys=[];let aiMessages=[];let aiConvActive=false;let aiHistoryDocId=null;let aiHistoryLoaded=false;let aiHistoryList=[];function normalizePfp(data){if(!data)return'';return data.pfp||'';}function renderNavUserChip(name,pfp){const chip=document.getElementById('nav-username');if(!chip)return;const safeName=escapeHtml(name||'');const initial=((name||'?')[0]||'?').toUpperCase();const avatar=pfp?`<img src="${escapeHtml(pfp)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:escapeHtml(initial);chip.innerHTML=`<span style="width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.35);font-size:0.58rem;font-weight:700;">${avatar}</span><span>${safeName}</span>`;chip.dataset.username=name||'';chip.style.display='inline-flex';chip.style.alignItems='center';chip.style.gap='0.4rem';}async function fetchUserByEmail(email){const raw=String(email||'').trim();if(!raw)return null;const ids=[raw];const lower=raw.toLowerCase();if(lower!==raw)ids.push(lower);for(const id of ids){try{const snap=await getDoc(doc(db,'users',id));if(snap.exists())return{...(snap.data()||{}),__docId:id};}catch(_){}}return null;}/* __kwSignIn provided by auth-flows.js */window.handleSignOut=async function(){if(convsUnsubscribe)convsUnsubscribe();if(messagesUnsubscribe)messagesUnsubscribe();if(accountStatusUnsubscribe)accountStatusUnsubscribe();await signOut(auth);};let _forcedSignout=false;async function checkPendingApproval(email){if(!email)return false;try{const q=query(collection(db,'signupRequests'),where('email','==',email));const snap=await getDocs(q);return snap.docs.some(d=>d.data().status==='pending');}catch(e){return false;}}function _restrictedMessenger(){return !!(currentUserData&&(currentUserData.__banned||currentUserData.__pending||currentUserData.__unpaid));}function _allowedRecipients(){return _restrictedMessenger()?allUsers.filter(u=>u.admin===true||u.editor===true):allUsers;}onAuthStateChanged(auth,async(user)=>{const wall=document.getElementById('auth-wall');const appEl=document.getElementById('app');const errEl=document.getElementById('auth-error');if(!user&&_forcedSignout){_forcedSignout=false;currentUser=null;currentUserData=null;wall.classList.remove('hidden');appEl.classList.remove('visible');if(errEl){errEl.textContent=window._forcedSignoutMsg||'Your account has been disabled. Contact an admin for help.';errEl.classList.add('show');}window._forcedSignoutMsg=null;return;}function userBanUntil(u){if(!u||!u.banUntil)return null;const raw=u.banUntil;let t=null;if(typeof raw==='string')t=new Date(raw);else if(raw&&typeof raw.toDate==='function')t=raw.toDate();else if(raw instanceof Date)t=raw;return(t&&!isNaN(t.getTime()))?t:null;}function userIsBanned(u){if(!u)return false;if(u.banType==='permanent')return true;if(u.banType==='temporary'){const t=userBanUntil(u);if(t&&t>new Date())return true;}return false;}if(user){currentUser=user;try{const d=await fetchUserByEmail(user.email);const pending=await checkPendingApproval(user.email);if(!d&&!pending){currentUser=null;currentUserData=null;if(convsUnsubscribe){convsUnsubscribe();convsUnsubscribe=null;}if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}window._forcedSignoutMsg='Your account hasn\'t been approved yet. An admin must approve you before you can send messages.';await signOut(auth);return;}currentUserData=d||{email:user.email,username:user.email,__docId:user.email,__pending:!d};if(currentUserData.active===false){_forcedSignout=true;currentUser=null;currentUserData=null;if(convsUnsubscribe){convsUnsubscribe();convsUnsubscribe=null;}if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}await signOut(auth);return;}currentUserData.__banned=userIsBanned(currentUserData);currentUserData.__unpaid=!(currentUserData.admin===true||(currentUserData.editor===true&&currentUserData.paid!==false)||currentUserData.paid===true);currentUserData.pfp=normalizePfp(currentUserData);if(accountStatusUnsubscribe)accountStatusUnsubscribe();accountStatusUnsubscribe=onSnapshot(doc(db,'users',currentUserData.__docId||user.email),async(snap)=>{const data=snap.exists()?snap.data():null;if(data&&data.active===false&&auth.currentUser){_forcedSignout=true;if(convsUnsubscribe){convsUnsubscribe();convsUnsubscribe=null;}if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}await signOut(auth);}});}catch(e){console.warn('Could not verify account status — signing out for safety:',e);_forcedSignout=true;currentUser=null;currentUserData=null;if(convsUnsubscribe){convsUnsubscribe();convsUnsubscribe=null;}if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}await signOut(auth);return;}
 wall.classList.add('hidden');appEl.classList.add('visible');
 const displayName=currentUserData.username||user.email;renderNavUserChip(displayName,normalizePfp(currentUserData));await loadAllUsers();loadAiConfig();subscribeToConversations();}else{currentUser=null;currentUserData=null;aiModelLoadVersion++;aiConfig=null;aiHistoryLoaded=false;aiHistoryDocId=null;aiHistoryList=[];aiMessages=[];if(aiUsageUnsubscribe){aiUsageUnsubscribe();aiUsageUnsubscribe=null;}if(accountStatusUnsubscribe){accountStatusUnsubscribe();accountStatusUnsubscribe=null;}wall.classList.remove('hidden');appEl.classList.remove('visible');document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';document.getElementById('auth-error').classList.remove('show');}});async function loadAiConfig(){try{const snap=await getDoc(doc(db,'siteContent','main'));if(!snap.exists())return;const data=snap.data();const ai=data.aiSettings||{};aiSiteContext={games:Object.values(data.games||{}).flat().map(g=>({name:g.name,description:g.description||''})),sites:(data.sites||[]).map(s=>({name:s.name,url:s.url,openInPopup:s.openInPopup===true})),notice:data.notice||{}};const admin=currentUserData?.admin===true;const item=document.getElementById('ai-conv-item');if(!ai.aiEnabled){aiConfig=null;clearPersonalAiControls('AI is currently disabled.');if(item)item.style.display='none';if(admin&&item){item.style.display='flex';item.style.opacity='0.45';item.title='AI is disabled — open settings to re-enable';}
@@ -1454,9 +1472,11 @@ function renderAiChatMenu(){
     const date=document.createElement('span');date.className='ai-chat-menu-date';
     const when=aiHistoryTime(chat.updatedAt||chat.createdAt);date.textContent=when?new Date(when).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
     button.appendChild(date);button.onclick=()=>switchAiChat(chat.id);row.appendChild(button);
-    const remove=document.createElement('button');remove.type='button';remove.className='ai-chat-delete';remove.textContent='🗑';
-    remove.setAttribute('aria-label',`Delete chat: ${chat.title||aiHistoryTitle(chat.messages)}`);
-    remove.title='Delete chat';remove.onclick=()=>deleteAiChat(chat.id);row.appendChild(remove);
+    if(window.kwMessageSettings.allowDeleteChats){
+      const remove=document.createElement('button');remove.type='button';remove.className='ai-chat-delete';remove.textContent='🗑';
+      remove.setAttribute('aria-label',`Delete chat: ${chat.title||aiHistoryTitle(chat.messages)}`);
+      remove.title='Delete chat';remove.onclick=()=>deleteAiChat(chat.id);row.appendChild(remove);
+    }
     list.appendChild(row);
   }
 }
@@ -1487,7 +1507,7 @@ window.switchAiChat=function(id){
   closeAiChatMenu();
 };
 window.deleteAiChat=async function(id){
-  if(aiSending||!id||!currentUser||(!aiHistoryList.some(chat=>chat.id===id)&&id!==aiHistoryDocId))return;
+  if(!window.kwMessageSettings.allowDeleteChats||aiSending||!id||!currentUser||(!aiHistoryList.some(chat=>chat.id===id)&&id!==aiHistoryDocId))return;
   if(!confirm('Delete this AI chat from your list? It will remain visible to admins.'))return;
   try{
     await setDoc(doc(db,'aiHistory',id),{hidden:true},{merge:true});
@@ -1603,14 +1623,14 @@ function renderModelLimitEditor(capture=true){
 }
 ['s-allowed-models','s-rate-messages','s-rate-minutes'].forEach(id=>document.getElementById(id).addEventListener('input',()=>renderModelLimitEditor()));
 
-async function loadAllUsers(){try{const snap=await getDocs(collection(db,'users'));allUsers=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.email!==currentUser.email).map(u=>({...u,pfp:normalizePfp(u)}));}catch(e){console.warn('Could not load users:',e);}
+async function loadAllUsers(){try{const snap=await getDocs(collection(db,'users'));allUsers=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.email!==currentUser.email).map(u=>({...u,pfp:normalizePfp(u)}));for(const user of allUsers){const email=user.email||user.id;if(!email)continue;userNameCache[email]=user.username||user.fullName||email;if(user.pfp)userPfpCache[email]=user.pfp;}}catch(e){console.warn('Could not load users:',e);}
 handleDeepLink();}
 async function handleDeepLink(){const raw=window.location.search;if(!raw||raw.length<=1)return;const params=new URLSearchParams(raw);const convParam=params.get('conv');if(convParam){window.__kwPendingConvId=convParam;window.history.replaceState(null,'',window.location.pathname);if(allConversations.some(c=>c.id===convParam)){window.__kwPendingConvId=null;window.openConversation(convParam);}return;}
 const targetUsername=(params.get('u')||params.get('username')||decodeURIComponent(raw.slice(1))).trim();if(!targetUsername)return;const match=allUsers.find(u=>(u.username||'').toLowerCase()===targetUsername.toLowerCase());if(!match){console.warn('Deep link: no user found with username:',targetUsername);return;}
 await startConversation(match.email);window.history.replaceState(null,'',window.location.pathname);}
 function getConvId(emailA,emailB){return[emailA,emailB].sort().join('__');}
 function getGroupConvTitle(participants){const others=(participants||[]).filter(e=>e!==currentUser.email);const names=others.map(e=>userNameCache[e]||e);return names.slice(0,3).join(', ')+(names.length>3?' +'+(names.length-3):'');}
-function subscribeToConversations(){const convListEl=document.getElementById('conv-list');const q=query(collection(db,'conversations'),where('participants','array-contains',currentUser.email));convsUnsubscribe=onSnapshot(q,async(snapshot)=>{const convPromises=snapshot.docs.map(async(docSnap)=>{const data=docSnap.data();const others=(data.participants||[]).filter(p=>p!==currentUser.email);const otherEmail=data.group===true?null:(others[0]||'');let otherName=data.group===true?(data.groupTitle||others.map(e=>userNameCache[e]||e).slice(0,3).join(', ')):otherEmail;if(otherEmail&&userNameCache[otherEmail]){otherName=userNameCache[otherEmail];}else if(otherEmail){try{const ud=await fetchUserByEmail(otherEmail);if(ud){if(ud.username)otherName=ud.username;else if(ud.fullName)otherName=ud.fullName;const pfp=normalizePfp(ud);if(pfp)userPfpCache[otherEmail]=pfp;}userNameCache[otherEmail]=otherName;}catch{}}
+function subscribeToConversations(){const convListEl=document.getElementById('conv-list');const q=query(collection(db,'conversations'),where('participants','array-contains',currentUser.email));convsUnsubscribe=onSnapshot(q,async(snapshot)=>{window.KWNotifications?.acceptSnapshot(snapshot);const convPromises=snapshot.docs.map(async(docSnap)=>{const data=docSnap.data();const others=(data.participants||[]).filter(p=>p!==currentUser.email);const otherEmail=data.group===true?null:(others[0]||'');let otherName=data.group===true?(data.groupTitle||others.map(e=>userNameCache[e]||e).slice(0,3).join(', ')):otherEmail;if(otherEmail&&userNameCache[otherEmail]){otherName=userNameCache[otherEmail];}else if(otherEmail){try{const ud=await fetchUserByEmail(otherEmail);if(ud){if(ud.username)otherName=ud.username;else if(ud.fullName)otherName=ud.fullName;const pfp=normalizePfp(ud);if(pfp)userPfpCache[otherEmail]=pfp;}userNameCache[otherEmail]=otherName;}catch{}}
 return{id:docSnap.id,...data,otherEmail,otherName,otherPfp:userPfpCache[otherEmail]||""};});const resolved=await Promise.all(convPromises);let allowed=resolved;if(_restrictedMessenger()){const staff=new Set((allUsers||[]).filter(u=>u.admin===true||u.editor===true).map(u=>u.email));allowed=resolved.filter(c=>(c.participants||[]).some(p=>p!==currentUser.email&&staff.has(p)));}allowed.sort((a,b)=>{const ta=a.lastMessageAt?.toMillis?.()||0;const tb=b.lastMessageAt?.toMillis?.()||0;return tb-ta;});allConversations=allowed;renderConvList(allConversations);if(window.__kwPendingConvId){const pid=window.__kwPendingConvId;if(allConversations.some(c=>c.id===pid)){window.__kwPendingConvId=null;window.openConversation(pid);}}});}
 function renderConvList(convs){const el=document.getElementById('conv-list');const visible=convs.filter(c=>!(c.deletedBy&&c.deletedBy.includes(currentUser.email)));if(visible.length===0){el.innerHTML=`<div class="conv-empty">No conversations yet.<br>Hit <strong>New</strong> to start one.</div>`;return;}
 el.innerHTML=visible.map(c=>{const initial=(c.otherName||c.otherEmail||'?')[0].toUpperCase();const avatarHtml=c.otherPfp?`<img src="${escapeHtml(c.otherPfp)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:initial;const preview=c.lastMessage?escapeHtml(c.lastMessage).slice(0,40)+(c.lastMessage.length>40?'…':''):'No messages yet';const time=c.lastMessageAt?formatTime(c.lastMessageAt.toDate()):'';const isActive=c.id===activeConvId;const hasUnread=c.unreadBy&&c.unreadBy.includes(currentUser.email);return`<div class="conv-item${isActive ? ' active' : ''}" onclick="openConversation('${c.id}')">
@@ -1629,7 +1649,7 @@ el.innerHTML=visible.map(c=>{const initial=(c.otherName||c.otherEmail||'?')[0].t
           </svg>
         </button>
       </div>`;}).join('');}
-window.filterConvs=function(q){const filtered=q?allConversations.filter(c=>(c.otherName||'').toLowerCase().includes(q.toLowerCase())||(c.otherEmail||'').toLowerCase().includes(q.toLowerCase())):allConversations;renderConvList(filtered);};let deleteConfirmTimeout=null;window.confirmDeleteConv=function(e,convId){e.stopPropagation();const item=e.currentTarget.closest('.conv-item');if(!item)return;if(item.classList.contains('confirm-delete')){clearTimeout(deleteConfirmTimeout);deleteConversation(convId,item);}else{item.classList.add('confirm-delete');const preview=item.querySelector('.conv-preview');const origText=preview.textContent;preview.textContent='Tap again to delete';deleteConfirmTimeout=setTimeout(()=>{item.classList.remove('confirm-delete');preview.textContent=origText;},2500);}};async function deleteConversation(convId,itemEl){try{const safeKey=currentUser.email.replace(/[.@]/g,'_');await updateDoc(doc(db,'conversations',convId),{deletedBy:[...((allConversations.find(c=>c.id===convId)?.deletedBy)||[]),currentUser.email],[`clearedAt_${safeKey}`]:serverTimestamp()});if(activeConvId===convId){if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}
+window.filterConvs=function(q){const filtered=q?allConversations.filter(c=>(c.otherName||'').toLowerCase().includes(q.toLowerCase())||(c.otherEmail||'').toLowerCase().includes(q.toLowerCase())):allConversations;renderConvList(filtered);};let deleteConfirmTimeout=null;window.confirmDeleteConv=function(e,convId){e.stopPropagation();if(!window.kwMessageSettings.allowDeleteChats)return;const item=e.currentTarget.closest('.conv-item');if(!item)return;if(item.classList.contains('confirm-delete')){clearTimeout(deleteConfirmTimeout);deleteConversation(convId,item);}else{item.classList.add('confirm-delete');const preview=item.querySelector('.conv-preview');const origText=preview.textContent;preview.textContent='Tap again to delete';deleteConfirmTimeout=setTimeout(()=>{item.classList.remove('confirm-delete');preview.textContent=origText;},2500);}};async function deleteConversation(convId,itemEl){if(!window.kwMessageSettings.allowDeleteChats)return;try{const safeKey=currentUser.email.replace(/[.@]/g,'_');await updateDoc(doc(db,'conversations',convId),{deletedBy:[...((allConversations.find(c=>c.id===convId)?.deletedBy)||[]),currentUser.email],[`clearedAt_${safeKey}`]:serverTimestamp()});if(activeConvId===convId){if(messagesUnsubscribe){messagesUnsubscribe();messagesUnsubscribe=null;}
 activeConvId=null;document.getElementById('active-chat').style.display='none';document.getElementById('chat-empty').style.display='';}}catch(e){console.error('Delete error:',e);}}
 function isMobile(){return window.innerWidth<=700;}
 function openChatMobile(){if(!isMobile())return;document.getElementById('sidebar').classList.add('slide-out');document.getElementById('chat-pane').classList.add('slide-in');}
@@ -1637,11 +1657,12 @@ function closeChatMobile(){if(!isMobile())return;document.getElementById('sideba
 window.closeChatMobile=closeChatMobile;window.addEventListener('resize',()=>{if(!isMobile()){document.getElementById('sidebar').classList.remove('slide-out');document.getElementById('chat-pane').classList.remove('slide-in');}});window.openConversation=async function(convId){if(aiSending||dmSending||filesReading>0)return;fileSelectionVersion++;pendingFiles=[];renderFileStrip();if(messagesUnsubscribe)messagesUnsubscribe();activeConvId=convId;window.__kwActiveConvId=convId;aiConvActive=false;closeAiChatMenu();const identity=document.getElementById('chat-header-identity');identity.classList.remove('ai-clickable');identity.removeAttribute('role');identity.removeAttribute('aria-label');identity.removeAttribute('aria-expanded');identity.setAttribute('tabindex','-1');document.getElementById('ai-user-controls').hidden=true;const attachBtn=document.getElementById('attach-btn');if(attachBtn)attachBtn.style.display='';const avatar=document.getElementById('chat-header-avatar');avatar.style.color='';const aiItem=document.getElementById('ai-conv-item');if(aiItem)aiItem.classList.remove('active');const conv=allConversations.find(c=>c.id===convId);if(!conv)return;if(conv.unreadBy&&conv.unreadBy.includes(currentUser.email)){updateDoc(doc(db,'conversations',convId),{unreadBy:conv.unreadBy.filter(e=>e!==currentUser.email)}).catch(()=>{});}
 document.querySelectorAll('.conv-item').forEach(el=>el.classList.remove('active'));const convEl=document.querySelector(`.conv-item[onclick="openConversation('${convId}')"]`);if(convEl)convEl.classList.add('active');const initial=(conv.otherName||conv.otherEmail||'?')[0].toUpperCase();if(conv.otherPfp){document.getElementById('chat-header-avatar').innerHTML=`<img src="${escapeHtml(conv.otherPfp)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}else{document.getElementById('chat-header-avatar').textContent=initial;}document.getElementById('chat-header-name').textContent=conv.otherName||conv.otherEmail;document.getElementById('chat-header-name').style.cursor=conv.group?'default':'pointer';document.getElementById('chat-header-name').title=conv.group?'':'View profile';document.getElementById('chat-header-name').onclick=conv.group?null:openMsgProfile;
 // For group chats show member count; for DMs show email
-if(conv.group===true){document.getElementById('chat-header-sub').textContent=String((conv.participants||[]).length)+' members';}else{document.getElementById('chat-header-sub').textContent=conv.otherEmail||'';}const copyBtn=document.getElementById('copy-link-btn');if(copyBtn){if(conv.group===true){copyBtn.style.display='none';}else{copyBtn.style.display='flex';copyBtn.style.marginLeft='auto';copyBtn.title='Copy link to this Person';copyBtn._convUsername=conv.otherName||conv.otherEmail;copyBtn.onclick=copyConvLink;copyBtn.innerHTML='<svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="15"><rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';}}
+identity.onclick=conv.group===true?window.openGroupParticipants:window.openMsgProfile;identity.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();(conv.group===true?window.openGroupParticipants:window.openMsgProfile)();}};identity.setAttribute('role','button');identity.setAttribute('tabindex','0');identity.setAttribute('aria-label',conv.group===true?'View group participants':'View profile');identity.style.cursor='pointer';
+if(conv.group===true){document.getElementById('chat-header-sub').textContent=String((conv.participants||[]).length)+' members · click to view';}else{document.getElementById('chat-header-sub').textContent=conv.otherEmail||'';}const copyBtn=document.getElementById('copy-link-btn');if(copyBtn){if(conv.group===true){copyBtn.style.display='none';}else{copyBtn.style.display='flex';copyBtn.style.marginLeft='auto';copyBtn.title='Copy link to this Person';copyBtn._convUsername=conv.otherName||conv.otherEmail;copyBtn.onclick=copyConvLink;copyBtn.innerHTML='<svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="15"><rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';}}
 document.getElementById('chat-empty').style.display='none';const activeChat=document.getElementById('active-chat');activeChat.style.display='flex';activeChat.style.flexDirection='column';activeChat.style.flex='1';activeChat.style.overflow='hidden';openChatMobile();const msgsRef=collection(db,'conversations',convId,'messages');const msgsQuery=query(msgsRef,orderBy('sentAt','asc'));document.getElementById('messages-area').innerHTML='<div class="loading-spinner"><div class="spinner"></div></div>';const safeKey=currentUser.email.replace(/[.@]/g,'_');const clearedAt=conv[`clearedAt_${safeKey}`]||null;messagesUnsubscribe=onSnapshot(msgsQuery,(snap)=>{renderMessages(snap.docs.map(d=>({id:d.id,...d.data()})),clearedAt);});};window.__kwOpenConv=function(convId){if(!convId)return;if(allConversations.some(c=>c.id===convId)){window.openConversation(convId);}else{window.__kwPendingConvId=convId;}};function renderMessages(msgs,clearedAt){const area=document.getElementById('messages-area');const wasAtBottom=area.scrollHeight-area.scrollTop-area.clientHeight<60;if(clearedAt){const cutoff=clearedAt.toMillis?clearedAt.toMillis():clearedAt;msgs=msgs.filter(m=>{const t=m.sentAt?.toMillis?m.sentAt.toMillis():(m.sentAt?new Date(m.sentAt).getTime():0);return t>cutoff;});}
 if(msgs.length===0){area.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:0.8rem;padding:2rem 0;opacity:0.6;">No messages yet. Say hi!</div>`;return;}
 // Prefetch pfps for all senders not yet cached
-const unknownEmails=[...new Set(msgs.map(m=>m.senderEmail).filter(e=>e&&!userPfpCache[e]&&!userPfpFetching[e]))];unknownEmails.forEach(email=>{userPfpFetching[email]=true;fetchUserByEmail(email).then(data=>{if(data){const pfp=normalizePfp(data);if(pfp)userPfpCache[email]=pfp;userNameCache[email]=data.username||data.fullName||email;}userPfpFetching[email]=false;}).catch(()=>{userPfpFetching[email]=false;});});
+const unknownEmails=[...new Set(msgs.map(m=>m.senderEmail).filter(e=>e&&!window.kwUserPfpLoaded.has(e)&&!userPfpFetching[e]))];if(unknownEmails.length){Promise.all(unknownEmails.map(email=>{userPfpFetching[email]=true;return fetchUserByEmail(email).then(data=>{window.kwUserPfpLoaded.add(email);if(data){const pfp=normalizePfp(data);if(pfp)userPfpCache[email]=pfp;userNameCache[email]=data.username||data.fullName||email;}}).catch(()=>window.kwUserPfpLoaded.add(email)).finally(()=>{userPfpFetching[email]=false;});})).then(()=>{if(activeConvId)renderMessages(msgs,clearedAt);});}
 let html='';let lastDate=null;for(const msg of msgs){const date=msg.sentAt?.toDate?msg.sentAt.toDate():new Date(msg.sentAt||Date.now());const dateStr=date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});if(dateStr!==lastDate){html+=`<div class="msg-date-divider">${dateStr}</div>`;lastDate=dateStr;}
 const isMine=msg.senderEmail===currentUser.email;const initial=(msg.senderName||msg.senderEmail||'?')[0].toUpperCase();
 // Always use pfp from Firestore cache only — never use stored senderPfp
@@ -1661,7 +1682,7 @@ html+=`<div class="msg-row ${isMine ? 'mine' : 'theirs'}" data-msgid="${escapeHt
         ${isMine ? `<div class="msg-avatar-sm" onclick="event.stopPropagation();openMsgProfileByEmail('${escapeHtml(senderEmail)}','${escapeHtml(senderName)}','')" title="View profile">${avatarHtml}</div>` : ''}
       </div>`;}
 area.innerHTML=html;if(wasAtBottom||msgs.length<=1){area.scrollTop=area.scrollHeight;}}
-window.sendMessage=async function(){const input=document.getElementById('msg-input');if(filesReading>0)return;const text=input.value.trim();const hasFiles=pendingFiles.length>0;if(!text&&!hasFiles)return;if(text.length>12000){alert('Keep messages under 12,000 characters.');return;}if(aiConvActive){await sendAiMessage(text);return;}if(document.getElementById('send-btn').disabled||filesReading>0)return;
+window.sendMessage=async function(){const input=document.getElementById('msg-input');if(filesReading>0)return;const text=input.value.trim();const hasFiles=pendingFiles.length>0;if(!text&&!hasFiles)return;if(aiConvActive){const aiMax=Math.max(1,Number(aiConfig?.settings?.maxMessageLength)||12000);if(text.length>aiMax){alert(`Keep AI prompts under ${aiMax.toLocaleString()} characters.`);return;}await sendAiMessage(text);return;}const settings=window.kwMessageSettings;if(!settings.allowSendingMessages){alert('Sending messages is currently disabled by an admin.');return;}if(text.length>settings.maxMessageLength){alert(`Keep messages under ${settings.maxMessageLength.toLocaleString()} characters.`);return;}if(hasFiles&&!settings.allowAttachments){alert('File attachments are currently disabled by an admin.');return;}if(text&&!settings.allowEmojis&&textHasEmoji(text)){alert('Emojis are currently disabled by an admin.');return;}if(document.getElementById('send-btn').disabled||filesReading>0)return;
 if(!activeConvId||dmSending)return;const btn=document.getElementById('send-btn');dmSending=true;btn.disabled=true;const senderName=currentUserData?.fullName||currentUserData?.username||currentUser.email;try{const msgRef=collection(db,'conversations',activeConvId,'messages');
 // Build base payload
 const basePayload={senderEmail:currentUser.email,senderName,sentAt:serverTimestamp()};if(activeReply){basePayload.replyTo={msgId:activeReply.msgId,senderEmail:activeReply.senderEmail,senderName:activeReply.senderName,text:activeReply.text||'',fileType:activeReply.fileType||'',fileName:activeReply.fileName||''};}
@@ -1696,6 +1717,7 @@ window.openSettingsModal=async function(){
     document.getElementById('s-ai-enabled').checked=!!ai.aiEnabled;
     const limits=KWAIPolicy.limits(ai);
     document.getElementById('s-rate-messages').value=limits.max;document.getElementById('s-rate-minutes').value=limits.windowMs/60000;
+    document.getElementById('s-ai-max-length').value=Math.max(1,Number(ai.maxMessageLength)||12000);
     document.getElementById('s-allowed-models').value=(ai.allowedModels||[]).join('\n');
     const currentModel=ai.model||'gemini-2.5-flash-lite';document.getElementById('s-model').value=currentModel;
     document.getElementById('s-model-label').textContent=currentModel;document.getElementById('s-model-label').style.color='var(--text)';
@@ -1723,19 +1745,20 @@ window.closeSettingsModal=function(){document.getElementById('ai-settings-modal'
   const systemPrompt=document.getElementById('s-system-prompt').value.trim();
   const apiKeys=Array.from(document.querySelectorAll('#s-api-keys-list .api-key-row input')).map(i=>i.value.trim()).filter(Boolean);
   const rateLimitMessages=aiNumericValue(document.getElementById('s-rate-messages')),rateLimitMinutes=aiNumericValue(document.getElementById('s-rate-minutes'));
+  const maxMessageLength=aiNumericValue(document.getElementById('s-ai-max-length'));
   const allowedModels=[...new Set(document.getElementById('s-allowed-models').value.split(/[,\s]+/).filter(Boolean))];
   const validLimits=limits=>Number.isInteger(limits.rateLimitMessages)&&limits.rateLimitMessages>=0&&limits.rateLimitMessages<=10000&&Number.isInteger(limits.rateLimitMinutes)&&limits.rateLimitMinutes>=1&&limits.rateLimitMinutes<=10080;
   if(!systemPrompt.includes('{{active_tool}}')||!systemPrompt.includes('{{tool_data}}')){
     errEl.textContent='The Firebase system prompt must include {{active_tool}} and {{tool_data}}.';errEl.style.display='block';return;
   }
-  if(!KWAIPolicy.modelId(model)||allowedModels.some(m=>!KWAIPolicy.modelId(m))||!validLimits({rateLimitMessages,rateLimitMinutes})){
-    errEl.textContent='Use valid Gemini model IDs, 0–10000 messages, and 1–10080 minutes.';errEl.style.display='block';return;
+  if(!KWAIPolicy.modelId(model)||allowedModels.some(m=>!KWAIPolicy.modelId(m))||!validLimits({rateLimitMessages,rateLimitMinutes})||!Number.isInteger(maxMessageLength)||maxMessageLength<1||maxMessageLength>12000){
+    errEl.textContent='Use valid Gemini model IDs, a prompt length from 1–12,000, 0–10,000 messages, and 1–10,080 minutes.';errEl.style.display='block';return;
   }
   renderModelLimitEditor();captureModelLimitEdits();
   const modelLimits=Object.fromEntries(editorModels().map(id=>[id,aiAdminModelLimits[id]]));
   if(Object.values(modelLimits).some(limits=>!validLimits(limits))){errEl.textContent='Each model needs 0–10000 messages and a 1–10080 minute window.';errEl.style.display='block';return;}
   try{
-    await updateDoc(doc(db,'siteContent','main'),{'aiSettings.aiEnabled':aiEnabled,'aiSettings.model':model,'aiSettings.systemPrompt':systemPrompt,'aiSettings.apiKeys':apiKeys,'aiSettings.allowedModels':allowedModels,'aiSettings.rateLimitMessages':rateLimitMessages,'aiSettings.rateLimitMinutes':rateLimitMinutes,'aiSettings.modelLimits':modelLimits});
+    await updateDoc(doc(db,'siteContent','main'),{'aiSettings.aiEnabled':aiEnabled,'aiSettings.model':model,'aiSettings.systemPrompt':systemPrompt,'aiSettings.apiKeys':apiKeys,'aiSettings.allowedModels':allowedModels,'aiSettings.rateLimitMessages':rateLimitMessages,'aiSettings.rateLimitMinutes':rateLimitMinutes,'aiSettings.maxMessageLength':maxMessageLength,'aiSettings.modelLimits':modelLimits});
     await loadAiConfig();okEl.textContent='Model access and limits saved.';okEl.style.display='block';
   }catch(e){errEl.textContent='Failed to save: '+e.message;errEl.style.display='block';}
 };
@@ -1743,11 +1766,12 @@ window.copyConvLink=function(){const btn=document.getElementById('copy-link-btn'
 let _msgProfileEmail=null;
 window.openMsgProfile=function(){if(aiConvActive)return;const conv=allConversations.find(c=>c.id===activeConvId);if(!conv)return;openMsgProfileByEmail(conv.otherEmail,conv.otherName,conv.otherPfp);};
 window.openMsgProfileByEmail=async function(email,knownName,knownPfp){_msgProfileEmail=email;const modal=document.getElementById('msg-profile-modal');modal.style.display='flex';document.getElementById('msg-profile-username').textContent=knownName||email;document.getElementById('msg-profile-fullname').textContent='';document.getElementById('msg-profile-email').textContent=email;document.getElementById('msg-profile-phone').textContent='Loading...';document.getElementById('msg-profile-bio').textContent='Loading...';document.getElementById('msg-profile-lunch-a').textContent='—';document.getElementById('msg-profile-lunch-b').textContent='—';const rolesRowReset=document.getElementById('msg-profile-roles-row');if(rolesRowReset)rolesRowReset.style.display='none';const avatarEl=document.getElementById('msg-profile-avatar');if(knownPfp){avatarEl.innerHTML=`<img src="${escapeHtml(knownPfp)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}else{avatarEl.textContent=((knownName||email||'?')[0]||'?').toUpperCase();}
+const messageBtn=document.getElementById('msg-profile-message-btn');messageBtn.style.display=email&&email!==currentUser?.email?'block':'none';messageBtn.disabled=!window.kwMessageSettings.allowSendingMessages;messageBtn.style.opacity=messageBtn.disabled?'.5':'1';messageBtn.title=messageBtn.disabled?'Messaging is disabled by an admin.':'';
 try{const data=await fetchUserByEmail(email);if(!data){document.getElementById('msg-profile-phone').textContent='Not set';document.getElementById('msg-profile-bio').textContent='No bio added yet';return;}
 document.getElementById('msg-profile-username').textContent=data.username||knownName||email;document.getElementById('msg-profile-fullname').textContent=data.fullName||'';document.getElementById('msg-profile-email').textContent=email;document.getElementById('msg-profile-phone').textContent=data.phone||'Not set';document.getElementById('msg-profile-bio').textContent=data.bio||'No bio added yet';const lunchA=data.lunchSchedule?.aDay||'';const lunchB=data.lunchSchedule?.bDay||'';document.getElementById('msg-profile-lunch-a').textContent=lunchA?(lunchA==='1st'?'1st Lunch':'2nd Lunch'):'Not set';document.getElementById('msg-profile-lunch-b').textContent=lunchB?(lunchB==='1st'?'1st Lunch':'2nd Lunch'):'Not set';const pfpUrl=data.pfp||'';if(pfpUrl){avatarEl.innerHTML=`<img src="${escapeHtml(pfpUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}else{avatarEl.textContent=((data.username||knownName||email||'?')[0]||'?').toUpperCase();}
-const banner=document.getElementById('msg-profile-banner');if(data.bannerImg){banner.style.backgroundImage=`url('${data.bannerImg}')`;banner.style.backgroundSize='cover';banner.style.backgroundPosition='center';banner.style.background='';}else if(data.bannerColor){banner.style.backgroundImage='';banner.style.background=data.bannerColor;}else{banner.style.backgroundImage='';banner.style.background='linear-gradient(135deg,rgba(168,85,247,0.15),rgba(34,211,238,0.15))';}
+const banner=document.getElementById('msg-profile-banner');if(data.bannerImg){banner.style.background='transparent';banner.style.backgroundImage=`url("${String(data.bannerImg).replace(/["\\]/g,'\\$&')}")`;banner.style.backgroundSize='cover';banner.style.backgroundPosition='center';banner.style.backgroundRepeat='no-repeat';}else if(data.bannerColor){banner.style.backgroundImage='none';banner.style.background=data.bannerColor;}else{banner.style.backgroundImage='none';banner.style.background='linear-gradient(135deg,rgba(168,85,247,0.15),rgba(34,211,238,0.15))';}
 const isActive=data.active!==false;const isAdmin=data.admin===true;const isEditor=data.editor===true;const isOrders=data.orders===true;const jobTag=String(data.jobTag||'').trim();let pills=`<span class="role-pill ${isActive?'active':'inactive'}">${isActive?'✓ Enabled':'✗ Disabled'}</span>`;if(isAdmin)pills+=`<span class="role-pill admin">⬡ Admin</span>`;if(isEditor)pills+=`<span class="role-pill editor">✎ Editor</span>`;if(isOrders)pills+=`<span class="role-pill orders">📦 Orders</span>`;if(jobTag)pills+=`<span class="role-pill job">${escapeHtml(jobTag)}</span>`;const rolesEl=document.getElementById('msg-profile-roles');const rolesRow=document.getElementById('msg-profile-roles-row');if(rolesEl)rolesEl.innerHTML=pills;if(rolesRow)rolesRow.style.display='block';}catch(e){console.error('Failed to load profile:',e);document.getElementById('msg-profile-phone').textContent='Not set';document.getElementById('msg-profile-bio').textContent='No bio added yet';}};
-window.startConversationFromProfile=function(){if(_msgProfileEmail){closeMsgProfile();startConversation(_msgProfileEmail);}};
+window.startConversationFromProfile=function(){if(!window.kwMessageSettings.allowSendingMessages)return;if(_msgProfileEmail){closeMsgProfile();startConversation(_msgProfileEmail);}};
 
 // ── REPLY ──
 let activeReply=null;
@@ -1788,6 +1812,7 @@ window.cancelReply=function(){activeReply=null;document.getElementById('reply-ba
 // ── FILE HANDLING ──
 let pendingFiles=[];let filesReading=0;let fileSelectionVersion=0;
 window.handleFileSelect=function(input){
+  if(!window.kwMessageSettings.allowAttachments){input.value='';alert('File attachments are currently disabled by an admin.');return;}
   const files=Array.from(input.files||[]);
   const version=fileSelectionVersion;
   files.forEach(file=>{
@@ -1833,14 +1858,55 @@ window.openLightbox=function(url){const lb=document.getElementById('img-lightbox
 // ── GROUP MEMBER PROFILE ──
 window.openGroupMemberProfile=function(e,email){e.stopPropagation();const name=userNameCache[email]||email;const pfp=userPfpCache[email]||'';openMsgProfileByEmail(email,name,pfp);};
 
+function normalizedMessageSettings(raw){
+  const value=raw||{};
+  return {maxMessageLength:Math.max(1,Math.min(12000,Number(value.maxMessageLength)||12000)),allowSendingMessages:value.allowSendingMessages!==false,allowAttachments:value.allowAttachments!==false,allowEmojis:value.allowEmojis!==false,allowDeleteChats:value.allowDeleteChats!==false,allowNotifications:value.allowNotifications!==false};
+}
+function applyMessageSettings(){
+  const settings=window.kwMessageSettings;
+  const input=document.getElementById('msg-input'),send=document.getElementById('send-btn'),attach=document.getElementById('attach-btn'),emoji=document.getElementById('emoji-btn');
+  if(input){input.maxLength=aiConvActive?Math.max(1,Number(aiConfig?.settings?.maxMessageLength)||12000):settings.maxMessageLength;input.disabled=!aiConvActive&&!settings.allowSendingMessages;input.placeholder=input.disabled?'Messaging is currently disabled by an admin.':'Type a message...';}
+  if(send)send.disabled=(!aiConvActive&&!settings.allowSendingMessages)||aiSending||dmSending||filesReading>0;
+  if(attach)attach.hidden=!settings.allowAttachments;
+  if(emoji)emoji.hidden=!settings.allowEmojis;
+  if(!settings.allowAttachments&&pendingFiles.length){pendingFiles=[];renderFileStrip();}
+  if(!settings.allowEmojis){if(window.closeEmojiPicker)window.closeEmojiPicker();else{const picker=document.getElementById('emoji-picker');if(picker){picker.hidden=true;picker.style.display='none';}}}
+  document.querySelectorAll('.conv-delete-btn').forEach(button=>button.hidden=!settings.allowDeleteChats);
+  const aiDelete=document.getElementById('copy-link-btn');if(aiConvActive&&aiDelete&&!settings.allowDeleteChats)aiDelete.style.display='none';
+}
+function textHasEmoji(text){try{return /\p{Extended_Pictographic}|[\u{1F1E6}-\u{1F1FF}]|[\u2600-\u27BF]/u.test(text);}catch(_){return false;}}
+
+function groupParticipantData(email){
+  if(email===currentUser?.email)return {...(currentUserData||{}),email};
+  return allUsers.find(user=>user.email===email)||{email,username:userNameCache[email]||email,pfp:userPfpCache[email]||''};
+}
+let visibleGroupParticipants=[];
+function renderGroupParticipants(queryText=''){
+  const list=document.getElementById('group-participants-list');const q=queryText.trim().toLowerCase();
+  const filtered=visibleGroupParticipants.filter(user=>[user.username,user.fullName,user.email].some(value=>String(value||'').toLowerCase().includes(q)));
+  if(!filtered.length){list.innerHTML='<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.8rem;">No participants found.</div>';return;}
+  list.innerHTML=filtered.map(user=>{const name=user.username||user.fullName||user.email;const pfp=normalizePfp(user);const avatar=pfp?`<img src="${escapeHtml(pfp)}" alt="" style="width:100%;height:100%;object-fit:cover;">`:escapeHtml((name[0]||'?').toUpperCase());return `<button type="button" class="group-participant" onclick="openGroupParticipantProfile('${escapeHtml(user.email)}')"><span class="group-participant-avatar">${avatar}</span><span style="min-width:0;"><strong style="display:block;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(name)}${user.email===currentUser.email?' (you)':''}</strong><span style="display:block;color:var(--muted);font-size:.7rem;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(user.email)}</span></span></button>`;}).join('');
+}
+window.openGroupParticipants=async function(){
+  const conv=allConversations.find(item=>item.id===activeConvId);if(!conv?.group)return;
+  visibleGroupParticipants=(conv.participants||[]).map(groupParticipantData);
+  document.getElementById('group-participants-count').textContent=`${visibleGroupParticipants.length} members`;
+  const search=document.getElementById('group-participants-search');search.value='';renderGroupParticipants();
+  document.getElementById('group-participants-modal').classList.add('open');setTimeout(()=>search.focus(),50);
+};
+window.closeGroupParticipants=function(){document.getElementById('group-participants-modal').classList.remove('open');};
+window.filterGroupParticipants=renderGroupParticipants;
+window.openGroupParticipantProfile=function(email){closeGroupParticipants();const user=groupParticipantData(email);openMsgProfileByEmail(email,user.username||user.fullName||email,normalizePfp(user));};
+
 // ── AI DATA TOOLS ──
 let aiToolUsers=[];
 const loadAiConfigWithoutToolReset=loadAiConfig;
 loadAiConfig=async function(){
   const selected=aiSiteContext.activeTool||'';
+  if(!window._kwMessageSettingsUnsubscribe){window._kwMessageSettingsUnsubscribe=onSnapshot(doc(db,'siteContent','main'),snap=>{window.kwMessageSettings=normalizedMessageSettings(snap.exists()?snap.data().messageSettings:null);window.KWNotifications?.setEnabled(window.kwMessageSettings.allowNotifications);applyMessageSettings();},e=>{window.KWNotifications?.setEnabled(true);console.warn('Could not watch message settings:',e);});}
   await loadAiConfigWithoutToolReset();
   if(selected&&aiConfig?.aiEnabled)aiSiteContext.activeTool=selected;
-  syncAiToolUi();
+  syncAiToolUi();applyMessageSettings();
 };
 async function refreshAiToolData(tool){
   if(tool==='users'){
@@ -1928,11 +1994,11 @@ renderAiMessages=function(){
   });
 };
 const baseOpenAiConversation=window.openAiConversation;
-window.openAiConversation=async function(){await baseOpenAiConversation();syncAiToolUi();};
+window.openAiConversation=async function(){await baseOpenAiConversation();const identity=document.getElementById('chat-header-identity');identity.onclick=window.toggleAiChatMenu;identity.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();window.toggleAiChatMenu();}};syncAiToolUi();applyMessageSettings();};
 const baseOpenConversation=window.openConversation;
 window.openConversation=async function(...args){
   document.getElementById('ai-tools-btn').hidden=true;document.getElementById('ai-tools-picker').hidden=true;
-  document.getElementById('ai-tools-btn').setAttribute('aria-expanded','false');return baseOpenConversation(...args);
+  document.getElementById('ai-tools-btn').setAttribute('aria-expanded','false');const result=await baseOpenConversation(...args);applyMessageSettings();return result;
 };
 
 function escapeHtml(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -1940,6 +2006,7 @@ function formatTime(date){const now=new Date();const diff=now-date;if(diff<60000
 <script>document.addEventListener("touchmove",function(e){if(e.touches.length>1){e.preventDefault();}},{passive:false});var lastTouch=0;document.addEventListener("touchend",function(e){var now=Date.now();if(now-lastTouch<300){e.preventDefault();}
 lastTouch=now;},false);</script>
 <script src="/js/ai-policy.js"></script>
+<script src="/js/emoji-names.js"></script>
 <script src="/js/chat-tools.js"></script>
 <script src="/js/file-viewer.js"></script>
 </body>

@@ -4,7 +4,7 @@
    always shows the newest message, and opens the conversation on click. */
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getFirestore, collection, doc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB_7DGpmrVotodTuPJDXoZrKrKbkzPhWDw",
@@ -32,6 +32,10 @@ let container = null;
 let activeToast = null;
 let activeTimer = null;
 let unsub = null;
+let settingsUnsub = null;
+let activeUser = null;
+let notificationsEnabled = null;
+let sharedSnapshot = null;
 let ready = false;
 const seen = new Map();
 
@@ -126,12 +130,7 @@ function showToast(id, c) {
   activeTimer = setTimeout(dismiss, AUTO_DISMISS_MS);
 }
 
-function startListener(user) {
-  stopListener();
-  ready = false;
-  seen.clear();
-  const q = query(collection(db, "conversations"), where("participants", "array-contains", user.email));
-  unsub = onSnapshot(q, (snap) => {
+function processSnapshot(snap, user) {
     const events = [];
     snap.docChanges().forEach((ch) => {
       const id = ch.doc.id;
@@ -153,19 +152,68 @@ function startListener(user) {
       events.sort((a, b) => b.ts - a.ts);
       showToast(events[0].id, events[0].c);
     }
-  }, (err) => {
-    console.warn("[knowwhere] notification listener failed:", err);
-  });
 }
 
-function stopListener() {
+function stopConversationListener() {
   if (unsub) { try { unsub(); } catch (e) {} unsub = null; }
   ready = false;
   seen.clear();
   dismiss();
 }
 
+function usesSharedConversationListener() {
+  return /\/msg\.html$/i.test(location.pathname);
+}
+
+function startConversationListener(user) {
+  stopConversationListener();
+  if (usesSharedConversationListener()) {
+    if (sharedSnapshot) processSnapshot(sharedSnapshot, user);
+    return;
+  }
+  const q = query(collection(db, "conversations"), where("participants", "array-contains", user.email));
+  unsub = onSnapshot(q, (snap) => processSnapshot(snap, user), (err) => {
+    console.warn("[knowwhere] notification listener failed:", err);
+  });
+}
+
+function applyNotificationSetting(enabled) {
+  if (notificationsEnabled === enabled) return;
+  notificationsEnabled = enabled;
+  if (enabled && activeUser) startConversationListener(activeUser);
+  else stopConversationListener();
+}
+
+function stopAllListeners() {
+  stopConversationListener();
+  if (settingsUnsub) { try { settingsUnsub(); } catch (e) {} settingsUnsub = null; }
+  activeUser = null;
+  notificationsEnabled = null;
+  sharedSnapshot = null;
+}
+
+window.KWNotifications = {
+  acceptSnapshot(snap) {
+    sharedSnapshot = snap;
+    if (usesSharedConversationListener() && notificationsEnabled && activeUser) {
+      processSnapshot(snap, activeUser);
+    }
+  },
+  setEnabled(enabled) {
+    applyNotificationSetting(enabled !== false);
+  }
+};
+
 onAuthStateChanged(auth, (user) => {
-  if (user && user.email) startListener(user);
-  else stopListener();
+  stopAllListeners();
+  if (!user || !user.email) return;
+  activeUser = user;
+  if (usesSharedConversationListener()) return;
+  settingsUnsub = onSnapshot(doc(db, "siteContent", "main"), (snap) => {
+    const settings = snap.exists() ? snap.data()?.messageSettings : null;
+    applyNotificationSetting(settings?.allowNotifications !== false);
+  }, (err) => {
+    console.warn("[knowwhere] notification settings listener failed:", err);
+    applyNotificationSetting(true);
+  });
 });

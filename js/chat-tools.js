@@ -1,12 +1,28 @@
 (function(){
-  const picker=document.getElementById('emoji-picker');
-  const button=document.getElementById('emoji-btn');
-  const input=document.getElementById('msg-input');
-  for(const emoji of ['😀','😂','🤣','😊','😍','😎','😭','😅','🤔','🙃','😴','😡','🥳','👋','👍','👎','👏','🙌','🙏','💪','❤️','💜','💀','🔥','✨','🎉','✅','❌','👀','🎮','💯','🚀']){
-    const choice=document.createElement('button');choice.type='button';choice.textContent=emoji;choice.setAttribute('aria-label',emoji);choice.style.cssText='font-size:1.5rem;background:transparent;border:0;padding:.4rem;cursor:pointer';
-    choice.onclick=()=>{const start=input.selectionStart,end=input.selectionEnd;input.setRangeText(emoji,start,end,'end');input.dispatchEvent(new Event('input'));input.focus();};picker.appendChild(choice);
-  }
-  window.toggleEmojiPicker=()=>{picker.hidden=!picker.hidden;button.setAttribute('aria-expanded',String(!picker.hidden));};
-  // Paste images/files through the same bounded attachment path as the upload button.
-  input.addEventListener('paste',e=>{const files=Array.from(e.clipboardData?.files||[]);if(!files.length||document.getElementById('attach-btn').style.display==='none')return;e.preventDefault();window.handleFileSelect({files,value:''});});
+  const picker=document.getElementById('emoji-picker'),button=document.getElementById('emoji-btn'),input=document.getElementById('msg-input');
+  if(!picker||!button||!input)return;
+  const groups={
+    '😀':'😀 😃 😄 😁 😆 😅 😂 🤣 🥲 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🫣 🤭 🫢 🫡 🤫 🫠 🤥 😶 🫥 😐 🫤 😑 😬 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 😵‍💫 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠 😈 👿 👹 👺 🤡 💩 👻 💀 ☠️ 👽 👾 🤖 🎃 😺 😸 😹 😻 😼 😽 🙀 😿 😾',
+    '👋':'👋 🤚 🖐️ ✋ 🖖 🫱 🫲 🫳 🫴 👌 🤌 🤏 ✌️ 🤞 🫰 🤟 🤘 🤙 👈 👉 👆 🖕 👇 ☝️ 🫵 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 🫶 👐 🤲 🤝 🙏 ✍️ 💅 🤳 💪 🦾 🦿 🦵 🦶 👂 🦻 👃 🧠 🫀 🫁 🦷 🦴 👀 👁️ 👅 👄 🫦 👶 🧒 👦 👧 🧑 👱 👨 🧔 👩 🧓 👴 👵 🙍 🙎 🙅 🙆 💁 🙋 🧏 🙇 🤦 🤷 👮 👷 💂 🕵️ 👩‍⚕️ 👨‍🌾 👩‍🍳 👨‍🎓 👩‍🎤 👨‍🏫 👩‍🏭 👨‍💻 👩‍💼 👨‍🔧 👩‍🔬 👨‍🎨 👩‍🚒 👨‍✈️ 👩‍🚀 👨‍⚖️ 👰 🤵 👸 🤴 🥷 🦸 🦹 🧙 🧚 🧛 🧜 🧝 🧞 🧟 💆 💇 🚶 🧍 🧎 🏃 💃 🕺 🕴️ 👯 🧖 🧗 🤺 🏇 ⛷️ 🏂 🏌️ 🏄 🚣 🏊 ⛹️ 🏋️ 🚴 🤸 🤼 🤽 🤾 🤹 🧘 🛌',
+    '🐻':'🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐻‍❄️ 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🙈 🙉 🙊 🐔 🐧 🐦 🐤 🐣 🐥 🦆 🦅 🦉 🦇 🐺 🐗 🐴 🦄 🐝 🪱 🐛 🦋 🐌 🐞 🐜 🪰 🪲 🪳 🦟 🦗 🕷️ 🦂 🐢 🐍 🦎 🦖 🦕 🐙 🦑 🦐 🦞 🦀 🐡 🐠 🐟 🐬 🐳 🐋 🦈 🦭 🐊 🐅 🐆 🦓 🦬 🐘 🦣 🦏 🦛 🐪 🐫 🦒 🦘 🫎 🐃 🐂 🐄 🫏 🐎 🐖 🐏 🐑 🦙 🐐 🦌 🐕 🐩 🦮 🐈 🐈‍⬛ 🦃 🦤 🦚 🦜 🦢 🦩 🕊️ 🐇 🦝 🦨 🦡 🦫 🦦 🦥 🐁 🐀 🐿️ 🦔 🐾 🐉 🌵 🎄 🌲 🌳 🌴 🌱 🌿 ☘️ 🍀 🍃 🍂 🍁 🍄 🌾 💐 🌷 🌹 🥀 🌺 🌸 🪷 🌼 🌻 🌞 🌝 🌚 🌕 🌙 ⭐ 🌟 ✨ ⚡ ☄️ 💥 🔥 🌪️ 🌈 ☀️ 🌤️ ⛅ 🌧️ ⛈️ ❄️ ☃️ 💨 💧 💦 🫧 ☔ 🌊',
+    '🍕':'🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 🍈 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🍆 🥑 🥦 🫛 🥬 🥒 🌶️ 🫑 🌽 🥕 🫒 🧄 🧅 🥔 🍠 🫚 🥐 🥯 🍞 🥖 🥨 🧀 🥚 🍳 🧈 🥞 🧇 🥓 🥩 🍗 🍖 🌭 🍔 🍟 🍕 🫓 🥪 🥙 🧆 🌮 🌯 🫔 🥗 🥘 🫕 🥫 🍝 🍜 🍲 🍛 🍣 🍱 🥟 🦪 🍤 🍙 🍚 🍘 🍥 🥠 🥮 🍢 🍡 🍧 🍨 🍦 🥧 🧁 🍰 🎂 🍮 🍭 🍬 🍫 🍿 🍩 🍪 🌰 🥜 🫘 🍯 🥛 🍼 🫖 ☕ 🍵 🧃 🥤 🧋 🍶 🍺 🍻 🥂 🍷 🥃 🍸 🍹 🧉 🍾 🧊 🥄 🍴 🍽️ 🥣 🥡 🥢 🧂',
+    '⚽':'⚽ 🏀 🏈 ⚾ 🥎 🎾 🏐 🏉 🥏 🎱 🪀 🏓 🏸 🏒 🏑 🥍 🏏 🪃 🥅 ⛳ 🪁 🛝 🏹 🎣 🤿 🥊 🥋 🎽 🛹 🛼 🛷 ⛸️ 🥌 🎿 🪂 🏆 🥇 🥈 🥉 🏅 🎖️ 🎗️ 🎫 🎟️ 🎪 🎭 🩰 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🪘 🎷 🎺 🪗 🎸 🪕 🎻 🎲 ♟️ 🎯 🎳 🎮 🎰 🧩 🪄 🎴 🀄 🃏 🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 🛻 🚚 🚛 🚜 🛴 🚲 🛵 🏍️ 🚨 🚡 🚠 🚟 🚃 🚋 🚞 🚝 🚄 🚅 🚈 🚂 🚆 🚇 🚊 🚉 ✈️ 🛫 🛬 🛩️ 💺 🛰️ 🚀 🛸 🚁 🛶 ⛵ 🚤 🛥️ 🛳️ ⛴️ 🚢 ⚓ 🗺️ 🗿 🗽 🗼 🏰 🏯 🏟️ 🎡 🎢 🎠 ⛲ 🏖️ 🏝️ 🏜️ 🌋 ⛰️ 🏕️ ⛺ 🛖 🏠 🏡 🏢 🏥 🏦 🏨 🏪 🏫 🏬 🏭 🏛️ ⛪ 🕌 🕍 🛕 ⛩️ 🌅 🌄 🌠 🎇 🎆 🌇 🌆 🏙️ 🌃 🌌 🌉',
+    '💡':'⌚ 📱 📲 💻 ⌨️ 🖥️ 🖨️ 🖱️ 🕹️ 💽 💾 💿 📀 📼 📷 📸 📹 🎥 📞 ☎️ 📟 📠 📺 📻 🎙️ 🎚️ 🎛️ 🧭 ⏱️ ⏲️ ⏰ 🕰️ ⌛ ⏳ 📡 🔋 🪫 🔌 💡 🔦 🕯️ 🧯 💸 💵 💴 💶 💷 🪙 💰 💳 💎 ⚖️ 🪜 🧰 🪛 🔧 🔨 ⚒️ 🛠️ ⛏️ 🪚 🔩 ⚙️ 🧱 ⛓️ 🧲 💣 🧨 🪓 🔪 🗡️ ⚔️ 🛡️ 🔮 📿 🧿 💈 ⚗️ 🔭 🔬 🩹 🩺 🩻 💊 💉 🧬 🦠 🧫 🧪 🌡️ 🧹 🧺 🧻 🚽 🚿 🛁 🪥 🪒 🧴 🧷 🧵 🪡 🧶 👓 🕶️ 🥽 🥼 🦺 👔 👕 👖 🧣 🧤 🧥 🧦 👗 👘 🥻 🩱 🩲 🩳 👙 👚 👛 👜 👝 🛍️ 🎒 🩴 👞 👟 🥾 🥿 👠 👡 🩰 👢 👑 👒 🎩 🎓 🧢 ⛑️ 💄 💍 💼',
+    '❤️':'❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 🩷 🩵 🩶 💔 ❤️‍🔥 ❤️‍🩹 ❣️ 💕 💞 💓 💗 💖 💘 💝 💟 ☮️ ✝️ ☪️ 🕉️ ☸️ ✡️ ☯️ ☦️ 🛐 ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓ ⚛️ 🆘 ❌ ⭕ 🛑 ⛔ 🚫 💯 💢 ❗ ❕ ❓ ❔ ‼️ ⁉️ ⚠️ ♻️ ✅ ❎ 🌐 ℹ️ 🆖 🆗 🆙 🆒 🆕 🆓 0️⃣ 1️⃣ 2️⃣ 3️⃣ 4️⃣ 5️⃣ 6️⃣ 7️⃣ 8️⃣ 9️⃣ 🔟 #️⃣ *️⃣ ▶️ ⏸️ ⏯️ ⏹️ ⏺️ ⏭️ ⏮️ ⏩ ⏪ 🔀 🔁 ◀️ 🔼 🔽 ⬆️ ⬇️ ⬅️ ➡️ ↗️ ↘️ ↙️ ↖️ ↕️ ↔️ 🔄️ ↪️ ↩️ ☑️ 🔘 ⚪ ⚫ 🔴 🔵 🟤 🟣 🟢 🟡 🟠 🔺 🔻 🔸 🔹 🔶 🔷 ◾ ◽ ◼️ ◻️ 🟥 🟧 🟨 🟩 🟦 🟪 ⬛ ⬜ 🟫 🏁 🚩 🎌 🏴 🏳️ 🏳️‍🌈 🏳️‍⚧️ 🏴‍☠️ 🇺🇸 🇨🇦 🇲🇽 🇧🇷 🇬🇧 🇫🇷 🇩🇪 🇪🇸 🇮🇹 🇺🇦 🇮🇳 🇨🇳 🇯🇵 🇰🇷 🇦🇺 🇳🇿'
+  };
+  const lists=Object.fromEntries(Object.entries(groups).map(([key,value])=>[key,value.split(/\s+/).filter(Boolean)]));
+  let activeGroup=Object.keys(lists)[0];
+  const search=document.createElement('input'),toolbar=document.createElement('div'),grid=document.createElement('div');
+  search.type='search';search.placeholder='Search emojis…';search.setAttribute('aria-label','Search emojis');search.style.cssText='width:100%;padding:.5rem .65rem;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font:inherit;outline:none;flex:none';
+  picker.style.cssText='padding:.55rem;max-height:300px;overflow:hidden;background:var(--card);border-top:1px solid var(--border);display:none;flex-direction:column;gap:.45rem';picker.hidden=true;
+  toolbar.style.cssText='display:flex;gap:.35rem;overflow-x:auto;flex:none';grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,38px);grid-auto-rows:38px;align-content:start;justify-content:start;gap:.12rem;overflow-y:auto;min-height:120px';
+  function insert(emoji){const start=input.selectionStart,end=input.selectionEnd;input.setRangeText(emoji,start,end,'end');input.dispatchEvent(new Event('input'));input.focus();}
+  function render(emojis){grid.replaceChildren();if(!emojis.length){const empty=document.createElement('div');empty.textContent='No emojis found.';empty.style.cssText='grid-column:1/-1;padding:1rem;text-align:center;color:var(--muted);font-size:.78rem';grid.appendChild(empty);return;}for(const emoji of emojis){const name=window.KW_EMOJI_NAMES?.[emoji]||emoji;const item=document.createElement('button');item.type='button';item.textContent=emoji;item.setAttribute('aria-label',name);item.title=name;item.style.cssText='font-family:"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;font-size:1.45rem;line-height:1;background:transparent;border:0;border-radius:7px;padding:.4rem;cursor:pointer;min-height:38px';item.onmouseenter=()=>item.style.background='var(--primary-dim)';item.onmouseleave=()=>item.style.background='transparent';item.onclick=()=>insert(emoji);grid.appendChild(item);}}
+  function searchEmojis(value){const raw=value.trim(),query=raw.toLowerCase();if(!query){render(lists[activeGroup]);return;}const all=[...new Set(Object.values(lists).flat())];const results=all.filter(emoji=>emoji.includes(raw)||String(window.KW_EMOJI_NAMES?.[emoji]||'').includes(query));render(results);grid.scrollTop=0;}
+  search.addEventListener('input',()=>searchEmojis(search.value));
+  Object.entries(lists).forEach(([icon,emojis],index)=>{const tab=document.createElement('button');tab.type='button';tab.textContent=icon;tab.style.cssText='font-family:"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;font-size:1.05rem;background:'+(index?'transparent':'var(--primary-dim)')+';border:0;border-radius:7px;padding:.35rem .5rem;cursor:pointer;flex:none';tab.onclick=()=>{activeGroup=icon;search.value='';toolbar.querySelectorAll('button').forEach(el=>el.style.background='transparent');tab.style.background='var(--primary-dim)';render(emojis);grid.scrollTop=0};toolbar.appendChild(tab);});
+  picker.append(search,toolbar,grid);render(lists[activeGroup]);
+  window.closeEmojiPicker=()=>{picker.hidden=true;picker.style.display='none';button.setAttribute('aria-expanded','false');};
+  window.toggleEmojiPicker=()=>{if(window.kwMessageSettings?.allowEmojis===false)return;const opening=picker.hidden||picker.style.display==='none';picker.hidden=!opening;picker.style.display=opening?'flex':'none';button.setAttribute('aria-expanded',String(opening));if(opening)search.focus();};
+  input.addEventListener('paste',event=>{const files=Array.from(event.clipboardData?.files||[]);if(!files.length||window.kwMessageSettings?.allowAttachments===false||document.getElementById('attach-btn').style.display==='none')return;event.preventDefault();window.handleFileSelect({files,value:''});});
 })();
