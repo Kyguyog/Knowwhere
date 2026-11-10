@@ -21,7 +21,7 @@
       '<a href="/playtime.html">Playtime</a>' +
       '<a href="/updates.html">Updates</a>' +
       '<a href="/graveyard.html">Graveyard</a>' +
-      '<a href="/bugs.html">Bugs</a>' +
+      '<a href="/bugs.html">Support</a>' +
     '</div>' +
     '<div id="nav-user-badge" style="display:flex;align-items:center;gap:0.5rem;margin-left:auto;"></div>' +
     '<button aria-label="Toggle menu" aria-controls="nav-mobile-drawer" aria-expanded="false" class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()">' +
@@ -37,7 +37,7 @@
     '<a href="/playtime.html" onclick="closeMobileNav()">Playtime</a>' +
     '<a href="/updates.html" onclick="closeMobileNav()">Updates</a>' +
     '<a href="/graveyard.html" onclick="closeMobileNav()">Graveyard</a>' +
-    '<a href="/bugs.html" onclick="closeMobileNav()">Bugs</a>';
+    '<a href="/bugs.html" onclick="closeMobileNav()">Support</a>';
 
   document.body.insertBefore(drawer, document.body.firstChild);
   document.body.insertBefore(nav, document.body.firstChild);
@@ -82,5 +82,8 @@
     if (btn && d && !btn.contains(e.target) && !d.contains(e.target)) {
       setMenuOpen(false);
     }
+  });
+  import('/js/onboarding.js').catch(function(error) {
+    console.warn('Could not load onboarding:', error);
   });
 })();

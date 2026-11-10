@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bug Reports — KnowWhere</title>
+  <title>Support — KnowWhere</title>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -365,7 +365,7 @@
 <script src="/js/cloak.js?v=2"></script>
 
 <div id="auth-wall"></div>
-<script>window.KW_AUTH_OPTS = { allowUsername: true, signup: true, subtitle: "Bug Reports" };</script>
+<script>window.KW_AUTH_OPTS = { allowUsername: true, signup: true, subtitle: "Support" };</script>
 <script src="/js/auth.js"></script>
 
 <div id="main-content">
@@ -376,8 +376,9 @@
 
   <!-- Tab bar -->
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('list')">View Reports</button>
-    <button class="tab-btn" onclick="switchTab('report')">Report a Bug</button>
+    <button class="tab-btn active" data-tab="list" onclick="switchTab('list')">Issue Reports</button>
+    <button class="tab-btn" data-tab="report" onclick="switchTab('report')">Report an Issue</button>
+    <button class="tab-btn" data-tab="request" onclick="switchTab('request')">Request a Game</button>
   </div>
 
   <!-- === LIST PANEL === -->
@@ -385,7 +386,7 @@
     <div class="wrap">
       <div class="page-header">
         <div>
-          <div class="page-title">Bug <span>Reports</span></div>
+          <div class="page-title">Issue <span>Reports</span></div>
           <div class="page-subtitle" id="page-subtitle">Loading…</div>
         </div>
       </div>
@@ -413,7 +414,7 @@
   <!-- === REPORT PANEL === -->
   <div id="panel-report" class="panel">
     <div class="form-wrap">
-      <div class="form-title">Report a <span>Bug</span></div>
+      <div class="form-title">Report an <span>Issue</span></div>
       <div class="form-sub">Found something broken? Let the admins know.</div>
 
       <div class="form-card">
@@ -428,8 +429,36 @@
           <textarea id="bug-details" placeholder="Describe steps to reproduce and what you expected."></textarea>
         </div>
         <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-          <button class="submit-btn" id="send-btn">Submit Bug Report</button>
+          <button class="submit-btn" id="send-btn">Submit Issue Report</button>
           <div class="form-msg" id="form-msg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- === GAME REQUEST PANEL === -->
+  <div id="panel-request" class="panel">
+    <div class="form-wrap">
+      <div class="form-title">Request a <span>Game</span></div>
+      <div class="form-sub">Tell the admins what you would like added to KnowWhere.</div>
+
+      <div class="form-card">
+        <div class="field">
+          <label>Game name</label>
+          <input id="request-name" placeholder="What game should we add?" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Game URL <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <input id="request-url" type="url" placeholder="https://…" autocomplete="off" />
+          <div class="field-hint">A working browser version or the official game page helps us find the right game.</div>
+        </div>
+        <div class="field">
+          <label>Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <textarea id="request-notes" placeholder="Version, website, or anything else we should know."></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+          <button class="submit-btn" id="request-btn">Submit Game Request</button>
+          <div class="form-msg" id="request-msg"></div>
         </div>
       </div>
     </div>
@@ -522,11 +551,16 @@
   // ── Tab switching ───────────────────────────────────────────────────────────
 
   window.switchTab = function(tab) {
-    document.querySelectorAll('.tab-btn').forEach((b, i) => {
-      b.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'report'));
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === tab);
     });
-    document.getElementById('panel-list').classList.toggle('active', tab === 'list');
-    document.getElementById('panel-report').classList.toggle('active', tab === 'report');
+    document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+    const panel = document.getElementById('panel-' + tab);
+    if (panel) panel.classList.add('active');
+    const url = new URL(location.href);
+    if (tab === 'list') url.searchParams.delete('tab');
+    else url.searchParams.set('tab', tab);
+    history.replaceState(null, '', url);
   };
 
   // ── Filter + search ─────────────────────────────────────────────────────────
@@ -560,7 +594,7 @@
     if (filtered.length === 0) {
       const msg = searchTerm
         ? `No reports match "${esc(searchTerm)}".`
-        : currentFilter === 'all' ? 'No bug reports yet.'
+        : currentFilter === 'all' ? 'No issue reports yet.'
         : currentFilter === 'open' ? 'No unresolved reports.'
         : 'No resolved reports.';
       container.innerHTML = `
@@ -822,7 +856,7 @@
     });
   }
 
-  // ── Submit bug report ───────────────────────────────────────────────────────
+  // ── Submit issue report ─────────────────────────────────────────────────────
 
   document.getElementById('send-btn').addEventListener('click', async () => {
     const msgEl = document.getElementById('form-msg');
@@ -851,7 +885,7 @@
         createdAtServer: serverTimestamp(),
         userAgent: navigator.userAgent
       });
-      msgEl.textContent = '✓ Bug report submitted. Thank you!';
+      msgEl.textContent = '✓ Issue report submitted. Thank you!';
       msgEl.style.color = 'var(--success)';
       document.getElementById('bug-details').value = '';
       document.getElementById('bug-page').value = '';
@@ -862,7 +896,50 @@
       msgEl.style.color = 'var(--danger)';
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Submit Bug Report';
+      btn.textContent = 'Submit Issue Report';
+    }
+  });
+
+  // ── Submit game request ───────────────────────────────────────────────────
+
+  document.getElementById('request-btn').addEventListener('click', async () => {
+    const msgEl = document.getElementById('request-msg');
+    const btn = document.getElementById('request-btn');
+    const name = document.getElementById('request-name').value.trim();
+    const url = document.getElementById('request-url').value.trim();
+    const notes = document.getElementById('request-notes').value.trim();
+    if (!currentUser) {
+      msgEl.textContent = 'Please sign in first.';
+      msgEl.style.color = 'var(--danger)';
+      return;
+    }
+    if (!name) {
+      msgEl.textContent = 'Please enter a game name.';
+      msgEl.style.color = 'var(--danger)';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      await addDoc(collection(db, 'gameRequests'), {
+        name,
+        url,
+        notes,
+        email: currentUser.email,
+        status: 'pending',
+        requestedAt: new Date().toISOString()
+      });
+      msgEl.textContent = '✓ Game request submitted!';
+      msgEl.style.color = 'var(--success)';
+      document.getElementById('request-name').value = '';
+      document.getElementById('request-url').value = '';
+      document.getElementById('request-notes').value = '';
+    } catch (e) {
+      msgEl.textContent = 'Failed: ' + (e.message || 'unknown error');
+      msgEl.style.color = 'var(--danger)';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Submit Game Request';
     }
   });
 
@@ -917,6 +994,8 @@
     loadReports();
     loadComments();
     loadBugPageOptions();
+    const requestedTab = new URLSearchParams(location.search).get('tab');
+    if (requestedTab === 'report' || requestedTab === 'request') switchTab(requestedTab);
   });
 </script>
 </body>

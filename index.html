@@ -1594,8 +1594,8 @@
 </div>
 <div class="outline-key" aria-label="Game outline status key">
 <span class="outline-key-title">Outline key</span>
-<span class="outline-key-item"><span class="outline-key-swatch clear" aria-hidden="true"></span><span class="outline-key-copy"><strong>No colored outline</strong><span>No unresolved bug reports.</span></span></span>
-<span class="outline-key-item"><span class="outline-key-swatch yellow" aria-hidden="true"></span><span class="outline-key-copy"><strong>May be broken</strong><span>At least one unresolved bug report.</span></span></span>
+<span class="outline-key-item"><span class="outline-key-swatch clear" aria-hidden="true"></span><span class="outline-key-copy"><strong>No colored outline</strong><span>No unresolved issue reports.</span></span></span>
+<span class="outline-key-item"><span class="outline-key-swatch yellow" aria-hidden="true"></span><span class="outline-key-copy"><strong>May be broken</strong><span>At least one unresolved issue report.</span></span></span>
 <span class="outline-key-item"><span class="outline-key-swatch red" aria-hidden="true"></span><span class="outline-key-copy"><strong>Likely broken</strong><span>Reported by 3+ people or marked broken by an editor.</span></span></span>
 </div>
 <div class="search-wrap">
@@ -2514,8 +2514,8 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.getElementById('glow-warn-icon').textContent = isRed ? '⛔' : '⚠️';
     document.getElementById('glow-warn-title').textContent = isRed ? 'This game is almost definitely broken' : 'This game may be broken';
     document.getElementById('glow-warn-text').textContent = isRed
-      ? 'This game is almost definitely broken because either an editor marked it as broken or we got 3+ bug reports for it'
-      : 'This game may be broken because we have received at least 1 bug report for this game';
+      ? 'This game is almost definitely broken because either an editor marked it as broken or we got 3+ issue reports for it'
+      : 'This game may be broken because we have received at least 1 issue report for this game';
     modal.style.display = 'flex';
   }
   document.addEventListener('click', (e) => {
