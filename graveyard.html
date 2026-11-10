@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Graveyard — KnowWhere</title>
+  <link rel="icon" href="/img/KnowWhere-Logo-Trans.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    @font-face{font-family:'Orbitron';font-style:normal;font-weight:400 900;font-display:swap;src:url('https://fonts.gstatic.com/s/orbitron/v35/yMJRMIlzdpvBhQQL_Qq7dy0.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#08090d;--card:#111218;--border:#262833;--primary:#a855f7;--secondary:#22d3ee;--text:#e2e8f0;--muted:#778195;--font-display:'Orbitron',sans-serif;--font-body:'Inter',sans-serif}
+    body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden}
+    #auth-wall{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem}
+    #auth-wall.hidden{display:none}
+    #main-content{display:none;padding-top:56px;min-height:100vh;background:radial-gradient(circle at 50% 0,rgba(168,85,247,.12),transparent 32rem),linear-gradient(180deg,#0b0c12 0,#08090d 72%)}
+    #main-content.visible{display:block}
+    .hero{position:relative;text-align:center;padding:5.5rem 1.5rem 3rem;overflow:hidden}
+    .moon{position:absolute;width:170px;height:170px;border-radius:50%;top:1.5rem;left:50%;transform:translateX(-50%);background:radial-gradient(circle at 35% 30%,#f5f3ff 0,#c4b5fd 27%,#6d4da2 64%,#21152f 100%);opacity:.11;box-shadow:0 0 70px rgba(168,85,247,.45);pointer-events:none}
+    .eyebrow{position:relative;color:var(--primary);font-family:var(--font-display);font-size:.62rem;font-weight:800;letter-spacing:.3em;text-transform:uppercase;margin-bottom:1rem}
+    h1{position:relative;font-family:var(--font-display);font-size:clamp(2.3rem,8vw,5rem);line-height:1;font-weight:900;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 5px 30px rgba(0,0,0,.8)}
+    h1 span{color:var(--primary)}
+    .hero-copy{position:relative;max-width:610px;margin:1.2rem auto 0;color:#929bad;line-height:1.7;font-size:.95rem}
+    .count{position:relative;margin-top:1.25rem;color:var(--muted);font-family:var(--font-display);font-size:.62rem;letter-spacing:.13em;text-transform:uppercase}
+    .controls{max-width:1050px;margin:0 auto 2.5rem;padding:0 1.5rem;display:flex;align-items:center;justify-content:center;gap:.8rem;flex-wrap:wrap}
+    .search{position:relative;flex:1;max-width:420px;min-width:230px}
+    .search svg{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--muted)}
+    .search input{width:100%;height:46px;padding:0 1rem 0 2.8rem;background:rgba(17,18,24,.88);border:1px solid var(--border);border-radius:9px;color:var(--text);font:inherit;outline:none;transition:.2s}
+    .search input:focus{border-color:rgba(168,85,247,.7);box-shadow:0 0 0 3px rgba(168,85,247,.1)}
+    .filters{display:flex;padding:.25rem;background:rgba(17,18,24,.88);border:1px solid var(--border);border-radius:9px;overflow:auto;max-width:100%}
+    .filter{border:0;background:transparent;color:var(--muted);padding:.65rem .8rem;border-radius:6px;cursor:pointer;font-family:var(--font-display);font-size:.55rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+    .filter:hover{color:var(--text)}.filter.active{color:#fff;background:rgba(168,85,247,.2)}
+    .cemetery{max-width:1120px;margin:0 auto;padding:0 1.5rem 6rem}
+    .grave-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem;align-items:stretch}
+    .memorial{position:relative;display:flex;flex-direction:column;min-height:330px;padding:1.4rem 1.35rem 1.25rem;background:linear-gradient(145deg,rgba(25,26,34,.96),rgba(13,14,19,.98));border:1px solid #2b2d38;border-radius:70px 70px 10px 10px;box-shadow:inset 0 1px rgba(255,255,255,.035),0 14px 28px rgba(0,0,0,.28);overflow:hidden;animation:rise .35s ease both}
+    .memorial::before{content:'';position:absolute;inset:8px;border:1px solid rgba(255,255,255,.035);border-radius:62px 62px 7px 7px;pointer-events:none}
+    .memorial::after{content:'';position:absolute;left:-8%;right:-8%;bottom:-7px;height:15px;border-radius:50%;background:#171a1c;box-shadow:0 6px 0 #0d100f}
+    @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    .grave-icon{position:relative;width:42px;height:42px;margin:0 auto .85rem;color:#7f8796;opacity:.75}
+    .grave-type{position:relative;align-self:center;padding:.23rem .55rem;border:1px solid rgba(168,85,247,.24);border-radius:999px;color:#c084fc;background:rgba(168,85,247,.08);font-family:var(--font-display);font-size:.5rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .memorial h2{position:relative;margin:1rem 0 .55rem;text-align:center;font-family:var(--font-display);font-size:1rem;letter-spacing:.04em;line-height:1.35;overflow-wrap:anywhere}
+    .years{position:relative;text-align:center;color:#8a93a4;font-family:var(--font-display);font-size:.62rem;letter-spacing:.1em}
+    .date-link{color:inherit;text-decoration:none;border-bottom:1px dotted #596273}.date-link:hover{color:var(--secondary);border-color:var(--secondary)}
+    .lifespan{color:#5f6877;margin-left:.25rem}
+    .epitaph{position:relative;margin:1rem 0;color:#929bad;font-size:.82rem;line-height:1.65;text-align:center;overflow-wrap:anywhere;flex:1}
+    .state{grid-column:1/-1;text-align:center;padding:5rem 1rem;color:var(--muted);line-height:1.7}
+    .spinner{width:28px;height:28px;margin:0 auto 1rem;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:850px){.grave-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:560px){.hero{padding-top:4rem}.controls{align-items:stretch}.search{max-width:none}.filters{width:100%}.filter{flex:1}.grave-grid{grid-template-columns:1fr}.memorial{min-height:300px}.cemetery{padding-inline:1rem}}
+  </style>
+</head>
+<body>
+  <script src="/js/cloak.js?v=2"></script>
+  <div id="auth-wall"></div>
+  <script>window.KW_AUTH_OPTS={allowUsername:true,subtitle:'The Graveyard'};</script>
+  <script src="/js/auth.js"></script>
+
+  <div id="main-content">
+    <script src="/js/nav.js"></script>
+    <script type="module" src="/js/user-menu.js?v=3"></script>
+    <script type="module" src="/js/auth-flows.js"></script>
+    <script type="module" src="/js/payment-wall.js"></script>
+
+    <header class="hero">
+      <div class="moon"></div>
+      <div class="eyebrow">In memory of the retired</div>
+      <h1>The <span>Graveyard</span></h1>
+      <p class="hero-copy">A resting place for KnowWhere features and services that are no longer with us—but are not forgotten.</p>
+      <div class="count" id="grave-count">Loading memorials…</div>
+    </header>
+
+    <div class="controls">
+      <label class="search" aria-label="Search the Graveyard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="grave-search" type="search" placeholder="Search the dearly departed…" autocomplete="off" />
+      </label>
+      <div class="filters" role="group" aria-label="Filter memorials">
+        <button class="filter active" data-type="All">All</button>
+        <button class="filter" data-type="Feature">Features</button>
+        <button class="filter" data-type="Service">Services</button>
+      </div>
+    </div>
+
+    <main class="cemetery">
+      <div class="grave-grid" id="grave-grid"><div class="state"><div class="spinner"></div>Opening the cemetery gates…</div></div>
+    </main>
+  </div>
+
+  <script type="module">
+    import {initializeApp,getApps} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+    import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+    import {getFirestore,doc,getDoc} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+
+    const firebaseConfig={apiKey:'AIzaSyB_7DGpmrVotodTuPJDXoZrKrKbkzPhWDw',authDomain:'knowwhere-firebase.firebaseapp.com',projectId:'knowwhere-firebase',storageBucket:'knowwhere-firebase.firebasestorage.app',messagingSenderId:'389831660515',appId:'1:389831660515:web:0bcd3292610b1be0af86d6',measurementId:'G-9LMCC5TS1J'};
+    const app=getApps()[0]||initializeApp(firebaseConfig);
+    const auth=getAuth(app);
+    const db=getFirestore(app);
+    let memorials=[];
+    let activeType='All';
+
+    function esc(value){return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+    function safeUrl(value){const raw=String(value||'').trim();if(!raw)return '';try{const url=new URL(raw,location.origin);return /^https?:$/.test(url.protocol)?url.href:''}catch{return ''}}
+    function dateParts(value){const match=String(value||'').match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);return match?{year:Number(match[1]),month:Number(match[2]||1),day:match[3]?Number(match[3]):null,hasMonth:!!match[2]}:null}
+    function displayDate(value){
+      const parts=dateParts(value);
+      if(!parts)return '?';
+      if(!parts.hasMonth)return String(parts.year);
+      return new Intl.DateTimeFormat('en-US',parts.day?{month:'short',day:'numeric',year:'numeric'}:{month:'short',year:'numeric'}).format(new Date(Date.UTC(parts.year,parts.month-1,parts.day||1)));
+    }
+    function linkedDate(value,commit){const label=esc(displayDate(value));const url=safeUrl(commit);return url?`<a class="date-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="View GitHub commit">${label}</a>`:label}
+    function years(item){
+      const born=dateParts(item.launched);
+      const died=dateParts(item.retired);
+      if(!born&&!died)return 'Dates unknown';
+      let age='';
+      if(born&&died){const months=(died.year-born.year)*12+(died.month-born.month);if(months>=0){const label=months<24?`${months} month${months===1?'':'s'}`:`${Math.floor(months/12)} year${Math.floor(months/12)===1?'':'s'}`;age=`<span class="lifespan">· ${label}</span>`}}
+      return `${linkedDate(item.launched,item.launchedCommit)} — ${linkedDate(item.retired,item.retiredCommit)} ${age}`;
+    }
+    function tombstone(){return '<svg class="grave-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 42V19C10 11.3 16.3 5 24 5s14 6.3 14 14v23"/><path d="M5 42h38M19 18h10M24 13v10"/></svg>'}
+
+    function render(){
+      const term=document.getElementById('grave-search').value.trim().toLowerCase();
+      const filtered=memorials.filter(item=>(activeType==='All'||item.type===activeType)&&(!term||[item.name,item.description,item.type,item.launched,item.retired].some(value=>String(value||'').toLowerCase().includes(term))));
+      const grid=document.getElementById('grave-grid');
+      document.getElementById('grave-count').textContent=`${memorials.length} memorial${memorials.length===1?'':'s'} in the KnowWhere cemetery`;
+      if(!filtered.length){grid.innerHTML=`<div class="state">${memorials.length?'No memorials match your search.':'The Graveyard is quiet for now. Admins can add the first memorial from the Admin Panel.'}</div>`;return}
+      grid.innerHTML=filtered.map((item,index)=>{
+        return `<article class="memorial" style="animation-delay:${Math.min(index,8)*35}ms">${tombstone()}<span class="grave-type">${esc(item.type||'Memorial')}</span><h2>${esc(item.name)}</h2><div class="years">${years(item)}</div><p class="epitaph">${esc(item.description||'Gone, but not forgotten.')}</p></article>`
+      }).join('');
+    }
+
+    document.getElementById('grave-search').addEventListener('input',render);
+    document.querySelectorAll('.filter').forEach(button=>button.addEventListener('click',()=>{
+      activeType=button.dataset.type;
+      document.querySelectorAll('.filter').forEach(other=>other.classList.toggle('active',other===button));
+      render();
+    }));
+
+    onAuthStateChanged(auth,async user=>{
+      const wall=document.getElementById('auth-wall');
+      const main=document.getElementById('main-content');
+      if(!user){wall.classList.remove('hidden');main.classList.remove('visible');return}
+      wall.classList.add('hidden');main.classList.add('visible');
+      try{
+        const snapshot=await getDoc(doc(db,'siteContent','main'));
+        const data=snapshot.exists()?snapshot.data():{};
+        memorials=(Array.isArray(data.graveyard)?data.graveyard:[]).filter(item=>item&&item.name).map(item=>({...item,type:['Feature','Service'].includes(item.type)?item.type:'Feature'})).sort((a,b)=>(Number(b.retired)||0)-(Number(a.retired)||0));
+        render();
+      }catch(error){
+        console.error('Could not load Graveyard:',error);
+        document.getElementById('grave-grid').innerHTML='<div class="state">The cemetery gates could not be opened. Please try again later.</div>';
+        document.getElementById('grave-count').textContent='Graveyard unavailable';
+      }
+    });
+  </script>
+</body>
+</html>

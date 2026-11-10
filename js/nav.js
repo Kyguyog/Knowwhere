@@ -20,6 +20,7 @@
       '<a href="/msg.html">Message</a>' +
       '<a href="/playtime.html">Playtime</a>' +
       '<a href="/updates.html">Updates</a>' +
+      '<a href="/graveyard.html">Graveyard</a>' +
       '<a href="/bugs.html">Bugs</a>' +
     '</div>' +
     '<div id="nav-user-badge" style="display:flex;align-items:center;gap:0.5rem;margin-left:auto;"></div>' +
@@ -35,6 +36,7 @@
     '<a href="/msg.html" onclick="closeMobileNav()">Message</a>' +
     '<a href="/playtime.html" onclick="closeMobileNav()">Playtime</a>' +
     '<a href="/updates.html" onclick="closeMobileNav()">Updates</a>' +
+    '<a href="/graveyard.html" onclick="closeMobileNav()">Graveyard</a>' +
     '<a href="/bugs.html" onclick="closeMobileNav()">Bugs</a>';
 
   document.body.insertBefore(drawer, document.body.firstChild);
