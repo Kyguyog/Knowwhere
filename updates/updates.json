@@ -1,5 +1,13 @@
 [
   {
+    "sha": "a0d100f517ee0078456a71af5e2d11fcfd9d885b",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/a0d100f517ee0078456a71af5e2d11fcfd9d885b",
+    "message": "Reduce Firestore reads and remove notifications",
+    "date": "2026-11-10T07:11:50Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "13f0cb8fe51de52b33c23ceb8c43b4d081eba86c",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/13f0cb8fe51de52b33c23ceb8c43b4d081eba86c",
     "message": "updates",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/Knowwhere/commit/fcf5ec62f249116b5ba329ef2f5f0c8ad7453427",
     "message": "make Popup enabled by default",
     "date": "2026-08-12T02:54:54Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "c75dd7fe7f54c6199fe6927b1aeade19276aff8c",
-    "url": "https://github.com/Kyguyog/Knowwhere/commit/c75dd7fe7f54c6199fe6927b1aeade19276aff8c",
-    "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
-    "date": "2026-07-17T21:50:00Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
