@@ -519,7 +519,6 @@
 
 <script src="/js/nav.js"></script>
 <script type="module" src="/js/user-menu.js?v=3"></script>
-  <script type="module" src="/js/notifications.js"></script>
   <script type="module" src="/js/auth-flows.js"></script>
   <script type="module" src="/js/payment-wall.js"></script>
 
@@ -1213,8 +1212,7 @@ window.adminSave = async function(section) {
         allowSendingMessages: document.getElementById('ae-message-send').checked,
         allowAttachments: document.getElementById('ae-message-attachments').checked,
         allowEmojis: document.getElementById('ae-message-emojis').checked,
-        allowDeleteChats: document.getElementById('ae-message-delete').checked,
-        allowNotifications: document.getElementById('ae-message-notifications').checked
+        allowDeleteChats: document.getElementById('ae-message-delete').checked
       };
     } else if (section === 'staffform') {
       const latest = await window._firestoreGetSiteContent();
@@ -1291,13 +1289,12 @@ window.openAdminPanel = function() {
   document.getElementById('ae-hiring-desc').value = h.description || '';
   document.getElementById('ae-hiring-url').value = h.url || '';
   renderCommandLinksEditor(data.command?.links || []);
-  const messageSettings = Object.assign({maxMessageLength:12000,allowSendingMessages:true,allowAttachments:true,allowEmojis:true,allowDeleteChats:true,allowNotifications:true}, data.messageSettings || {});
+  const messageSettings = Object.assign({maxMessageLength:12000,allowSendingMessages:true,allowAttachments:true,allowEmojis:true,allowDeleteChats:true}, data.messageSettings || {});
   document.getElementById('ae-message-max-length').value = messageSettings.maxMessageLength;
   document.getElementById('ae-message-send').checked = messageSettings.allowSendingMessages !== false;
   document.getElementById('ae-message-attachments').checked = messageSettings.allowAttachments !== false;
   document.getElementById('ae-message-emojis').checked = messageSettings.allowEmojis !== false;
   document.getElementById('ae-message-delete').checked = messageSettings.allowDeleteChats !== false;
-  document.getElementById('ae-message-notifications').checked = messageSettings.allowNotifications !== false;
   renderStaffFormEditor(data.command?.staffForm);
   renderPaywallEditor(data.paywall);
   renderNoticePopupEditor(data.noticePopup);
@@ -1361,7 +1358,7 @@ window.closeAdminPanel = function() {
       'auth/user-not-found': 'No account found with that email.',
       'auth/wrong-password': 'Incorrect password. Try again.',
       'auth/email-already-in-use': 'An account with that email already exists.',
-      'auth/weak-password': 'Password must be at least 6 characters.',
+      'auth/weak-password': 'Password must be at least 8 characters.',
       'auth/too-many-requests': 'Too many attempts. Try again later.',
       'auth/invalid-credential': 'Email or password is incorrect.',
       'auth/user-disabled': 'This account has been disabled.',
@@ -1466,7 +1463,6 @@ window.closeAdminPanel = function() {
           <label class="toggle-wrap"><span class="toggle-switch admin-toggle"><input type="checkbox" id="ae-message-attachments" checked><span class="toggle-track"></span></span><span class="toggle-label">Allow file attachments</span></label>
           <label class="toggle-wrap"><span class="toggle-switch admin-toggle"><input type="checkbox" id="ae-message-emojis" checked><span class="toggle-track"></span></span><span class="toggle-label">Allow emojis</span></label>
           <label class="toggle-wrap"><span class="toggle-switch admin-toggle"><input type="checkbox" id="ae-message-delete" checked><span class="toggle-track"></span></span><span class="toggle-label">Allow deleting chats</span></label>
-          <label class="toggle-wrap"><span class="toggle-switch admin-toggle"><input type="checkbox" id="ae-message-notifications" checked><span class="toggle-track"></span></span><span class="toggle-label">Enable message notifications (Uses a lot of Firestore reads)</span></label>
         </div>
         <div class="admin-save-row"><button class="admin-save-btn" onclick="adminSave('command')">Save Command</button><span class="admin-status" id="status-command"></span></div>
       </div>

@@ -882,7 +882,7 @@
     }
     .site-pill:hover svg { opacity: 1; }
 
-    /* ── OPEN-BUG STATUS GLOWS (no outline = ok, yellow = open reports, red = 4+ people or admin-flagged broken) ──
+    /* ── OPEN-BUG STATUS GLOWS (no outline = ok, yellow = open reports, red = 3+ people or admin-flagged broken) ──
        Colorblind cues: yellow = dashed + brighter, red = thickest solid. */
     .game-card.glow-yellow, .site-pill.glow-yellow, .game-feature.glow-yellow {
       outline: 3px dashed #facc15;
@@ -901,6 +901,55 @@
     .game-card.glow-red:hover, .site-pill.glow-red:hover, .game-feature.glow-red:hover {
       outline-color: #f87171;
       box-shadow: 0 0 36px rgba(239,68,68,0.9), 0 0 12px rgba(239,68,68,0.8);
+    }
+
+    .outline-key {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      margin: -1.25rem auto 2rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+    .outline-key-title {
+      width: 100%;
+      text-align: center;
+      color: var(--text);
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .outline-key-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      max-width: 245px;
+      padding: 0.65rem 0.75rem;
+      background: rgba(17,17,24,0.7);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+    }
+    .outline-key-copy { display: flex; flex-direction: column; gap: 0.12rem; line-height: 1.35; }
+    .outline-key-copy strong { color: var(--text); font-size: 0.78rem; }
+    .outline-key-swatch {
+      width: 1.6rem;
+      height: 0.85rem;
+      border-radius: 3px;
+      background: var(--card);
+      flex-shrink: 0;
+    }
+    .outline-key-swatch.clear { border: 1px solid var(--border); }
+    .outline-key-swatch.yellow {
+      border: 2px dashed #facc15;
+      box-shadow: 0 0 7px rgba(250,204,21,0.55);
+    }
+    .outline-key-swatch.red {
+      border: 3px solid #dc2626;
+      box-shadow: 0 0 7px rgba(220,38,38,0.6);
     }
 
     /* ── Broken-game warning popup (shown before opening yellow/red games) ── */
@@ -1543,6 +1592,12 @@
 <h2>The <span style="color:var(--primary)">Games</span></h2>
 <p>Full database of available games, sorted A–Z.</p>
 </div>
+<div class="outline-key" aria-label="Game outline status key">
+<span class="outline-key-title">Outline key</span>
+<span class="outline-key-item"><span class="outline-key-swatch clear" aria-hidden="true"></span><span class="outline-key-copy"><strong>No colored outline</strong><span>No unresolved bug reports.</span></span></span>
+<span class="outline-key-item"><span class="outline-key-swatch yellow" aria-hidden="true"></span><span class="outline-key-copy"><strong>May be broken</strong><span>At least one unresolved bug report.</span></span></span>
+<span class="outline-key-item"><span class="outline-key-swatch red" aria-hidden="true"></span><span class="outline-key-copy"><strong>Likely broken</strong><span>Reported by 3+ people or marked broken by an editor.</span></span></span>
+</div>
 <div class="search-wrap">
 <svg class="search-icon" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
 <input autocomplete="off" id="search-input" placeholder="Search games..." type="text"/>
@@ -1671,7 +1726,7 @@ window._fetchPlaytimeLeaderboard=async function(){const snap=await getDocs(colle
 window.__kwSignIn=async function(input,password){let loginEmail=input;const isEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);if(!isEmail){let found=false;try{const usersSnap=await getDocs(collection(db,'users'));const usernameLower=input.toLowerCase();for(const d of usersSnap.docs){const uData=d.data();if(uData.username&&uData.username.toLowerCase()===usernameLower){loginEmail=d.id;found=true;break;}}}catch(e){throw new Error('Error looking up username. Try using your email instead.');}if(!found)throw new Error('No account found with that username.');}return signInWithEmailAndPassword(auth,loginEmail,password);};window.handleSignupRequest=async function(){const fullName=document.getElementById('signup-fullname').value.trim();const username=document.getElementById('signup-username').value.trim();const email=document.getElementById('signup-email').value.trim();const password=document.getElementById('signup-password').value;const confirm=document.getElementById('signup-confirm').value;const errEl=document.getElementById('signup-error');const successEl=document.getElementById('signup-success');const btn=document.getElementById('signup-submit');errEl.classList.remove('show');successEl.style.display='none';if(!fullName||!email||!password||!confirm){errEl.textContent='Please fill in all fields.';errEl.classList.add('show');return;}
 const nameParts=fullName.split(/\s+/).filter(Boolean);if(nameParts.length<2){errEl.textContent='Please enter your full name (first and last).';errEl.classList.add('show');return;}
 if(!/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email)){errEl.textContent='Please enter a valid email address.';errEl.classList.add('show');return;}
-if(password.length<6){errEl.textContent='Password must be at least 6 characters.';errEl.classList.add('show');return;}
+if(password.length<8){errEl.textContent='Password must be at least 8 characters.';errEl.classList.add('show');return;}
 if(password!==confirm){errEl.textContent='Passwords do not match.';errEl.classList.add('show');return;}
 btn.disabled=true;btn.textContent='Sending request...';try{const RETRY_MS=60*60*1000;const finalUsername=username||fullName.split(/\s+/)[0];const usernameLower=finalUsername.toLowerCase();const usersSnap=await getDocs(collection(db,'users'));for(const d of usersSnap.docs){if(d.id.toLowerCase()===email.toLowerCase()){errEl.textContent='An account with that email already exists. Try logging in instead.';errEl.classList.add('show');btn.disabled=false;btn.textContent='Request Access';return;}
 const uData=d.data();if(uData.username&&uData.username.toLowerCase()===usernameLower){errEl.textContent='That username is already taken. Please choose a different one.';errEl.classList.add('show');btn.disabled=false;btn.textContent='Request Access';return;}}
@@ -2459,7 +2514,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.getElementById('glow-warn-icon').textContent = isRed ? '⛔' : '⚠️';
     document.getElementById('glow-warn-title').textContent = isRed ? 'This game is almost definitely broken' : 'This game may be broken';
     document.getElementById('glow-warn-text').textContent = isRed
-      ? 'This game is almost definitely broken because either an editor marked it as broken or we got 4+ bug reports for it'
+      ? 'This game is almost definitely broken because either an editor marked it as broken or we got 3+ bug reports for it'
       : 'This game may be broken because we have received at least 1 bug report for this game';
     modal.style.display = 'flex';
   }
@@ -2584,7 +2639,7 @@ window._kwLoadBugGlows = function () {
       });
       const out = {};
       Object.keys(map).forEach(k => {
-        out[k] = map[k].who.size >= 4 ? 'red' : 'yellow';
+        out[k] = map[k].who.size >= 3 ? 'red' : 'yellow';
       });
       window._kwBugGlow = out;
       _bugGlowLoaded = true;
@@ -3042,7 +3097,6 @@ window.closeProfile = function() {
 <script src="/js/playtime-outbox.js"></script>
 <script src="/js/nav.js"></script>
 <script type="module" src="/js/user-menu.js?v=3"></script>
-<script type="module" src="/js/notifications.js"></script>
 <script type="module" src="/js/auth-flows.js"></script>
 <script type="module" src="/js/payment-wall.js"></script>
 <script>

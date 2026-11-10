@@ -71,8 +71,8 @@ window.__kwSignup = async function () {
     errEl.classList.add("show");
     return;
   }
-  if (password.length < 6) {
-    errEl.textContent = "Password must be at least 6 characters.";
+  if (password.length < 8) {
+    errEl.textContent = "Password must be at least 8 characters.";
     errEl.classList.add("show");
     return;
   }

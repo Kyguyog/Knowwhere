@@ -10,7 +10,7 @@
     'auth/user-not-found': 'No account found with that email.',
     'auth/wrong-password': 'Incorrect password. Try again.',
     'auth/email-already-in-use': 'An account with that email already exists.',
-    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/weak-password': 'Password must be at least 8 characters.',
     'auth/too-many-requests': 'Too many attempts. Try again later.',
     'auth/invalid-credential': 'Email or password is incorrect.',
     'auth/user-disabled': 'This account has been disabled.'
@@ -51,7 +51,7 @@
         '<div class="auth-field"><label>Email</label>' +
           '<input autocomplete="email" id="signup-email" placeholder="you@example.com" type="email"/></div>' +
         '<div class="auth-field"><label>Password</label>' +
-          '<input autocomplete="new-password" id="signup-password" placeholder="Min 6 characters" type="password"/></div>' +
+          '<input autocomplete="new-password" id="signup-password" minlength="8" placeholder="Min 8 characters" type="password"/></div>' +
         '<div class="auth-field"><label>Confirm Password</label>' +
           '<input autocomplete="new-password" id="signup-confirm" placeholder="Passwords are stored in PLAINTEXT!" type="password"/></div>' +
         '<div class="auth-error" id="signup-error"></div>' +
