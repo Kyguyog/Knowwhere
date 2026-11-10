@@ -1,5 +1,13 @@
 [
   {
+    "sha": "3c2242423cc0606c8eb00d8fe922523bda8f8791",
+    "url": "https://github.com/Kyguyog/Knowwhere/commit/3c2242423cc0606c8eb00d8fe922523bda8f8791",
+    "message": "Merge branch 'main' of https://github.com/Kyguyog/Knowwhere",
+    "date": "2026-11-10T07:39:01Z",
+    "author_login": "Kyguyog",
+    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
+  },
+  {
     "sha": "a0d100f517ee0078456a71af5e2d11fcfd9d885b",
     "url": "https://github.com/Kyguyog/Knowwhere/commit/a0d100f517ee0078456a71af5e2d11fcfd9d885b",
     "message": "Reduce Firestore reads and remove notifications",
@@ -1188,14 +1196,6 @@
     "url": "https://github.com/Kyguyog/Knowwhere/commit/86d49780d83a7c7363a02f561f682c6e56d1b06e",
     "message": "Update README.md",
     "date": "2026-09-03T18:47:52Z",
-    "author_login": "Kyguyog",
-    "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
-  },
-  {
-    "sha": "fcf5ec62f249116b5ba329ef2f5f0c8ad7453427",
-    "url": "https://github.com/Kyguyog/Knowwhere/commit/fcf5ec62f249116b5ba329ef2f5f0c8ad7453427",
-    "message": "make Popup enabled by default",
-    "date": "2026-08-12T02:54:54Z",
     "author_login": "Kyguyog",
     "author_avatar": "https://avatars.githubusercontent.com/u/107652213?v=4"
   }
