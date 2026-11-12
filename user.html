@@ -37,7 +37,7 @@
       font-family: var(--font-body);
       min-height: 100vh;
       overflow-x: hidden;
-      padding-top: 56px;
+      padding-top: var(--kw-topbar-page-offset, 56px);
     }
 
     /* ── AUTH WALL ── */
@@ -530,7 +530,7 @@
       #ap-toolbar { flex-wrap: wrap; padding: 0.6rem 1rem; }
       #ap-toolbar #search-wrapper { width: 100% !important; flex-basis: 100% !important; }
       #approvals-list { padding: 0.75rem 1rem; }
-      #approvals-panel { top: 56px; }
+      #approvals-panel { top: var(--kw-topbar-page-offset, 56px); }
 
       #user-modal div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
       #user-history-modal div[style*="width:35%"] { width: 100% !important; border-right: none !important; border-bottom: 1px solid var(--border); }
@@ -549,8 +549,8 @@
 <script src="/js/auth.js"></script>
 
 <div id="main-content">
-<script src="/js/nav.js"></script>
-<script type="module" src="/js/user-menu.js?v=3"></script>
+<script src="/js/nav.js?v=2"></script>
+<script type="module" src="/js/user-menu.js?v=24"></script>
 <script type="module" src="/js/auth-flows.js"></script>
 <script type="module" src="/js/payment-wall.js"></script>
 </div>
@@ -589,7 +589,7 @@ window._fetchAiHistory=async function(email){const q=query(collection(db,'aiHist
 <script>window._isAdmin=false;window._siteData=null;window._adminOriginalData=null;window.injectAdminPanels=function(){if(document.getElementById('approvals-panel'))return;const mount=document.getElementById('admin-panels-mount');mount.innerHTML=`
 <div id="admin-panel" style="display:none;"></div>
 
-<div id="approvals-panel" style="display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:9997;background:#000;overflow:hidden;display:flex;flex-direction:column;">
+<div id="approvals-panel" style="display:none;position:fixed;top:var(--kw-topbar-page-offset,56px);left:0;right:0;bottom:0;z-index:9997;background:#000;overflow:hidden;display:flex;flex-direction:column;">
   <div style="background:#000;width:100%;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
     <!-- Sub-tabs -->
     <div style="display:flex;border-bottom:1px solid var(--border);background:rgba(168,85,247,0.03);">

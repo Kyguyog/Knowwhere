@@ -15,7 +15,7 @@
     body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden}
     #auth-wall{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem}
     #auth-wall.hidden{display:none}
-    #main-content{display:none;padding-top:56px;min-height:100vh;background:radial-gradient(circle at 50% 0,rgba(168,85,247,.12),transparent 32rem),linear-gradient(180deg,#0b0c12 0,#08090d 72%)}
+    #main-content{display:none;padding-top:var(--kw-topbar-page-offset,56px);min-height:100vh;background:radial-gradient(circle at 50% 0,rgba(168,85,247,.12),transparent 32rem),linear-gradient(180deg,#0b0c12 0,#08090d 72%)}
     #main-content.visible{display:block}
     .hero{position:relative;text-align:center;padding:5.5rem 1.5rem 3rem;overflow:hidden}
     .moon{position:absolute;width:170px;height:170px;border-radius:50%;top:1.5rem;left:50%;transform:translateX(-50%);background:radial-gradient(circle at 35% 30%,#f5f3ff 0,#c4b5fd 27%,#6d4da2 64%,#21152f 100%);opacity:.11;box-shadow:0 0 70px rgba(168,85,247,.45);pointer-events:none}
@@ -59,8 +59,8 @@
   <script src="/js/auth.js"></script>
 
   <div id="main-content">
-    <script src="/js/nav.js"></script>
-    <script type="module" src="/js/user-menu.js?v=3"></script>
+<script src="/js/nav.js?v=2"></script>
+<script type="module" src="/js/user-menu.js?v=24"></script>
     <script type="module" src="/js/auth-flows.js"></script>
     <script type="module" src="/js/payment-wall.js"></script>
 

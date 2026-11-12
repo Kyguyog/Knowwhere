@@ -342,7 +342,7 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      padding-top: 56px;
+      padding-top: var(--kw-topbar-page-offset, 56px);
     }
     .home-bg {
       position: absolute;
@@ -882,25 +882,49 @@
     }
     .site-pill:hover svg { opacity: 1; }
 
-    /* ── OPEN-BUG STATUS GLOWS (no outline = ok, yellow = open reports, red = 3+ people or admin-flagged broken) ──
+    /* ── CURRENT UI: OPEN-BUG STATUS OUTLINES ──
        Colorblind cues: yellow = dashed + brighter, red = thickest solid. */
-    .game-card.glow-yellow, .site-pill.glow-yellow, .game-feature.glow-yellow {
+    :root:not([data-kw-theme="material"]) .game-card.glow-yellow,
+    :root:not([data-kw-theme="material"]) .site-pill.glow-yellow,
+    :root:not([data-kw-theme="material"]) .game-feature.glow-yellow {
       outline: 3px dashed #facc15;
       outline-offset: 2px;
       box-shadow: 0 0 24px rgba(250,204,21,0.7), 0 0 6px rgba(250,204,21,0.55);
     }
-    .game-card.glow-red, .site-pill.glow-red, .game-feature.glow-red {
+    :root:not([data-kw-theme="material"]) .game-card.glow-red,
+    :root:not([data-kw-theme="material"]) .site-pill.glow-red,
+    :root:not([data-kw-theme="material"]) .game-feature.glow-red {
       outline: 4px solid #dc2626;
       outline-offset: 2px;
       box-shadow: 0 0 28px rgba(220,38,38,0.75), 0 0 8px rgba(153,27,27,0.7);
     }
-    .game-card.glow-yellow:hover, .site-pill.glow-yellow:hover, .game-feature.glow-yellow:hover {
+    :root:not([data-kw-theme="material"]) .game-card.glow-yellow:hover,
+    :root:not([data-kw-theme="material"]) .site-pill.glow-yellow:hover,
+    :root:not([data-kw-theme="material"]) .game-feature.glow-yellow:hover {
       outline-color: #fde047;
       box-shadow: 0 0 32px rgba(250,204,21,0.9), 0 0 10px rgba(250,204,21,0.75);
     }
-    .game-card.glow-red:hover, .site-pill.glow-red:hover, .game-feature.glow-red:hover {
+    :root:not([data-kw-theme="material"]) .game-card.glow-red:hover,
+    :root:not([data-kw-theme="material"]) .site-pill.glow-red:hover,
+    :root:not([data-kw-theme="material"]) .game-feature.glow-red:hover {
       outline-color: #f87171;
       box-shadow: 0 0 36px rgba(239,68,68,0.9), 0 0 12px rgba(239,68,68,0.8);
+    }
+
+    /* ── MATERIAL UI: OPEN-BUG GAMEPAD INFILL ── */
+    :root[data-kw-theme="material"] .game-card.glow-yellow > svg:first-child,
+    :root[data-kw-theme="material"] .site-pill.glow-yellow > svg:last-child,
+    :root[data-kw-theme="material"] .game-feature.glow-yellow .game-feature-badge svg {
+      color: #facc15;
+      fill: rgba(250,204,21,0.28);
+      filter: drop-shadow(0 0 4px rgba(250,204,21,0.7));
+    }
+    :root[data-kw-theme="material"] .game-card.glow-red > svg:first-child,
+    :root[data-kw-theme="material"] .site-pill.glow-red > svg:last-child,
+    :root[data-kw-theme="material"] .game-feature.glow-red .game-feature-badge svg {
+      color: #ef4444;
+      fill: rgba(239,68,68,0.32);
+      filter: drop-shadow(0 0 4px rgba(239,68,68,0.72));
     }
 
     .outline-key {
@@ -938,19 +962,29 @@
     .outline-key-swatch {
       width: 1.6rem;
       height: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 3px;
       background: var(--card);
       flex-shrink: 0;
     }
     .outline-key-swatch.clear { border: 1px solid var(--border); }
-    .outline-key-swatch.yellow {
-      border: 2px dashed #facc15;
-      box-shadow: 0 0 7px rgba(250,204,21,0.55);
+    .outline-key-swatch.yellow { border: 2px dashed #facc15; box-shadow: 0 0 7px rgba(250,204,21,0.55); }
+    .outline-key-swatch.red { border: 3px solid #dc2626; box-shadow: 0 0 7px rgba(220,38,38,0.6); }
+    .outline-key-swatch svg, .key-material { display: none; }
+    :root[data-kw-theme="material"] .outline-key-swatch {
+      width: 1rem;
+      height: 1rem;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
     }
-    .outline-key-swatch.red {
-      border: 3px solid #dc2626;
-      box-shadow: 0 0 7px rgba(220,38,38,0.6);
-    }
+    :root[data-kw-theme="material"] .outline-key-swatch svg { display: block; width: 16px; height: 16px; color: var(--muted); }
+    :root[data-kw-theme="material"] .outline-key-swatch.yellow svg { color: #facc15; fill: rgba(250,204,21,0.28); filter: drop-shadow(0 0 4px rgba(250,204,21,0.65)); }
+    :root[data-kw-theme="material"] .outline-key-swatch.red svg { color: #ef4444; fill: rgba(239,68,68,0.32); filter: drop-shadow(0 0 4px rgba(239,68,68,0.68)); }
+    :root[data-kw-theme="material"] .key-current { display: none; }
+    :root[data-kw-theme="material"] .key-material { display: inline; }
 
     /* ── Broken-game warning popup (shown before opening yellow/red games) ── */
     #glow-warn-modal {
@@ -1110,14 +1144,6 @@
       padding: 2.5rem 2rem;
       text-align: center;
     }
-    .footer-logo {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      margin-bottom: 0.5rem;
-    }
-    .footer-logo span { color: var(--primary); }
     footer p { color: var(--muted); font-size: 0.85rem; }
 
     /* ── SCROLL REVEAL ── */
@@ -1465,7 +1491,7 @@
       .section-heading h2 { font-size: 1.7rem; }
       .section-heading p { font-size: 0.88rem; }
 
-      #home { padding-top: 56px; }
+      #home { padding-top: var(--kw-topbar-page-offset, 56px); }
       .home-content { padding: 1.5rem 1.25rem; }
       .skull-wrap img { width: 90px; height: 90px; }
       h1.home-title { display: none; }
@@ -1592,11 +1618,11 @@
 <h2>The <span style="color:var(--primary)">Games</span></h2>
 <p>Full database of available games, sorted A–Z.</p>
 </div>
-<div class="outline-key" aria-label="Game outline status key">
-<span class="outline-key-title">Outline key</span>
-<span class="outline-key-item"><span class="outline-key-swatch clear" aria-hidden="true"></span><span class="outline-key-copy"><strong>No colored outline</strong><span>No unresolved issue reports.</span></span></span>
-<span class="outline-key-item"><span class="outline-key-swatch yellow" aria-hidden="true"></span><span class="outline-key-copy"><strong>May be broken</strong><span>At least one unresolved issue report.</span></span></span>
-<span class="outline-key-item"><span class="outline-key-swatch red" aria-hidden="true"></span><span class="outline-key-copy"><strong>Likely broken</strong><span>Reported by 3+ people or marked broken by an editor.</span></span></span>
+<div class="outline-key" aria-label="Game issue status key">
+<span class="outline-key-title"><span class="key-current">Outline key</span><span class="key-material">Game status</span></span>
+<span class="outline-key-item"><span class="outline-key-swatch clear" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M12 12h.01"></path><path d="M17 12h.01"></path><path d="M7 9v2"></path><path d="M6 10h2"></path></svg></span><span class="outline-key-copy"><strong class="key-current">No colored outline</strong><strong class="key-material">Plain gamepad</strong><span>No unresolved issue reports.</span></span></span>
+<span class="outline-key-item"><span class="outline-key-swatch yellow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M12 12h.01"></path><path d="M17 12h.01"></path><path d="M7 9v2"></path><path d="M6 10h2"></path></svg></span><span class="outline-key-copy"><strong class="key-current">May be broken</strong><strong class="key-material">Yellow gamepad</strong><span>At least one unresolved issue report.</span></span></span>
+<span class="outline-key-item"><span class="outline-key-swatch red" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M12 12h.01"></path><path d="M17 12h.01"></path><path d="M7 9v2"></path><path d="M6 10h2"></path></svg></span><span class="outline-key-copy"><strong class="key-current">Likely broken</strong><strong class="key-material">Red gamepad</strong><span>Reported by 3+ people or marked broken by an editor.</span></span></span>
 </div>
 <div class="search-wrap">
 <svg class="search-icon" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
@@ -1696,9 +1722,7 @@
 </section>
 
 <footer>
-<div class="footer-logo">KNOW<span>WHERE</span></div>
 <p id="footer-tagline"></p>
-<p>Credits: Caleb Vance (Website designer and creator) • Gavin Holloway (Everything Else)</p>
 </footer>
 
 
@@ -3095,8 +3119,8 @@ window.closeProfile = function() {
 <script src="/js/playtime-visibility.js"></script>
 <script src="/js/playtime-activity.js"></script>
 <script src="/js/playtime-outbox.js"></script>
-<script src="/js/nav.js"></script>
-<script type="module" src="/js/user-menu.js?v=3"></script>
+<script src="/js/nav.js?v=2"></script>
+<script type="module" src="/js/user-menu.js?v=24"></script>
 <script type="module" src="/js/auth-flows.js"></script>
 <script type="module" src="/js/payment-wall.js"></script>
 <script>

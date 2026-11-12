@@ -67,7 +67,7 @@
       position: relative;
       z-index: 1;
       text-align: center;
-      padding: 5rem 2rem 3.5rem;
+      padding: calc(var(--kw-topbar-page-offset, 56px) + 1.5rem) 2rem 3.5rem;
       max-width: 800px;
       margin: 0 auto;
     }
@@ -339,7 +339,7 @@
 
     @media (max-width: 600px) {
       nav { padding: 0 1rem; }
-      .hero { padding: 3rem 1rem 2rem; }
+      .hero { padding: calc(var(--kw-topbar-page-offset, 56px) + 1rem) 1rem 2rem; }
       .toc-wrap, .content { padding-left: 1rem; padding-right: 1rem; }
       .section-body { padding: 1.25rem 1.25rem; }
       .section-header { padding: 1rem 1.25rem; }
@@ -366,8 +366,8 @@
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
 
-<script src="/js/nav.js"></script>
-<script type="module" src="/js/user-menu.js?v=3"></script>
+<script src="/js/nav.js?v=2"></script>
+<script type="module" src="/js/user-menu.js?v=24"></script>
   <script type="module" src="/js/payment-wall.js"></script>
 
 <div class="hero">
