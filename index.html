@@ -2208,7 +2208,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       .game-popup-shell{width:min(1200px,100%);height:min(88vh,860px);background:#090b16;border:1px solid rgba(168,85,247,0.35);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 80px rgba(0,0,0,0.55);}
       .game-popup-head{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;background:rgba(168,85,247,0.08);border-bottom:1px solid rgba(168,85,247,0.2);}
       .game-popup-title{font-family:var(--font-display);font-size:0.78rem;letter-spacing:0.08em;color:var(--text);}
-      .game-popup-actions{display:flex;gap:0.4rem;}
+      .game-popup-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:0.4rem;}
       .game-popup-btn{appearance:none;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:var(--text);font-size:0.68rem;padding:0.35rem 0.55rem;border-radius:6px;cursor:pointer;}
       .game-popup-btn:hover{background:rgba(255,255,255,0.12);}
       #game-popup-frame{flex:1;width:100%;border:0;background:#06070f;}
@@ -2225,6 +2225,8 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
         <div class="game-popup-head">
           <div class="game-popup-title" id="game-popup-title">Game</div>
           <div class="game-popup-actions">
+            <button type="button" class="game-popup-btn" id="game-popup-cloud-save" style="display:none;">Save Cloud</button>
+            <button type="button" class="game-popup-btn" id="game-popup-cloud-load" style="display:none;">Load Cloud</button>
             <button type="button" class="game-popup-btn" id="game-popup-windowed">Windowed</button>
             <button type="button" class="game-popup-btn" id="game-popup-fullscreen">Fullscreen</button>
             <button type="button" class="game-popup-btn" id="game-popup-close">Close</button>
@@ -2237,6 +2239,32 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.body.appendChild(wrap);
     wrap.addEventListener('click', (e) => { if (e.target === wrap) closeGamePopup(); });
     document.getElementById('game-popup-close').addEventListener('click', closeGamePopup);
+    async function runEaglerCloudAction(action) {
+      const frame = document.getElementById('game-popup-frame');
+      const button = document.getElementById(action === 'save' ? 'game-popup-cloud-save' : 'game-popup-cloud-load');
+      const normalText = action === 'save' ? 'Save Cloud' : 'Load Cloud';
+      if (!frame || !button) return;
+      let fn;
+      try { fn = frame.contentWindow?.[action === 'save' ? 'KWEaglerCloudSaveNow' : 'KWEaglerCloudLoadNow']; } catch (_) {}
+      if (typeof fn !== 'function') {
+        button.textContent = 'Not Ready';
+        setTimeout(() => { button.textContent = normalText; }, 1500);
+        return;
+      }
+      button.disabled = true;
+      button.textContent = action === 'save' ? 'Saving…' : 'Loading…';
+      try {
+        const result = await fn();
+        button.textContent = result === false ? 'Unavailable' : (action === 'save' ? 'Saved' : 'Loading…');
+      } catch (_) {
+        button.textContent = 'Failed';
+      } finally {
+        if (action === 'save') setTimeout(() => { button.disabled = false; button.textContent = normalText; }, 1800);
+        else setTimeout(() => { button.disabled = false; button.textContent = normalText; }, 2500);
+      }
+    }
+    document.getElementById('game-popup-cloud-save').addEventListener('click', () => runEaglerCloudAction('save'));
+    document.getElementById('game-popup-cloud-load').addEventListener('click', () => runEaglerCloudAction('load'));
     document.getElementById('game-popup-windowed').addEventListener('click', () => {
       setGamePopupWindowed(!isGamePopupWindowed());
       setTimeout(focusGameFrame, 80);
@@ -2323,6 +2351,9 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const frame = document.getElementById('game-popup-frame');
     const titleEl = document.getElementById('game-popup-title');
     const ruffleContainer = document.getElementById('game-popup-ruffle');
+    const isEaglercraft = /(?:^|\/)Games\/Eaglercraft\//i.test(new URL(src, location.href).pathname);
+    document.getElementById('game-popup-cloud-save').style.display = isEaglercraft ? '' : 'none';
+    document.getElementById('game-popup-cloud-load').style.display = isEaglercraft ? '' : 'none';
     titleEl.textContent = title || 'Game';
     flushPopupPlaytime(true);
     if (trackPlaytime) {
