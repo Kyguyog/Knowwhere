@@ -2211,6 +2211,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       .game-popup-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:0.4rem;}
       .game-popup-btn{appearance:none;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:var(--text);font-size:0.68rem;padding:0.35rem 0.55rem;border-radius:6px;cursor:pointer;}
       .game-popup-btn:hover{background:rgba(255,255,255,0.12);}
+      .game-popup-cloud-message{display:none;padding:0.5rem 0.8rem;background:rgba(239,68,68,0.1);border-bottom:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-size:0.72rem;line-height:1.4;}
       #game-popup-frame{flex:1;width:100%;border:0;background:#06070f;}
       #game-popup-ruffle{display:none;flex:1;width:100%;background:#06070f;overflow:hidden;}
       #game-popup-ruffle ruffle-player{width:100%;height:100%;border:0;display:block;}
@@ -2232,6 +2233,7 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
             <button type="button" class="game-popup-btn" id="game-popup-close">Close</button>
           </div>
         </div>
+        <div class="game-popup-cloud-message" id="game-popup-cloud-message" role="status"></div>
         <iframe id="game-popup-frame" allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write" referrerpolicy="no-referrer"></iframe>
         <div id="game-popup-ruffle"></div>
       </div>
@@ -2239,16 +2241,24 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     document.body.appendChild(wrap);
     wrap.addEventListener('click', (e) => { if (e.target === wrap) closeGamePopup(); });
     document.getElementById('game-popup-close').addEventListener('click', closeGamePopup);
+    function showEaglerCloudMessage(message) {
+      const messageEl = document.getElementById('game-popup-cloud-message');
+      if (!messageEl) return;
+      messageEl.textContent = message || '';
+      messageEl.style.display = message ? 'block' : 'none';
+    }
     async function runEaglerCloudAction(action) {
       const frame = document.getElementById('game-popup-frame');
       const button = document.getElementById(action === 'save' ? 'game-popup-cloud-save' : 'game-popup-cloud-load');
       const normalText = action === 'save' ? 'Save Cloud' : 'Load Cloud';
       if (!frame || !button) return;
+      showEaglerCloudMessage('');
       let fn;
       try { fn = frame.contentWindow?.[action === 'save' ? 'KWEaglerCloudSaveNow' : 'KWEaglerCloudLoadNow']; } catch (_) {}
       if (typeof fn !== 'function') {
-        button.textContent = 'Not Ready';
-        setTimeout(() => { button.textContent = normalText; }, 1500);
+        button.textContent = 'Unavailable';
+        showEaglerCloudMessage('Cloud controls are not available yet. Wait for Eaglercraft to finish loading. Cloud saves are version-specific, so open the same Eaglercraft version that created the save.');
+        setTimeout(() => { button.textContent = normalText; }, 2500);
         return;
       }
       button.disabled = true;
@@ -2256,8 +2266,14 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
       try {
         const result = await fn();
         button.textContent = result === false ? 'Unavailable' : (action === 'save' ? 'Saved' : 'Loading…');
+        if (result === false) {
+          showEaglerCloudMessage(action === 'load'
+            ? 'No cloud save is available for this Eaglercraft version, or cloud saves are disabled. Open the exact version that was used to create the cloud save.'
+            : 'No Eaglercraft world data was found, or cloud saves are disabled.');
+        }
       } catch (_) {
-        button.textContent = 'Failed';
+        button.textContent = 'Unavailable';
+        showEaglerCloudMessage('The cloud action failed. Check your connection, confirm cloud saves are enabled, and use the same Eaglercraft version that created the save.');
       } finally {
         if (action === 'save') setTimeout(() => { button.disabled = false; button.textContent = normalText; }, 1800);
         else setTimeout(() => { button.disabled = false; button.textContent = normalText; }, 2500);
@@ -2352,6 +2368,8 @@ document.addEventListener('mouseover',(e)=>{const card=e.target.closest('#archiv
     const titleEl = document.getElementById('game-popup-title');
     const ruffleContainer = document.getElementById('game-popup-ruffle');
     const isEaglercraft = /(?:^|\/)Games\/Eaglercraft\//i.test(new URL(src, location.href).pathname);
+    const cloudMessage = document.getElementById('game-popup-cloud-message');
+    if (cloudMessage) { cloudMessage.textContent = ''; cloudMessage.style.display = 'none'; }
     document.getElementById('game-popup-cloud-save').style.display = isEaglercraft ? '' : 'none';
     document.getElementById('game-popup-cloud-load').style.display = isEaglercraft ? '' : 'none';
     titleEl.textContent = title || 'Game';
@@ -3151,7 +3169,7 @@ window.closeProfile = function() {
 <script src="/js/playtime-activity.js"></script>
 <script src="/js/playtime-outbox.js"></script>
 <script src="/js/nav.js?v=2"></script>
-<script type="module" src="/js/user-menu.js?v=24"></script>
+<script type="module" src="/js/user-menu.js?v=25"></script>
 <script type="module" src="/js/auth-flows.js"></script>
 <script type="module" src="/js/payment-wall.js"></script>
 <script>

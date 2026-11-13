@@ -10,6 +10,8 @@ const indexSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 test('Eaglercraft cloud saves and loads only through manual controls', () => {
   assert.match(indexSource, /id="game-popup-cloud-save"/);
   assert.match(indexSource, /id="game-popup-cloud-load"/);
+  assert.match(indexSource, /Cloud saves are version-specific/);
+  assert.match(indexSource, /same Eaglercraft version that created the save/);
   assert.match(cloudSource, /window\.KWEaglerCloudSaveNow/);
   assert.match(cloudSource, /window\.KWEaglerCloudLoadNow/);
   assert.match(cloudSource, /PlatformFilesystem/);
