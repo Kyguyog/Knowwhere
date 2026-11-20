@@ -173,7 +173,38 @@
       return;
     }
     var btn = document.getElementById('kw-cloak-btn');
-    if (btn) btn.addEventListener('click', function () { __kwCloakNow(); });
+    if (btn) {
+      var holdTimer = null;
+      var holdTriggered = false;
+      function cancelHold() {
+        if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+      }
+      btn.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        cancelHold();
+        holdTriggered = false;
+        holdTimer = setTimeout(function () {
+          holdTimer = null;
+          holdTriggered = true;
+          __kwCloakSkip();
+        }, 5000);
+      });
+      btn.addEventListener('pointerup', cancelHold);
+      btn.addEventListener('pointercancel', cancelHold);
+      btn.addEventListener('pointerleave', cancelHold);
+      btn.addEventListener('contextmenu', function (e) {
+        if (holdTimer || holdTriggered) e.preventDefault();
+      });
+      btn.addEventListener('click', function (e) {
+        if (holdTriggered) {
+          e.preventDefault();
+          e.stopPropagation();
+          holdTriggered = false;
+          return;
+        }
+        __kwCloakNow();
+      });
+    }
     var seconds = 10;
     var counter = document.getElementById('kw-cloak-count');
     window._kwCloakTimer = setInterval(function () {
